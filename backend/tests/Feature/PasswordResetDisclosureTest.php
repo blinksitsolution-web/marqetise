@@ -89,7 +89,12 @@ class PasswordResetDisclosureTest extends TestCase
         $this->expectExceptionMessage('log or array mailer');
 
         $this->app->instance('env', 'production');
-        config(['mail.default' => 'log']);
+        config([
+            'mail.default' => 'log',
+            'app.debug' => false,
+            'session.secure' => true,
+            'sanctum.stateful' => ['app.example'],
+        ]);
 
         (new AppServiceProvider($this->app))->boot();
     }
