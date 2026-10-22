@@ -17,14 +17,22 @@ export default function DashboardPage() {
 
   if (!data && !error) return <Spinner label="Loading dashboard" />
 
-  const counts = data?.counts || {}
+  const counts = data?.counts ?? {}
+  const hasCount = (key) => Object.prototype.hasOwnProperty.call(counts, key)
+  const hasBlock = (key) => data != null && Object.prototype.hasOwnProperty.call(data, key)
   const maxStudents = Math.max(...(data?.enrolment_trend || []).map((item) => item.students), 0)
   const cards = [
-    ['Students', counts.students, can(user, 'students.view') ? '/admin/students' : null],
-    ['Published courses', counts.published_courses, can(user, 'courses.view') ? '/admin/courses' : null],
-    ['Users', counts.users, can(user, 'users.view') ? '/admin/users' : null],
-    ['New inquiries', counts.new_inquiries, can(user, 'inquiries.view') ? '/admin/inquiries' : null],
-  ]
+    ['Students', counts.students, '/admin/students', 'students'],
+    ['Published courses', counts.published_courses, '/admin/courses', 'published_courses'],
+    ['Users', counts.users, '/admin/users', 'users'],
+    ['New inquiries', counts.new_inquiries, '/admin/inquiries', 'new_inquiries'],
+  ].filter((card) => hasCount(card[3]))
+  const cardPermissions = {
+    students: 'students.view',
+    published_courses: 'courses.view',
+    users: 'users.view',
+    new_inquiries: 'inquiries.view',
+  }
 
   return (
     <>
@@ -33,64 +41,78 @@ export default function DashboardPage() {
       <p className="mt-1 text-sm text-muted">Counts come from the database.</p>
       {error ? <p className="mt-4 text-red-700" role="alert">{error}</p> : null}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map(([label, value, href]) => (
-          <article key={label} className="rounded-2xl bg-white p-5">
+        {cards.map(([label, value, href, key]) => (
+          <article key={key} className="rounded-2xl bg-white p-5">
             <p className="text-sm text-muted">{label}</p>
             <p className="mt-2 text-3xl font-semibold">{value ?? '—'}</p>
-            {href ? <Link to={href} className="mt-3 inline-flex text-sm font-semibold text-blue">Open</Link> : null}
+            {can(user, cardPermissions[key]) ? <Link to={href} className="mt-3 inline-flex text-sm font-semibold text-blue">Open</Link> : null}
           </article>
         ))}
       </div>
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <section className="rounded-2xl bg-white p-5">
-          <h2 className="font-semibold">New students, last 12 months</h2>
-          {maxStudents === 0 ? <p className="mt-6 text-sm text-muted">No student records in this range.</p> : (
-            <div className="mt-6 flex h-40 items-end gap-2">
-              {data.enrolment_trend.map((item) => (
-                <div key={item.month} className="flex flex-1 flex-col items-center gap-2">
-                  <div className="w-full rounded-t-lg bg-blue" style={{ height: `${Math.max(8, (item.students / maxStudents) * 100)}%` }} title={`${item.students} students`} />
-                  <span className="text-[10px] text-muted">{item.label}</span>
+      {hasBlock('enrolment_trend') || hasBlock('course_enrolments') ? (
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          {hasBlock('enrolment_trend') ? (
+            <section className="rounded-2xl bg-white p-5">
+              <h2 className="font-semibold">New students, last 12 months</h2>
+              {maxStudents === 0 ? <p className="mt-6 text-sm text-muted">No student records in this range.</p> : (
+                <div className="mt-6 flex h-40 items-end gap-2">
+                  {data.enrolment_trend.map((item) => (
+                    <div key={item.month} className="flex flex-1 flex-col items-center gap-2">
+                      <div className="w-full rounded-t-lg bg-blue" style={{ height: `${Math.max(8, (item.students / maxStudents) * 100)}%` }} title={`${item.students} students`} />
+                      <span className="text-[10px] text-muted">{item.label}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </section>
-        <section className="rounded-2xl bg-white p-5">
-          <h2 className="font-semibold">Students by course</h2>
-          {(data?.course_enrolments || []).every((course) => course.students === 0) ? <p className="mt-6 text-sm text-muted">No course enrolments yet.</p> : (
-            <ul className="mt-4 space-y-3">
-              {data.course_enrolments.map((course) => (
-                <li key={course.id} className="flex items-center justify-between text-sm">
-                  <span>{course.title}</span>
-                  <span className="font-semibold">{course.students}</span>
-                </li>
-              ))}
+              )}
+            </section>
+          ) : null}
+          {hasBlock('course_enrolments') ? (
+            <section className="rounded-2xl bg-white p-5">
+              <h2 className="font-semibold">Students by course</h2>
+              {data.course_enrolments.every((course) => course.students === 0) ? <p className="mt-6 text-sm text-muted">No course enrolments yet.</p> : (
+                <ul className="mt-4 space-y-3">
+                  {data.course_enrolments.map((course) => (
+                    <li key={course.id} className="flex items-center justify-between text-sm">
+                      <span>{course.title}</span>
+                      <span className="font-semibold">{course.students}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+        </div>
+      ) : null}
+      {hasBlock('recent_inquiries') || hasBlock('upcoming_bookings') ? (
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          {hasBlock('recent_inquiries') ? (
+            <RecordList title="Recent inquiries" rows={data.recent_inquiries} empty="No inquiries yet." render={(row) => (
+              <div className="flex items-center justify-between gap-3">
+                <div><p className="font-medium">{row.name}</p><p className="text-xs text-muted">{row.subject}</p></div>
+                <Badge tone={statusTone(row.status)}>{row.status}</Badge>
+              </div>
+            )} />
+          ) : null}
+          {hasBlock('upcoming_bookings') ? (
+            <RecordList title="Upcoming bookings" rows={data.upcoming_bookings} empty="No upcoming bookings." render={(row) => (
+              <div className="flex items-center justify-between gap-3">
+                <div><p className="font-medium">{row.name}</p><p className="text-xs text-muted">{row.service_name} · {formatDate(row.preferred_date)} {row.preferred_time}</p></div>
+                <Badge tone={statusTone(row.status)}>{row.status}</Badge>
+              </div>
+            )} />
+          ) : null}
+        </div>
+      ) : null}
+      {hasBlock('activity') ? (
+        data.activity.length ? (
+          <section className="mt-6 rounded-2xl bg-white p-5">
+            <h2 className="font-semibold">Recent activity</h2>
+            <ul className="mt-4 space-y-2 text-sm">
+              {data.activity.map((item) => <li key={item.id}>{item.actor || 'System'} · {item.action} · {formatDate(item.created_at)}</li>)}
             </ul>
-          )}
-        </section>
-      </div>
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <RecordList title="Recent inquiries" rows={data?.recent_inquiries} empty="No inquiries yet." render={(row) => (
-          <div className="flex items-center justify-between gap-3">
-            <div><p className="font-medium">{row.name}</p><p className="text-xs text-muted">{row.subject}</p></div>
-            <Badge tone={statusTone(row.status)}>{row.status}</Badge>
-          </div>
-        )} />
-        <RecordList title="Upcoming bookings" rows={data?.upcoming_bookings} empty="No upcoming bookings." render={(row) => (
-          <div className="flex items-center justify-between gap-3">
-            <div><p className="font-medium">{row.name}</p><p className="text-xs text-muted">{row.service_name} · {formatDate(row.preferred_date)} {row.preferred_time}</p></div>
-            <Badge tone={statusTone(row.status)}>{row.status}</Badge>
-          </div>
-        )} />
-      </div>
-      {data?.activity?.length ? (
-        <section className="mt-6 rounded-2xl bg-white p-5">
-          <h2 className="font-semibold">Recent activity</h2>
-          <ul className="mt-4 space-y-2 text-sm">
-            {data.activity.map((item) => <li key={item.id}>{item.actor || 'System'} · {item.action} · {formatDate(item.created_at)}</li>)}
-          </ul>
-        </section>
-      ) : <div className="mt-6"><EmptyState title="No activity yet" body="Sensitive admin actions will be listed here for people who can view the audit log." /></div>}
+          </section>
+        ) : <div className="mt-6"><EmptyState title="No activity yet" body="Sensitive admin actions will be listed here for people who can view the audit log." /></div>
+      ) : null}
     </>
   )
 }
