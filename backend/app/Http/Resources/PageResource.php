@@ -9,7 +9,7 @@ class PageResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
@@ -20,7 +20,12 @@ class PageResource extends JsonResource
             'status' => $this->status,
             'published_at' => $this->published_at,
             'updated_at' => $this->updated_at,
-            'editor' => $this->editor?->name,
         ];
+
+        if ($request->user() && $this->relationLoaded('editor')) {
+            $data['editor'] = $this->editor?->name;
+        }
+
+        return $data;
     }
 }
