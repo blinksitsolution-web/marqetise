@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Http\Controllers\Api\V1\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateBookingRequest;
+use App\Http\Resources\BookingResource;
+use App\Models\Booking;
+use App\Services\AuditLogger;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+
+class BookingController extends Controller
+{
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        $query = Booking::query()->with('assignee:id,name');
+
+        if ($search = trim((string) $request->query('search', ''))) {
+            $like = '%'.addcslashes($search, '%_\\').'%';
+            $query->where(function ($inner) use ($like) {
+                $inner->where('name', 'like', $like)
+                    ->orWhere('email', 'like', $like)
+                    ->orWhere('reference', 'like', $like)
+                    ->orWhere('service_name', 'like', $like);
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->string('status'));
+        }
+
+        if ($request->filled('from')) {
+            $query->whereDate('preferred_date', '>=', $request->date('from'));
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('preferred_date', '<=', $request->date('to'));
+        }
+
+        return BookingResource::collection($query->orderBy('preferred_date')->paginate(15));
+    }
+
+    public function show(Booking $booking): BookingResource
+    {
+        return new BookingResource($booking->load('assignee:id,name'));
+    }
+
+    public function update(UpdateBookingRequest $request, Booking $booking, AuditLogger $audit): BookingResource
+    {
+        $from = $booking->status;
+        $booking->update($request->validated());
+        $audit->log('booking.updated', $booking, ['from' => $from, 'to' => $booking->status]);
+
+        return new BookingResource($booking->load('assignee'));
+    }
+}
