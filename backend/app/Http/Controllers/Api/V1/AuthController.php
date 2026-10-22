@@ -9,6 +9,8 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\AuthenticatedSessionRevoker;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -77,17 +79,19 @@ class AuthController extends Controller
         ]);
     }
 
-    public function resetPassword(ResetPasswordRequest $request, AuditLogger $audit): JsonResponse
+    public function resetPassword(ResetPasswordRequest $request, AuditLogger $audit, AuthenticatedSessionRevoker $sessions): JsonResponse
     {
         $status = Password::broker()->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password) use ($audit): void {
+            function (User $user, string $password) use ($audit, $request, $sessions): void {
                 $user->forceFill([
                     'password' => $password,
                     'status' => $user->status === 'invited' ? 'active' : $user->status,
                     'email_verified_at' => $user->email_verified_at ?? now(),
                 ])->save();
 
+                $sessions->revokeAfterPasswordChange($user, $password, $request, keepCurrent: false);
+                event(new PasswordReset($user));
                 $audit->log('auth.password_reset', $user);
             },
         );
