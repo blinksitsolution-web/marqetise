@@ -174,11 +174,17 @@ export function PermissionsPage() {
 
 export function SettingsPage() {
   const [settings, setSettings] = useState(null)
+  const [mailCanDeliver, setMailCanDeliver] = useState(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
+  function applySettings(response) {
+    setSettings(response.data.data)
+    setMailCanDeliver(response.data.mail_can_deliver)
+  }
+
   useEffect(() => {
-    api.get('/api/v1/admin/settings').then((response) => setSettings(response.data.data))
+    api.get('/api/v1/admin/settings').then(applySettings)
   }, [])
 
   async function save(event) {
@@ -187,7 +193,7 @@ export function SettingsPage() {
     try {
       await ensureCsrf()
       const response = await api.put('/api/v1/admin/settings', { settings })
-      setSettings(response.data.data)
+      applySettings(response)
       setMessage('Settings saved. Secrets and database credentials are not available here.')
     } catch (saveError) {
       setError(errorMessage(saveError))
@@ -229,6 +235,7 @@ export function SettingsPage() {
       <h1 className="text-2xl font-semibold">Settings</h1>
       {message ? <Notice tone="success">{message}</Notice> : null}
       {error ? <Notice tone="error">{error}</Notice> : null}
+      {mailCanDeliver === false ? <Notice tone="error">Email delivery is not configured. Reset and invitation emails are not being sent.</Notice> : null}
       {fields.map(([key, label]) => (
         <Field key={key} label={label}>
           <input className={inputClass} value={settings[key] || ''} onChange={(event) => setSettings({ ...settings, [key]: event.target.value })} />

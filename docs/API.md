@@ -30,7 +30,7 @@ Inquiry and booking responses include `email_delivered`. That value is true only
 | POST | `/api/v1/auth/login` | Email, password, optional `remember` |
 | POST | `/api/v1/auth/logout` | End the session |
 | GET | `/api/v1/auth/user` | Current staff user and permission slugs |
-| POST | `/api/v1/auth/forgot-password` | Same response whether or not the email exists |
+| POST | `/api/v1/auth/forgot-password` | Always returns `{"message":"If an account exists, we've sent a link."}` |
 | POST | `/api/v1/auth/reset-password` | `token`, `email`, `password`, `password_confirmation` |
 | PATCH | `/api/v1/account` | Update own name, phone, or password |
 

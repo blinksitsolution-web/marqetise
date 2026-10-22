@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateSettingsRequest;
 use App\Models\Setting;
 use App\Services\AuditLogger;
+use App\Services\MailStatus;
 use Illuminate\Http\JsonResponse;
 
 class SettingController extends Controller
@@ -16,7 +17,10 @@ class SettingController extends Controller
         $settings = Setting::query()->whereIn('key', $keys)->get()
             ->mapWithKeys(fn (Setting $setting) => [$setting->key => Setting::getValue($setting->key)]);
 
-        return response()->json(['data' => $settings]);
+        return response()->json([
+            'data' => $settings,
+            'mail_can_deliver' => app(MailStatus::class)->canDeliver(),
+        ]);
     }
 
     public function update(UpdateSettingsRequest $request, AuditLogger $audit): JsonResponse

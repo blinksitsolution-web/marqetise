@@ -58,9 +58,9 @@ class UserController extends Controller
         ]);
 
         $delivered = false;
-        if (! $suspended && $request->boolean('send_invite', true)) {
+        if (! $suspended && $request->boolean('send_invite', true) && $mail->canDeliver()) {
             Password::broker()->sendResetLink(['email' => $user->email]);
-            $delivered = $mail->canDeliver();
+            $delivered = true;
         }
 
         $audit->log('user.created', $user, ['role' => $role->slug, 'email_delivered' => $delivered]);
@@ -70,7 +70,7 @@ class UserController extends Controller
                 ? 'The account was created and suspended.'
                 : ($delivered
                     ? 'The account was created and an invitation email was sent.'
-                    : 'The account was created. Email delivery is not configured, so the invitation link was written to the application log.'),
+                    : 'The account was created. Email delivery is not configured, so an invitation email was not sent.'),
             'email_delivered' => $delivered,
         ])->response()->setStatusCode(201);
     }

@@ -9,6 +9,7 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\MailStatus;
 use App\Services\AuthenticatedSessionRevoker;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
@@ -65,17 +66,16 @@ class AuthController extends Controller
         return new UserResource($request->user()->load('role.permissions'));
     }
 
-    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    public function forgotPassword(ForgotPasswordRequest $request, MailStatus $mail): JsonResponse
     {
         $user = User::query()->where('email', $request->string('email'))->first();
 
-        if ($user && $user->status !== 'suspended') {
+        if ($user && $user->status !== 'suspended' && $mail->canDeliver()) {
             Password::broker()->sendResetLink(['email' => $user->email]);
         }
 
         return response()->json([
-            'message' => 'If an account can sign in with that email, reset instructions have been generated. When email delivery is not configured, the link is written to the application log.',
-            'email_configured' => app(\App\Services\MailStatus::class)->canDeliver(),
+            'message' => "If an account exists, we've sent a link.",
         ]);
     }
 
