@@ -18,7 +18,19 @@ npm ci
 npm run build
 ```
 
-Copy `frontend/dist` to the directory your web server uses for the public site, or let Laravel serve `index.html` for non-API routes if you choose a single document root. Do not commit `frontend/dist`.
+Copy `frontend/dist` to the directory your web server uses for the public site, or let Laravel serve `index.html` for non-API routes if you choose a single document root. Do not commit `frontend/dist`. Do not publish `frontend/dist` source maps. The Vite build sets `sourcemap: false`.
+
+## Security headers
+
+Laravel sends these headers on API and web responses: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`, `Content-Security-Policy: frame-ancestors 'none'`, and `Permissions-Policy: camera=(), microphone=(), geolocation=()`. `Strict-Transport-Security` is added only when `APP_ENV=production`.
+
+The static host that serves the React build must send its own headers, because those HTML and asset responses do not pass through Laravel. Start with report-only, watch the browser console for violations, then send the same policy as `Content-Security-Policy`.
+
+```
+Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+```
+
+`style-src` allows inline styles because a few components set a height or width in a `style` attribute. `connect-src 'self'` matches a same-origin API. Add the API origin there if the site and API use different hostnames. After a clean report-only period, replace the header name with `Content-Security-Policy`. Also send `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, and HSTS on the static host.
 
 ## Laravel
 
