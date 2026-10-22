@@ -34,7 +34,7 @@ Inquiry and booking responses include `email_delivered`. That value is true only
 | POST | `/api/v1/auth/reset-password` | `token`, `email`, `password`, `password_confirmation` |
 | PATCH | `/api/v1/account` | Update own name, phone, or password |
 
-Login and password routes are limited to 5 requests a minute. Inquiry and booking routes use the same limit per IP address.
+Login and password routes are limited to 5 requests a minute per email and IP address. After 10 failed sign-ins for one email within 15 minutes, that email stays locked for 15 minutes and still receives the same error. Authenticated API requests are limited to 60 a minute. Public GET requests are limited to 120 a minute per IP address. Inquiry and booking routes are limited to 5 requests a minute per IP address. `PATCH /account` and `POST /auth/logout` use the authenticated API limit.
 
 ## Admin
 
