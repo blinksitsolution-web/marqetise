@@ -82,6 +82,8 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user, StaffAccountGuard $guard, AuditLogger $audit): UserResource
     {
+        $this->authorize('update', $user);
+
         $role = $request->filled('role_id')
             ? Role::query()->findOrFail($request->integer('role_id'))
             : $user->role;
@@ -105,6 +107,8 @@ class UserController extends Controller
 
     public function destroy(Request $request, User $user, AuditLogger $audit): Response
     {
+        $this->authorize('delete', $user);
+
         abort_if($request->user()->is($user), 403, 'You cannot delete your own account.');
         abort_if($user->isLastActiveSuperAdmin(), 403, 'The last active Super Administrator cannot be removed.');
         abort_if($user->isSuperAdmin() && ! $request->user()->isSuperAdmin(), 403, 'You cannot delete a Super Administrator.');

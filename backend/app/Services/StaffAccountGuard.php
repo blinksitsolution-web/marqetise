@@ -34,6 +34,10 @@ class StaffAccountGuard
 
     public function assertCanChangeStatus(User $actor, User $target, string $status, ?Role $nextRole = null): void
     {
+        if ($target->isSuperAdmin() && ! $actor->isSuperAdmin()) {
+            abort(403, 'You cannot change a Super Administrator.');
+        }
+
         if ($actor->is($target) && $status !== 'active') {
             abort(403, 'You cannot deactivate your own account.');
         }
