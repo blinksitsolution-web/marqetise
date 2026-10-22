@@ -16,13 +16,25 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     public function login(LoginRequest $request, AuditLogger $audit): UserResource
     {
+        $email = strtolower($request->string('email')->value());
+        $lockKey = 'login-lockout:'.$email;
+
+        if (RateLimiter::tooManyAttempts($lockKey, 10)) {
+            throw ValidationException::withMessages([
+                'email' => 'Incorrect email or password.',
+            ]);
+        }
+
         if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+            RateLimiter::hit($lockKey, 900);
+
             throw ValidationException::withMessages([
                 'email' => 'Incorrect email or password.',
             ]);
@@ -43,6 +55,7 @@ class AuthController extends Controller
             ]);
         }
 
+        RateLimiter::clear($lockKey);
         $request->session()->regenerate();
         $user->forceFill(['last_login_at' => now()])->save();
         $audit->log('auth.login', $user);
