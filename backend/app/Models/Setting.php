@@ -19,13 +19,22 @@ class Setting extends Model
     {
         $setting = static::query()->where('key', $key)->first();
 
-        if ($setting === null || $setting->value === null || $setting->value === '') {
+        if ($setting === null) {
             return $default;
         }
 
-        $decoded = json_decode($setting->value, true);
+        return static::decodeStored($setting->value, $default);
+    }
 
-        return json_last_error() === JSON_ERROR_NONE ? $decoded : $setting->value;
+    public static function decodeStored(mixed $value, mixed $default = null): mixed
+    {
+        if ($value === null || $value === '') {
+            return $default;
+        }
+
+        $decoded = json_decode((string) $value, true);
+
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : $value;
     }
 
     public static function putValue(string $key, mixed $value, string $group = 'general', bool $isPublic = false): void

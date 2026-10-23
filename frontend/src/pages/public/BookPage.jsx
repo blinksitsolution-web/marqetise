@@ -11,6 +11,7 @@ import { BOOKING_TIMES, toIsoDate, weekdaySlots } from '../../utils/format'
 export default function BookPage() {
   const { slug } = useParams()
   const [services, setServices] = useState([])
+  const [serviceError, setServiceError] = useState('')
   const [month, setMonth] = useState(() => new Date())
   const [status, setStatus] = useState(null)
   const form = useForm({
@@ -30,7 +31,7 @@ export default function BookPage() {
       const match = rows.find((service) => service.slug === slug)
       if (match) form.setValue('service_id', String(match.id))
     }).catch(() => {
-      if (active) setServices([])
+      if (active) setServiceError('Services could not be loaded.')
     })
     return () => {
       active = false
@@ -74,6 +75,7 @@ export default function BookPage() {
           {status ? <Notice tone={status.tone}>{status.text}</Notice> : null}
           <fieldset>
             <legend className="text-lg font-semibold">Service</legend>
+            {serviceError ? <p className="mt-2 text-sm text-red-700" role="alert">{serviceError}</p> : null}
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {services.map((service) => (
                 <label key={service.id} className={`rounded-2xl border p-4 ${form.watch('service_id') === String(service.id) ? 'border-brand' : 'border-line'}`}>
@@ -89,8 +91,8 @@ export default function BookPage() {
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">{month.toLocaleString('en-GB', { month: 'long', year: 'numeric' })}</h2>
               <div className="flex gap-2">
-                <button type="button" className="rounded-full border border-line px-3 py-1" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>Prev</button>
-                <button type="button" className="rounded-full border border-line px-3 py-1" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>Next</button>
+                <button type="button" className="inline-flex min-h-11 items-center rounded-full border border-line px-4" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}>Prev</button>
+                <button type="button" className="inline-flex min-h-11 items-center rounded-full border border-line px-4" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}>Next</button>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-7 gap-1 text-center text-xs text-muted">
@@ -107,7 +109,7 @@ export default function BookPage() {
                     type="button"
                     disabled={disabled}
                     onClick={() => form.setValue('preferred_date', iso, { shouldValidate: true })}
-                    className={`rounded-xl py-2 text-sm ${selected ? 'bg-brand text-white' : 'bg-surface'} disabled:opacity-30`}
+                    className={`min-h-11 rounded-xl py-2 text-sm ${selected ? 'bg-blue text-white' : 'bg-surface'} disabled:opacity-30`}
                   >
                     {date.getDate()}
                   </button>

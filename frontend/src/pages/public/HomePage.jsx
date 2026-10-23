@@ -33,7 +33,7 @@ export default function HomePage() {
             </h1>
             <p className="mt-5 max-w-xl text-lg text-white/75">{hero?.subcopy}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to={hero?.primary_href || '/book'} className="rounded-full bg-brand px-5 py-3 text-sm font-semibold">{hero?.primary_label || 'Book a strategy call'}</Link>
+              <Link to={hero?.primary_href || '/book'} className="inline-flex min-h-11 items-center rounded-full bg-brand px-5 text-lg font-bold text-ink">{hero?.primary_label || 'Book a strategy call'}</Link>
               <Link to={hero?.secondary_href || '/courses'} className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold">{hero?.secondary_label || 'Explore courses'}</Link>
             </div>
           </div>
@@ -41,10 +41,10 @@ export default function HomePage() {
             <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full border border-brand/40" aria-hidden="true" />
             <p className="text-sm text-white/60">What we work on</p>
             <ul className="mt-6 grid gap-3 sm:grid-cols-2">
-              {['Search', 'Content', 'Paid media', 'Training'].map((label) => (
-                <li key={label} className="rounded-2xl bg-white/5 px-4 py-5">
-                  <span className="text-sm text-white/50">Practice</span>
-                  <p className="mt-2 text-lg font-semibold">{label}</p>
+              {items(blocks['home.focus']).map((item) => (
+                <li key={item.title} className="rounded-2xl bg-white/5 px-4 py-5">
+                  <p className="text-lg font-semibold">{item.title}</p>
+                  {item.body ? <p className="mt-2 text-sm text-white/70">{item.body}</p> : null}
                 </li>
               ))}
             </ul>
@@ -52,6 +52,20 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {items(blocks['home.stats']).length ? (
+        <section className="mx-auto max-w-6xl px-4 py-10">
+          <h2 className="text-2xl font-semibold">{blocks['home.stats']?.payload?.title || 'Results'}</h2>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {items(blocks['home.stats']).map((item) => (
+              <li key={item.label || item.title} className="rounded-3xl border border-line p-5">
+                <p className="text-3xl font-semibold">{item.value}</p>
+                <p className="mt-2 text-sm text-muted">{item.label || item.title}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {error ? <p className="mx-auto max-w-6xl px-4 py-6 text-red-700" role="alert">{error}</p> : null}
 
@@ -68,7 +82,7 @@ export default function HomePage() {
             <article key={service.id} className="rounded-3xl border border-line bg-white p-6">
               <h3 className="text-xl font-semibold">{service.name}</h3>
               <p className="mt-3 text-sm leading-6 text-muted">{service.summary}</p>
-              <Link to={`/book/${service.slug}`} className="mt-5 inline-flex text-sm font-semibold text-brand">Book this service</Link>
+              <Link to={`/book/${service.slug}`} className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-blue">Book this service</Link>
             </article>
           ))}
         </div>
@@ -103,7 +117,7 @@ export default function HomePage() {
                 <h3 className="mt-3 text-2xl font-semibold">{course.title}</h3>
                 <p className="mt-3 flex-1 text-sm text-white/70">{course.summary}</p>
                 <div className="mt-6 flex items-center justify-between">
-                  <span className="font-semibold text-brand">{formatPrice(course)}</span>
+                  <span className="font-semibold text-white">{formatPrice(course)}</span>
                   <Link to={`/courses/${course.slug}`} className="text-sm font-semibold">View details</Link>
                 </div>
               </article>
@@ -119,7 +133,7 @@ export default function HomePage() {
             <ol className="mt-8 grid gap-4 md:grid-cols-4">
               {items(blocks['home.process']).map((item, index) => (
                 <li key={item.title} className="rounded-3xl bg-white p-5">
-                  <span className="text-sm font-semibold text-brand">0{index + 1}</span>
+                  <span className="text-sm font-semibold text-blue">0{index + 1}</span>
                   <h3 className="mt-3 font-semibold">{item.title}</h3>
                   <p className="mt-2 text-sm text-muted">{item.body}</p>
                 </li>

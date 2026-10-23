@@ -31,12 +31,12 @@ export function CourseAdminListPage() {
       <input className={`${inputClass} mt-4 max-w-sm`} placeholder="Search courses" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search courses" />
       {!rows ? <div className="mt-6"><Spinner /></div> : rows.length === 0 ? <div className="mt-6"><EmptyState title="No courses" body="Published courses are the only ones visitors can open." /></div> : (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="record-table w-full text-left text-sm">
             <thead className="text-muted"><tr><th className="px-4 py-3">Course</th><th>Price</th><th>Status</th><th>Students</th><th /></tr></thead>
             <tbody>
               {rows.map((course) => (
                 <tr key={course.id} className="border-t border-line">
-                  <td className="px-4 py-3"><p className="font-medium">{course.title}</p><p className="text-xs text-muted">{course.category} · {course.level}</p></td>
+                  <td className="px-4 py-3" data-label="Course"><p className="font-medium">{course.title}</p><p className="text-xs text-muted">{course.category} · {course.level}</p></td>
                   <td>{formatPrice(course)}</td>
                   <td><Badge tone={statusTone(course.status)}>{course.status}</Badge></td>
                   <td>{course.students_count ?? 0}</td>

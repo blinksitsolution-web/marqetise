@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { Badge, EmptyState, Spinner, statusTone } from '../../components/ui'
+import { Badge, EmptyState, Skeleton, statusTone } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
 import { api, can } from '../../services/api'
 import { formatDate } from '../../utils/format'
@@ -15,7 +15,7 @@ export default function DashboardPage() {
     api.get('/api/v1/admin/dashboard').then((response) => setData(response.data.data)).catch(() => setError('The dashboard could not be loaded.'))
   }, [])
 
-  if (!data && !error) return <Spinner label="Loading dashboard" />
+  if (!data && !error) return <Skeleton label="Loading dashboard" />
 
   const counts = data?.counts ?? {}
   const hasCount = (key) => Object.prototype.hasOwnProperty.call(counts, key)
@@ -39,6 +39,16 @@ export default function DashboardPage() {
       <Seo title="Dashboard" path="/admin" robots="noindex,nofollow" />
       <h1 className="text-2xl font-semibold">Welcome back, {user?.name?.split(' ')[0]}</h1>
       <p className="mt-1 text-sm text-muted">Counts come from the database.</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        {[
+          can(user, 'content.manage') ? ['New page', '/admin/cms/pages/new'] : null,
+          can(user, 'inquiries.view') ? ['Review inquiries', '/admin/inquiries'] : null,
+          can(user, 'bookings.view') ? ['Review bookings', '/admin/bookings'] : null,
+          can(user, 'students.view') ? ['Students', '/admin/students'] : null,
+        ].filter(Boolean).map(([label, href]) => (
+          <Link key={href} to={href} className="inline-flex min-h-11 items-center rounded-full bg-white px-4 text-sm font-semibold text-blue">{label}</Link>
+        ))}
+      </div>
       {error ? <p className="mt-4 text-red-700" role="alert">{error}</p> : null}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(([label, value, href, key]) => (
@@ -55,14 +65,7 @@ export default function DashboardPage() {
             <section className="rounded-2xl bg-white p-5">
               <h2 className="font-semibold">New students, last 12 months</h2>
               {maxStudents === 0 ? <p className="mt-6 text-sm text-muted">No student records in this range.</p> : (
-                <div className="mt-6 flex h-40 items-end gap-2">
-                  {data.enrolment_trend.map((item) => (
-                    <div key={item.month} className="flex flex-1 flex-col items-center gap-2">
-                      <div className="w-full rounded-t-lg bg-blue" style={{ height: `${Math.max(8, (item.students / maxStudents) * 100)}%` }} title={`${item.students} students`} />
-                      <span className="text-[10px] text-muted">{item.label}</span>
-                    </div>
-                  ))}
-                </div>
+                <TrendChart points={data.enrolment_trend} maxStudents={maxStudents} />
               )}
             </section>
           ) : null}
@@ -114,6 +117,28 @@ export default function DashboardPage() {
         ) : <div className="mt-6"><EmptyState title="No activity yet" body="Sensitive admin actions will be listed here for people who can view the audit log." /></div>
       ) : null}
     </>
+  )
+}
+
+function TrendChart({ points, maxStudents }) {
+  const width = 240
+  const height = 80
+  const step = points.length > 1 ? width / (points.length - 1) : width
+  const coords = points.map((item, index) => {
+    const x = index * step
+    const y = height - ((item.students / maxStudents) * (height - 8)) - 4
+    return `${x},${y}`
+  }).join(' ')
+
+  return (
+    <div className="mt-6">
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-40 w-full text-blue" role="img" aria-label="New students by month">
+        <polyline fill="none" stroke="currentColor" strokeWidth="2" points={coords} />
+      </svg>
+      <ul className="mt-2 flex justify-between text-[10px] text-muted">
+        {points.filter((_, index) => index % 2 === 0).map((item) => <li key={item.month}>{item.label} {item.students}</li>)}
+      </ul>
+    </div>
   )
 }
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { Badge, Button, EmptyState, Field, Modal, Notice, Spinner, inputClass, statusTone } from '../../components/ui'
+import { Badge, Button, EmptyState, Field, Modal, Notice, Skeleton, Spinner, inputClass, statusTone } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
 import { api, can, ensureCsrf, errorMessage } from '../../services/api'
 import { formatDate } from '../../utils/format'
@@ -36,18 +36,18 @@ export function InquiriesPage() {
         </select>
       </div>
       {error ? <p className="mt-4 text-red-700">{error}</p> : null}
-      {!rows ? <div className="mt-6"><Spinner /></div> : data.length === 0 ? <div className="mt-6"><EmptyState title="No inquiries" body="Messages from the contact form will appear here." /></div> : (
+      {!rows ? (error ? null : <Skeleton label="Loading records" />) : data.length === 0 ? <div className="mt-6"><EmptyState title="No inquiries" body="Messages from the contact form will appear here." /></div> : (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
-          <table className="w-full min-w-[720px] text-left text-sm">
+          <table className="record-table w-full text-left text-sm">
             <thead className="text-muted"><tr><th className="px-4 py-3">From</th><th>Subject</th><th>Status</th><th>Received</th><th /></tr></thead>
             <tbody>
               {data.map((inquiry) => (
                 <tr key={inquiry.id} className="border-t border-line">
-                  <td className="px-4 py-3"><p className="font-medium">{inquiry.name}</p><p className="text-xs text-muted">{inquiry.email}</p></td>
-                  <td>{inquiry.subject}</td>
-                  <td><Badge tone={statusTone(inquiry.status)}>{inquiry.status.replace('_', ' ')}</Badge></td>
-                  <td>{formatDate(inquiry.created_at)}</td>
-                  <td className="px-4 text-right"><Link className="font-semibold text-blue" to={`/admin/inquiries/${inquiry.id}`}>Open</Link></td>
+                  <td className="px-4 py-3" data-label="From"><p className="font-medium">{inquiry.name}</p><p className="text-xs text-muted">{inquiry.email}</p></td>
+                  <td data-label="Subject">{inquiry.subject}</td>
+                  <td data-label="Status"><Badge tone={statusTone(inquiry.status)}>{inquiry.status.replace('_', ' ')}</Badge></td>
+                  <td data-label="Received">{formatDate(inquiry.created_at)}</td>
+                  <td className="px-4 text-right" data-label=""><Link className="inline-flex min-h-11 items-center font-semibold text-blue" to={`/admin/inquiries/${inquiry.id}`}>Open</Link></td>
                 </tr>
               ))}
             </tbody>
@@ -64,34 +64,55 @@ export function InquiryDetailPage() {
   const [inquiry, setInquiry] = useState(null)
   const [note, setNote] = useState('')
   const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
 
   function load() {
-    api.get(`/api/v1/admin/inquiries/${id}`).then((response) => setInquiry(response.data.data))
+    api.get(`/api/v1/admin/inquiries/${id}`)
+      .then((response) => setInquiry(response.data.data))
+      .catch((loadError) => setError(errorMessage(loadError, 'The inquiry could not be loaded.')))
   }
 
   useEffect(load, [id])
 
   async function updateStatus(status) {
-    await ensureCsrf()
-    await api.patch(`/api/v1/admin/inquiries/${id}`, { status })
-    load()
+    setError('')
+    try {
+      await ensureCsrf()
+      await api.patch(`/api/v1/admin/inquiries/${id}`, { status })
+      load()
+    } catch (saveError) {
+      setError(errorMessage(saveError, 'The status was not saved.'))
+    }
   }
 
   async function addNote(event) {
     event.preventDefault()
-    await ensureCsrf()
-    await api.post(`/api/v1/admin/inquiries/${id}/notes`, { body: note })
-    setNote('')
-    setMessage('Note saved. It is only visible to staff.')
-    load()
+    setError('')
+    try {
+      await ensureCsrf()
+      await api.post(`/api/v1/admin/inquiries/${id}/notes`, { body: note })
+      setNote('')
+      setMessage('Note saved. It is only visible to staff.')
+      load()
+    } catch (saveError) {
+      setError(errorMessage(saveError, 'The note was not saved.'))
+    }
   }
 
   async function createStudent() {
-    await ensureCsrf()
-    const response = await api.post(`/api/v1/admin/inquiries/${id}/student`)
-    setMessage(`Student record ${response.data.data.id} was created with waitlist status.`)
+    setError('')
+    try {
+      await ensureCsrf()
+      const response = await api.post(`/api/v1/admin/inquiries/${id}/student`)
+      setMessage(response.data.created
+        ? `Student record ${response.data.data.id} was created with waitlist status.`
+        : `Student record ${response.data.data.id} was already created from this inquiry.`)
+    } catch (saveError) {
+      setError(errorMessage(saveError, 'The student record was not created.'))
+    }
   }
 
+  if (!inquiry && error) return <p className="text-red-700" role="alert">{error}</p>
   if (!inquiry) return <Spinner />
 
   return (
@@ -99,6 +120,7 @@ export function InquiryDetailPage() {
       <Seo title={inquiry.subject} path={`/admin/inquiries/${id}`} robots="noindex,nofollow" />
       <h1 className="text-2xl font-semibold">{inquiry.subject}</h1>
       {message ? <Notice tone="success">{message}</Notice> : null}
+      {error ? <Notice tone="error">{error}</Notice> : null}
       <p className="text-sm text-muted">{inquiry.name} · {inquiry.email} · {inquiry.type}</p>
       <p className="whitespace-pre-line rounded-2xl bg-white p-5">{inquiry.message}</p>
       {can(user, 'inquiries.manage') ? (
@@ -133,16 +155,24 @@ export function BookingsPage() {
   const [selected, setSelected] = useState(null)
   const data = rows?.data || []
 
+  const { user } = useAuth()
+  const [saveError, setSaveError] = useState('')
+
   async function save(event) {
     event.preventDefault()
-    await ensureCsrf()
-    await api.patch(`/api/v1/admin/bookings/${selected.id}`, {
-      status: selected.status,
-      internal_notes: selected.internal_notes,
-      cancellation_reason: selected.cancellation_reason,
-    })
-    setSelected(null)
-    reload()
+    setSaveError('')
+    try {
+      await ensureCsrf()
+      await api.patch(`/api/v1/admin/bookings/${selected.id}`, {
+        status: selected.status,
+        internal_notes: selected.internal_notes,
+        cancellation_reason: selected.cancellation_reason,
+      })
+      setSelected(null)
+      reload()
+    } catch (saveError) {
+      setSaveError(errorMessage(saveError, 'The booking was not saved.'))
+    }
   }
 
   return (
@@ -158,18 +188,18 @@ export function BookingsPage() {
         <option value="cancelled">Cancelled</option>
       </select>
       {error ? <p className="mt-4 text-red-700">{error}</p> : null}
-      {!rows ? <div className="mt-6"><Spinner /></div> : data.length === 0 ? <div className="mt-6"><EmptyState title="No bookings" body="Service requests from the public form will appear here." /></div> : (
+      {!rows ? (error ? null : <Skeleton label="Loading records" />) : data.length === 0 ? <div className="mt-6"><EmptyState title="No bookings" body="Service requests from the public form will appear here." /></div> : (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
-          <table className="w-full min-w-[760px] text-left text-sm">
+          <table className="record-table w-full text-left text-sm">
             <thead className="text-muted"><tr><th className="px-4 py-3">Reference</th><th>Client</th><th>When</th><th>Status</th><th /></tr></thead>
             <tbody>
               {data.map((booking) => (
                 <tr key={booking.id} className="border-t border-line">
-                  <td className="px-4 py-3">{booking.reference}<p className="text-xs text-muted">{booking.service_name}</p></td>
-                  <td>{booking.name}</td>
-                  <td>{formatDate(booking.preferred_date)} {booking.preferred_time}</td>
-                  <td><Badge tone={statusTone(booking.status)}>{booking.status}</Badge></td>
-                  <td className="px-4 text-right"><button type="button" className="font-semibold text-blue" onClick={() => setSelected(booking)}>Review</button></td>
+                  <td className="px-4 py-3" data-label="Reference">{booking.reference}<p className="text-xs text-muted">{booking.service_name}</p></td>
+                  <td data-label="Client">{booking.name}</td>
+                  <td data-label="When">{formatDate(booking.preferred_date)} {booking.preferred_time}</td>
+                  <td data-label="Status"><Badge tone={statusTone(booking.status)}>{booking.status}</Badge></td>
+                  <td className="px-4 text-right" data-label=""><button type="button" className="inline-flex min-h-11 items-center font-semibold text-blue" onClick={() => setSelected(booking)}>Review</button></td>
                 </tr>
               ))}
             </tbody>
@@ -179,11 +209,12 @@ export function BookingsPage() {
       {selected ? (
         <Modal title={selected.reference} onClose={() => setSelected(null)}>
           <form className="space-y-3" onSubmit={save}>
+            {saveError ? <Notice tone="error">{saveError}</Notice> : null}
             <p className="text-sm">{selected.goals}</p>
             <Field label="Status"><select className={inputClass} value={selected.status} onChange={(event) => setSelected({ ...selected, status: event.target.value })}><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></Field>
             <Field label="Internal notes"><textarea className={inputClass} value={selected.internal_notes || ''} onChange={(event) => setSelected({ ...selected, internal_notes: event.target.value })} /></Field>
             <Field label="Cancellation reason"><input className={inputClass} value={selected.cancellation_reason || ''} onChange={(event) => setSelected({ ...selected, cancellation_reason: event.target.value })} /></Field>
-            <Button type="submit" variant="blue">Save booking</Button>
+            {can(user, 'bookings.manage') ? <Button type="submit" variant="blue">Save booking</Button> : <p className="text-sm text-muted">You can review this booking. Saving it needs the manage permission.</p>}
           </form>
         </Modal>
       ) : null}
@@ -196,8 +227,14 @@ export function StudentsPage() {
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
-  const [form, setForm] = useState({ name: '', email: '', phone: '', status: 'waitlist', notes: '' })
-  const { rows, reload } = useRows(`/api/v1/admin/students?search=${encodeURIComponent(search)}`)
+  const [courses, setCourses] = useState([])
+  const [form, setForm] = useState({ name: '', email: '', phone: '', status: 'waitlist', course_id: '', notes: '' })
+  const { rows, error: loadError, reload } = useRows(`/api/v1/admin/students?search=${encodeURIComponent(search)}`)
+
+  useEffect(() => {
+    if (!can(user, 'students.manage')) return
+    api.get('/api/v1/admin/courses?per_page=100').then((response) => setCourses(response.data.data || [])).catch(() => setCourses([]))
+  }, [user])
   const data = rows?.data || []
 
   async function create(event) {
@@ -205,7 +242,7 @@ export function StudentsPage() {
     setError('')
     try {
       await ensureCsrf()
-      await api.post('/api/v1/admin/students', { ...form, phone: form.phone || null, notes: form.notes || null })
+      await api.post('/api/v1/admin/students', { ...form, phone: form.phone || null, notes: form.notes || null, course_id: form.course_id ? Number(form.course_id) : null })
       setOpen(false)
       reload()
     } catch (saveError) {
@@ -221,17 +258,18 @@ export function StudentsPage() {
         {can(user, 'students.manage') ? <Button variant="blue" onClick={() => setOpen(true)}>Add student</Button> : null}
       </div>
       <input className={`${inputClass} mt-4 max-w-sm`} aria-label="Search students" value={search} onChange={(event) => setSearch(event.target.value)} />
-      {!rows ? <div className="mt-6"><Spinner /></div> : data.length === 0 ? <div className="mt-6"><EmptyState title="No students" body="Student records are created by staff. The public site does not create them automatically." /></div> : (
+      {loadError ? <p className="mt-4 text-red-700" role="alert">{loadError}</p> : null}
+      {!rows ? (loadError ? null : <Skeleton label="Loading records" />) : data.length === 0 ? <div className="mt-6"><EmptyState title="No students" body="Student records are created by staff. The public site does not create them automatically." /></div> : (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
-          <table className="w-full min-w-[680px] text-left text-sm">
+          <table className="record-table w-full text-left text-sm">
             <thead className="text-muted"><tr><th className="px-4 py-3">Student</th><th>Course</th><th>Status</th><th /></tr></thead>
             <tbody>
               {data.map((student) => (
                 <tr key={student.id} className="border-t border-line">
-                  <td className="px-4 py-3"><p className="font-medium">{student.name}</p><p className="text-xs text-muted">{student.email}</p></td>
-                  <td>{student.course?.title || '—'}</td>
-                  <td><Badge tone={statusTone(student.status)}>{student.status}</Badge></td>
-                  <td className="px-4 text-right"><Link className="font-semibold text-blue" to={`/admin/students/${student.id}`}>Profile</Link></td>
+                  <td className="px-4 py-3" data-label="Student"><p className="font-medium">{student.name}</p><p className="text-xs text-muted">{student.email}</p></td>
+                  <td data-label="Course">{student.course?.title || '—'}</td>
+                  <td data-label="Status"><Badge tone={statusTone(student.status)}>{student.status}</Badge></td>
+                  <td className="px-4 text-right" data-label=""><Link className="inline-flex min-h-11 items-center font-semibold text-blue" to={`/admin/students/${student.id}`}>Profile</Link></td>
                 </tr>
               ))}
             </tbody>
@@ -246,6 +284,7 @@ export function StudentsPage() {
             <Field label="Email"><input className={inputClass} value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></Field>
             <Field label="Phone"><input className={inputClass} value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></Field>
             <Field label="Status"><select className={inputClass} value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}><option value="waitlist">Waitlist</option><option value="active">Active</option><option value="completed">Completed</option><option value="withdrawn">Withdrawn</option></select></Field>
+            <Field label="Course"><select className={inputClass} value={form.course_id} onChange={(event) => setForm({ ...form, course_id: event.target.value })}><option value="">No course</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}</select></Field>
             <Field label="Notes"><textarea className={inputClass} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></Field>
             <Button type="submit" variant="blue">Save student</Button>
           </form>
@@ -257,40 +296,60 @@ export function StudentsPage() {
 
 export function StudentProfilePage() {
   const { id } = useParams()
+  const { user } = useAuth()
+  const manageable = can(user, 'students.manage')
   const [student, setStudent] = useState(null)
+  const [courses, setCourses] = useState([])
   const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    api.get(`/api/v1/admin/students/${id}`).then((response) => setStudent(response.data.data))
+    api.get(`/api/v1/admin/students/${id}`)
+      .then((response) => setStudent({ ...response.data.data, course_id: response.data.data.course?.id || '' }))
+      .catch((loadError) => setError(errorMessage(loadError, 'The student record could not be loaded.')))
   }, [id])
+
+  useEffect(() => {
+    if (!manageable) return
+    api.get('/api/v1/admin/courses?per_page=100').then((response) => setCourses(response.data.data || [])).catch(() => setCourses([]))
+  }, [manageable])
 
   async function save(event) {
     event.preventDefault()
-    await ensureCsrf()
-    await api.put(`/api/v1/admin/students/${id}`, {
-      name: student.name,
-      email: student.email,
-      phone: student.phone,
-      status: student.status,
-      course_id: student.course?.id || null,
-      notes: student.notes,
-      enrolled_on: student.enrolled_on,
-    })
-    setMessage('Student record saved.')
+    setError('')
+    setMessage('')
+    try {
+      await ensureCsrf()
+      await api.put(`/api/v1/admin/students/${id}`, {
+        name: student.name,
+        email: student.email,
+        phone: student.phone,
+        status: student.status,
+        course_id: student.course_id ? Number(student.course_id) : null,
+        notes: student.notes,
+        enrolled_on: student.enrolled_on,
+      })
+      setMessage('Student record saved.')
+    } catch (saveError) {
+      setError(errorMessage(saveError, 'The student record was not saved.'))
+    }
   }
 
-  if (!student) return <Spinner />
+  if (!student && !error) return <Spinner />
+  if (!student) return <p className="text-red-700" role="alert">{error}</p>
 
   return (
     <form className="max-w-xl space-y-3" onSubmit={save}>
       <Seo title={student.name} path={`/admin/students/${id}`} robots="noindex,nofollow" />
       <h1 className="text-2xl font-semibold">{student.name}</h1>
       {message ? <Notice tone="success">{message}</Notice> : null}
-      <Field label="Name"><input className={inputClass} value={student.name} onChange={(event) => setStudent({ ...student, name: event.target.value })} /></Field>
-      <Field label="Email"><input className={inputClass} value={student.email} onChange={(event) => setStudent({ ...student, email: event.target.value })} /></Field>
-      <Field label="Status"><select className={inputClass} value={student.status} onChange={(event) => setStudent({ ...student, status: event.target.value })}><option value="waitlist">Waitlist</option><option value="active">Active</option><option value="completed">Completed</option><option value="withdrawn">Withdrawn</option></select></Field>
-      <Field label="Internal notes"><textarea className={inputClass} value={student.notes || ''} onChange={(event) => setStudent({ ...student, notes: event.target.value })} /></Field>
-      <Button type="submit" variant="blue">Save</Button>
+      {error ? <Notice tone="error">{error}</Notice> : null}
+      <Field label="Name"><input className={inputClass} value={student.name} disabled={!manageable} onChange={(event) => setStudent({ ...student, name: event.target.value })} /></Field>
+      <Field label="Email"><input className={inputClass} value={student.email} disabled={!manageable} onChange={(event) => setStudent({ ...student, email: event.target.value })} /></Field>
+      <Field label="Status"><select className={inputClass} value={student.status} disabled={!manageable} onChange={(event) => setStudent({ ...student, status: event.target.value })}><option value="waitlist">Waitlist</option><option value="active">Active</option><option value="completed">Completed</option><option value="withdrawn">Withdrawn</option></select></Field>
+      <Field label="Course"><select className={inputClass} value={student.course_id || ''} disabled={!manageable} onChange={(event) => setStudent({ ...student, course_id: event.target.value })}><option value="">No course</option>{student.course && !courses.some((course) => course.id === student.course.id) ? <option value={student.course.id}>{student.course.title}</option> : null}{courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}</select></Field>
+      <Field label="Internal notes"><textarea className={inputClass} value={student.notes || ''} disabled={!manageable} onChange={(event) => setStudent({ ...student, notes: event.target.value })} /></Field>
+      {manageable ? <Button type="submit" variant="blue">Save</Button> : <p className="text-sm text-muted">Saving a student record needs the manage permission.</p>}
     </form>
   )
 }

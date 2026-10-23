@@ -61,12 +61,12 @@ export function UsersPage() {
       <input className={`${inputClass} mt-4 max-w-sm`} aria-label="Search users" value={search} onChange={(event) => setSearch(event.target.value)} />
       {!payload ? <div className="mt-6"><Spinner /></div> : data.length === 0 ? <div className="mt-6"><EmptyState title="No users match" body="Try another name or email." /></div> : (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
-          <table className="w-full min-w-[760px] text-left text-sm">
+          <table className="record-table w-full text-left text-sm">
             <thead className="text-muted"><tr><th className="px-4 py-3">User</th><th>Role</th><th>Status</th><th>Last login</th><th /></tr></thead>
             <tbody>
               {data.map((account) => (
                 <tr key={account.id} className="border-t border-line">
-                  <td className="px-4 py-3"><p className="font-medium">{account.name}</p><p className="text-xs text-muted">{account.email}</p></td>
+                  <td className="px-4 py-3" data-label="User"><p className="font-medium">{account.name}</p><p className="text-xs text-muted">{account.email}</p></td>
                   <td>{account.role?.name}</td>
                   <td><Badge tone={statusTone(account.status)}>{account.status}</Badge></td>
                   <td>{formatDate(account.last_login_at)}</td>
@@ -140,8 +140,26 @@ export function PermissionsPage() {
       <h1 className="text-2xl font-semibold">Permissions</h1>
       <p className="mt-1 text-sm text-muted">The server rejects any action the signed-in role cannot perform. Hiding a button is not the control.</p>
       {message ? <div className="mt-4"><Notice tone="success">{message}</Notice></div> : null}
-      <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
-        <table className="w-full min-w-[860px] text-left text-sm">
+      <div className="mt-4 space-y-3 md:hidden">
+        {data.permissions.map((permission) => (
+          <article key={permission.id} className="rounded-2xl bg-white p-4">
+            <h2 className="font-semibold">{permission.name}</h2>
+            <ul className="mt-2">
+              {data.roles.map((role) => {
+                const checked = role.slug === 'super-admin' || role.permissions.some((item) => item.id === permission.id)
+                return (
+                  <li key={role.id} className="flex min-h-11 items-center justify-between gap-3 text-sm">
+                    <span>{role.name}</span>
+                    <input type="checkbox" aria-label={`${role.name} ${permission.name}`} checked={checked} disabled={!can(user, 'roles.manage') || role.slug === 'super-admin'} onChange={() => toggle(role, permission.id)} />
+                  </li>
+                )
+              })}
+            </ul>
+          </article>
+        ))}
+      </div>
+      <div className="mt-4 hidden overflow-x-auto rounded-2xl bg-white md:block">
+        <table className="w-full text-left text-sm">
           <thead>
             <tr className="text-muted">
               <th className="px-4 py-3">Permission</th>

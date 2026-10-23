@@ -77,7 +77,7 @@ export default function CoursesPage() {
               <p className="mt-3 flex-1 text-sm text-white/70">{course.summary}</p>
               <p className="mt-4 text-sm text-white/60">{course.duration_label} · {course.level}</p>
               <div className="mt-5 flex items-center justify-between">
-                <span className="font-semibold text-brand">{formatPrice(course)}</span>
+                <span className="font-semibold text-white">{formatPrice(course)}</span>
                 <Link to={`/courses/${course.slug}`} className="text-sm font-semibold">View details</Link>
               </div>
             </article>

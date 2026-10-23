@@ -1,38 +1,44 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
 import { useSite } from '../../context/SiteContext'
-import { inquirySchema } from '../../schemas/forms'
+import { enquiryTypes, inquirySchema } from '../../schemas/forms'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 
 export default function ContactPage() {
   const { site } = useSite()
   const [params] = useSearchParams()
   const [courses, setCourses] = useState([])
+  const [courseError, setCourseError] = useState('')
   const [status, setStatus] = useState(null)
   const settings = site?.settings || {}
   const hero = site?.blocks?.['contact.hero']?.payload
   const faqs = site?.faqs?.contact || []
+  const requestedType = params.get('enquiry') || params.get('type') || 'other'
+  const typeAliases = { contact: 'other', corporate: 'corporate_training' }
+  const initialType = enquiryTypes.some(([value]) => value === requestedType)
+    ? requestedType
+    : (typeAliases[requestedType] || 'other')
   const form = useForm({
     resolver: zodResolver(inquirySchema),
     defaultValues: {
-      type: params.get('type') || 'contact',
+      type: initialType,
       name: '',
       email: '',
       phone: '',
       subject: params.get('subject') || '',
       message: '',
-      course_id: params.get('course') || '',
+      course: params.get('course') || '',
       consent: false,
       hp_field: '',
     },
   })
 
   useEffect(() => {
-    api.get('/api/v1/courses?per_page=24').then((response) => setCourses(response.data.data || [])).catch(() => setCourses([]))
+    api.get('/api/v1/courses?per_page=24').then((response) => setCourses(response.data.data || [])).catch(() => setCourseError('Courses could not be loaded.'))
   }, [])
 
   async function onSubmit(values) {
@@ -41,7 +47,7 @@ export default function ContactPage() {
       await ensureCsrf()
       const response = await api.post('/api/v1/inquiries', {
         ...values,
-        course_id: values.course_id ? Number(values.course_id) : null,
+        course: values.type === 'course' ? values.course : null,
         phone: values.phone || null,
       })
       setStatus({ tone: 'success', text: response.data.message })
@@ -76,19 +82,20 @@ export default function ContactPage() {
             </Field>
             <Field label="Enquiry type" error={form.formState.errors.type?.message}>
               <select className={inputClass} {...form.register('type')}>
-                <option value="contact">General</option>
-                <option value="course">Course enquiry</option>
-                <option value="corporate">Corporate training</option>
+                {enquiryTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
             </Field>
           </div>
           {form.watch('type') === 'course' ? (
-            <Field label="Course" error={form.formState.errors.course_id?.message}>
-              <select className={inputClass} {...form.register('course_id')}>
-                <option value="">Select a course</option>
-                {courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}
-              </select>
-            </Field>
+            <>
+              {courseError ? <p className="text-sm text-red-700" role="alert">{courseError}</p> : null}
+              <Field label="Course" error={form.formState.errors.course?.message}>
+                <select className={inputClass} {...form.register('course')}>
+                  <option value="">Select a course</option>
+                  {courses.map((course) => <option key={course.id} value={course.slug}>{course.title}</option>)}
+                </select>
+              </Field>
+            </>
           ) : null}
           <Field label="Subject" error={form.formState.errors.subject?.message}>
             <input className={inputClass} {...form.register('subject')} />
@@ -115,6 +122,17 @@ export default function ContactPage() {
               {!settings.email && !settings.phone && !settings.address ? <li>Contact details have not been published yet. The form still saves your message.</li> : null}
             </ul>
           </div>
+          <div className="rounded-3xl border border-line p-6 text-sm">
+            <h2 className="text-lg font-semibold">Book a call</h2>
+            <p className="mt-2 text-muted">A booking request stays pending until a person confirms the time.</p>
+            <Link to="/book" className="mt-4 inline-flex min-h-11 items-center rounded-full bg-blue px-5 text-sm font-semibold text-white">Book a call</Link>
+          </div>
+          {settings.address ? (
+            <div className="rounded-3xl border border-line p-6 text-sm">
+              <h2 className="text-lg font-semibold">Location</h2>
+              <p className="mt-2 text-muted">{settings.address}</p>
+            </div>
+          ) : null}
           {faqs.map((faq) => (
             <article key={faq.question} className="rounded-3xl border border-line p-5">
               <h3 className="font-semibold">{faq.question}</h3>

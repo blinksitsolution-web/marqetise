@@ -4,6 +4,8 @@ export default function Brand({ light = false, compact = false }) {
       <img
         src="/brand/mark.png"
         alt=""
+        width="36"
+        height="36"
         className={`h-9 w-9 rounded-lg object-cover ${light ? 'bg-black' : 'mix-blend-screen'}`}
       />
       {compact ? null : (

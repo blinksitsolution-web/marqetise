@@ -18,7 +18,7 @@ class PublicSiteController extends Controller
     public function show(): JsonResponse
     {
         $settings = Setting::query()->where('is_public', true)->get()
-            ->mapWithKeys(fn (Setting $setting) => [$setting->key => Setting::getValue($setting->key)])
+            ->mapWithKeys(fn (Setting $setting) => [$setting->key => Setting::decodeStored($setting->value)])
             ->only(config('marqetise.public_setting_keys'));
 
         $blocks = ContentBlock::query()->where('is_visible', true)->orderBy('sort_order')->get()
@@ -38,7 +38,7 @@ class PublicSiteController extends Controller
         return response()->json([
             'data' => [
                 'settings' => $settings,
-                'pages' => Page::query()->published()->orderBy('title')->get(['title', 'slug', 'excerpt', 'meta_title', 'meta_description']),
+                'pages' => Page::query()->published()->orderBy('title')->get(['title', 'slug', 'excerpt', 'body', 'meta_title', 'meta_description']),
                 'blocks' => $blocks,
                 'services' => ServiceResource::collection(Service::query()->published()->orderBy('sort_order')->get()),
                 'featured_courses' => CourseResource::collection(

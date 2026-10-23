@@ -5,19 +5,27 @@ const phone = z.string().trim().refine(
   'Enter a valid phone number',
 )
 
+export const enquiryTypes = [
+  ['marketing_services', 'Marketing services'],
+  ['website_development', 'Website development'],
+  ['course', 'Course'],
+  ['corporate_training', 'Corporate training'],
+  ['other', 'Other'],
+]
+
 export const inquirySchema = z.object({
-  type: z.enum(['contact', 'course', 'corporate']),
+  type: z.enum(['marketing_services', 'website_development', 'course', 'corporate_training', 'other']),
   name: z.string().trim().min(2, 'Enter your name').max(120),
   email: z.email('Enter a valid email'),
   phone,
   subject: z.string().trim().min(2, 'Enter a subject').max(160),
   message: z.string().trim().min(20, 'Please enter a short message, at least 20 characters').max(5000),
-  course_id: z.string().optional(),
+  course: z.string().optional(),
   consent: z.boolean().refine((value) => value, 'Please confirm that we may contact you'),
   hp_field: z.string().optional(),
 }).superRefine((value, context) => {
-  if (value.type === 'course' && !value.course_id) {
-    context.addIssue({ code: 'custom', path: ['course_id'], message: 'Choose a course' })
+  if (value.type === 'course' && !value.course) {
+    context.addIssue({ code: 'custom', path: ['course'], message: 'Choose a course' })
   }
 })
 

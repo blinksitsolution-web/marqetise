@@ -68,16 +68,23 @@ class InquiryController extends Controller
     {
         abort_unless($request->user()->hasPermission('students.manage'), 403);
 
-        $student = Student::query()->create([
-            'name' => $inquiry->name,
-            'email' => $inquiry->email,
-            'phone' => $inquiry->phone,
-            'status' => 'waitlist',
-            'course_id' => $inquiry->course_id,
-            'notes' => 'Created from inquiry #'.$inquiry->id,
-        ]);
-        $audit->log('student.created_from_inquiry', $student, ['inquiry_id' => $inquiry->id]);
+        $student = Student::query()->where('inquiry_id', $inquiry->id)->first();
 
-        return new StudentResource($student->load('course'));
+        if ($student === null) {
+            $student = Student::query()->create([
+                'name' => $inquiry->name,
+                'email' => $inquiry->email,
+                'phone' => $inquiry->phone,
+                'status' => 'waitlist',
+                'course_id' => $inquiry->course_id,
+                'inquiry_id' => $inquiry->id,
+                'notes' => 'Created from inquiry #'.$inquiry->id,
+            ]);
+            $audit->log('student.created_from_inquiry', $student, ['inquiry_id' => $inquiry->id]);
+        }
+
+        return (new StudentResource($student->load('course')))->additional([
+            'created' => $student->wasRecentlyCreated,
+        ]);
     }
 }

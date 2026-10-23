@@ -72,7 +72,7 @@ class VisitorReceiptTest extends TestCase
     private function inquiry(): array
     {
         return [
-            'type' => 'contact',
+            'type' => 'other',
             'name' => 'Jordan Lee',
             'email' => 'jordan@example.com',
             'subject' => 'SEO help',

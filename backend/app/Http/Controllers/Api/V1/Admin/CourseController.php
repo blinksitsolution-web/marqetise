@@ -28,7 +28,9 @@ class CourseController extends Controller
             $query->where('status', $request->string('status'));
         }
 
-        return CourseResource::collection($query->orderBy('sort_order')->latest()->paginate(12));
+        return CourseResource::collection(
+            $query->orderBy('sort_order')->latest()->paginate(min(max($request->integer('per_page', 12), 1), 100))
+        );
     }
 
     public function store(SaveCourseRequest $request, AuditLogger $audit): JsonResponse

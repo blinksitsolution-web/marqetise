@@ -26,7 +26,47 @@
 
   :focus-visible {
     outline: 2px solid #f36a09;
-    outline-offset: 3px;
+    outline-offset: 2px;
+  }
+}
+
+@media (max-width: 767px) {
+  .record-table {
+    min-width: 0;
+  }
+
+  .record-table thead {
+    display: none;
+  }
+
+  .record-table,
+  .record-table tbody,
+  .record-table tr,
+  .record-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .record-table tr {
+    margin-bottom: 0.75rem;
+    border: 1px solid #e5e8f0;
+    border-radius: 1rem;
+    background: white;
+    padding: 0.5rem 0;
+  }
+
+  .record-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 0;
+    padding: 0.5rem 1rem;
+  }
+
+  .record-table td::before {
+    content: attr(data-label);
+    color: #5c6b82;
+    font-weight: 600;
   }
 }
 

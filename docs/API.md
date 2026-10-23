@@ -16,7 +16,7 @@ Successful JSON uses a `data` property. Validation errors return HTTP 422 with a
 | GET | `/api/v1/services` | Published services. The public site lists them at `/services` |
 | GET | `/api/v1/services/{slug}` | One published service |
 | GET | `/api/v1/pages/{slug}` | One published CMS page |
-| POST | `/api/v1/inquiries` | Save a contact, course, or corporate inquiry |
+| POST | `/api/v1/inquiries` | Save an enquiry. `type` or `enquiry` is `marketing_services`, `website_development`, `course`, `corporate_training`, or `other`. A course enquiry sends `course` as the published course slug. |
 | POST | `/api/v1/bookings` | Save a pending service booking |
 
 `GET /sitemap.xml` and `GET /robots.txt` are outside the API prefix. Admin URLs are disallowed for crawlers.

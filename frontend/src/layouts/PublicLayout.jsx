@@ -9,12 +9,13 @@ const links = [
   { to: '/services', label: 'Services' },
   { to: '/courses', label: 'Courses' },
   { to: '/contact', label: 'Contact Us' },
+  { to: '/contact', label: 'Get Started' },
 ]
 
 const year = new Date().getFullYear()
 
 function navClass({ isActive }) {
-  return `rounded-full px-3 py-2 text-sm ${isActive ? 'bg-white/10 text-white' : 'text-white/75 hover:text-white'}`
+  return `inline-flex min-h-11 items-center rounded-full px-3 text-sm ${isActive ? 'bg-white/10 text-white' : 'text-white/75 hover:text-white'}`
 }
 
 export default function PublicLayout() {
@@ -29,19 +30,19 @@ export default function PublicLayout() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/" aria-label="Marqetise home"><Brand /></Link>
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
-            {links.map((link) => <NavLink key={link.to} to={link.to} end={link.end} className={navClass}>{link.label}</NavLink>)}
-            <Link to="/admin/login" className="px-3 py-2 text-sm text-white/70">Admin login</Link>
-            <Link to="/book" className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white">Book a service</Link>
+            {links.map((link) => <NavLink key={link.label} to={link.to} end={link.end} className={navClass}>{link.label}</NavLink>)}
+            <Link to="/admin/login" className="inline-flex min-h-11 items-center px-3 text-sm text-white/70">Admin login</Link>
+            <Link to="/book" className="inline-flex min-h-11 items-center rounded-full bg-blue px-4 text-sm font-semibold text-white">Book a service</Link>
           </nav>
-          <button type="button" className="rounded-full border border-white/15 px-3 py-2 text-sm lg:hidden" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+          <button type="button" className="inline-flex min-h-11 items-center rounded-full border border-white/15 px-4 text-sm lg:hidden" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
             Menu
           </button>
         </div>
         {open ? (
           <nav className="space-y-1 border-t border-white/10 px-4 py-3 lg:hidden" aria-label="Mobile">
-            {links.map((link) => <NavLink key={link.to} to={link.to} end={link.end} className="block rounded-xl px-3 py-2" onClick={() => setOpen(false)}>{link.label}</NavLink>)}
-            <Link to="/admin/login" className="block px-3 py-2 text-white/70" onClick={() => setOpen(false)}>Admin login</Link>
-            <Link to="/book" className="mt-2 block rounded-full bg-brand px-4 py-3 text-center font-semibold" onClick={() => setOpen(false)}>Book a service</Link>
+            {links.map((link) => <NavLink key={link.label} to={link.to} end={link.end} className="flex min-h-11 items-center rounded-xl px-3" onClick={() => setOpen(false)}>{link.label}</NavLink>)}
+            <Link to="/admin/login" className="flex min-h-11 items-center px-3 text-white/70" onClick={() => setOpen(false)}>Admin login</Link>
+            <Link to="/book" className="mt-2 flex min-h-11 items-center justify-center rounded-full bg-blue px-4 font-semibold" onClick={() => setOpen(false)}>Book a service</Link>
           </nav>
         ) : null}
       </header>

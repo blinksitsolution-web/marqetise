@@ -15,7 +15,7 @@ class SettingsSeeder extends Seeder
             'email' => null,
             'phone' => null,
             'address' => null,
-            'hours' => 'Weekdays, 9:00–17:00',
+            'hours' => null,
             'social_linkedin' => null,
             'social_instagram' => null,
             'social_facebook' => null,

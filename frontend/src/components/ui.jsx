@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react'
+
 export const inputClass = 'w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-blue'
 
 export function Field({ label, error, hint, children }) {
@@ -70,19 +72,86 @@ export function Spinner({ label = 'Loading' }) {
   )
 }
 
+export function Skeleton({ label = 'Loading' }) {
+  return (
+    <div className="mt-6 space-y-3" role="status" aria-label={label}>
+      <span className="sr-only">{label}</span>
+      {[0, 1, 2].map((item) => <div key={item} className="h-16 animate-pulse rounded-2xl bg-white" />)}
+    </div>
+  )
+}
+
+export function useDialog(open, onClose) {
+  const ref = useRef(null)
+  const closeRef = useRef(onClose)
+
+  useEffect(() => {
+    closeRef.current = onClose
+  }, [onClose])
+
+  useEffect(() => {
+    if (!open) return undefined
+    const node = ref.current
+    if (!node) return undefined
+    const previous = document.activeElement
+
+    function focusable() {
+      return [...node.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+    }
+
+    const initial = focusable()
+    ;(initial[0] || node).focus()
+
+    function onKey(event) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeRef.current()
+        return
+      }
+      if (event.key !== 'Tab') return
+      const items = focusable()
+      if (items.length === 0) {
+        event.preventDefault()
+        return
+      }
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    node.addEventListener('keydown', onKey)
+    return () => {
+      node.removeEventListener('keydown', onKey)
+      if (previous instanceof HTMLElement) previous.focus()
+    }
+  }, [open])
+
+  return ref
+}
+
 export function Modal({ title, children, onClose }) {
+  const ref = useDialog(true, onClose)
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/50 p-4 sm:items-center" onClick={onClose}>
       <div
+        ref={ref}
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        tabIndex={-1}
         className="max-h-[90vh] w-full max-w-lg overflow-auto rounded-2xl bg-white p-6 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <h2 className="text-lg font-semibold">{title}</h2>
-          <button type="button" className="rounded-full px-2 py-1 text-sm text-muted" onClick={onClose}>Close</button>
+          <button type="button" className="inline-flex min-h-11 items-center rounded-full px-3 text-sm text-muted" onClick={onClose}>Close</button>
         </div>
         {children}
       </div>

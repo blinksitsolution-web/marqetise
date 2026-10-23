@@ -10,17 +10,26 @@ export default function CourseDetailPage() {
   const [course, setCourse] = useState(null)
   const [related, setRelated] = useState([])
   const [missing, setMissing] = useState(false)
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
     setCourse(null)
     setMissing(false)
+    setLoadError('')
     api.get(`/api/v1/courses/${slug}`)
       .then((response) => {
         setCourse(response.data.data)
         setRelated(response.data.related?.data || response.data.related || [])
       })
-      .catch(() => setMissing(true))
+      .catch((error) => {
+        if (error?.response?.status === 404) setMissing(true)
+        else setLoadError('The course could not be loaded.')
+      })
   }, [slug])
+
+  if (loadError) {
+    return <div className="mx-auto max-w-3xl px-4 py-20 text-center"><p className="text-red-700" role="alert">{loadError}</p></div>
+  }
 
   if (missing) {
     return (
@@ -45,7 +54,7 @@ export default function CourseDetailPage() {
             <p className="mt-4 max-w-2xl text-white/75">{course.summary}</p>
           </div>
           <aside className="rounded-3xl bg-white p-6 text-ink">
-            <p className="text-3xl font-semibold text-brand">{formatPrice(course)}</p>
+            <p className="text-3xl font-semibold text-ink">{formatPrice(course)}</p>
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between gap-4"><dt className="text-muted">Level</dt><dd>{course.level}</dd></div>
               <div className="flex justify-between gap-4"><dt className="text-muted">Duration</dt><dd>{course.duration_label || '—'}</dd></div>
@@ -53,7 +62,7 @@ export default function CourseDetailPage() {
               <div className="flex justify-between gap-4"><dt className="text-muted">Next start</dt><dd>{formatDate(course.next_start_date)}</dd></div>
               <div className="flex justify-between gap-4"><dt className="text-muted">Certificate</dt><dd>{course.certificate_included ? 'Included' : 'Not included'}</dd></div>
             </dl>
-            <Link to={`/contact?type=course&course=${course.id}&subject=${encodeURIComponent(course.title)}`} className="mt-6 block rounded-full bg-brand px-4 py-3 text-center text-sm font-semibold text-white">Enquire now</Link>
+            <Link to={`/contact?enquiry=course&course=${course.slug}&subject=${encodeURIComponent(course.title)}`} className="mt-6 flex min-h-11 items-center justify-center rounded-full bg-blue px-4 py-3 text-center text-sm font-semibold text-white">Enquire now</Link>
             <p className="mt-3 text-xs text-muted">An enquiry asks the team to contact you. It does not take payment or reserve a place.</p>
           </aside>
         </div>
@@ -95,7 +104,7 @@ export default function CourseDetailPage() {
               {related.map((item) => (
                 <Link key={item.id} to={`/courses/${item.slug}`} className="rounded-3xl bg-navy-900 p-5 text-white">
                   <h3 className="text-lg font-semibold">{item.title}</h3>
-                  <p className="mt-2 text-sm text-brand">{formatPrice(item)}</p>
+                  <p className="mt-2 text-sm text-white">{formatPrice(item)}</p>
                 </Link>
               ))}
             </div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreInquiryRequest;
 use App\Mail\InquiryReceipt;
 use App\Mail\InquiryReceived;
+use App\Models\Course;
 use App\Models\Inquiry;
 use App\Models\Setting;
 use App\Services\MailStatus;
@@ -15,8 +16,13 @@ class PublicInquiryController extends Controller
 {
     public function store(StoreInquiryRequest $request, MailStatus $mail): JsonResponse
     {
+        $courseId = $request->filled('course')
+            ? Course::query()->where('slug', $request->validated('course'))->value('id')
+            : null;
+
         $inquiry = Inquiry::query()->create([
-            ...$request->safe()->only(['type', 'name', 'email', 'phone', 'subject', 'message', 'course_id']),
+            ...$request->safe()->only(['type', 'name', 'email', 'phone', 'subject', 'message']),
+            'course_id' => $courseId,
             'status' => 'new',
             'consent' => true,
             'ip_address' => $request->ip(),

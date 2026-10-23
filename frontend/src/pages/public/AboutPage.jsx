@@ -3,7 +3,7 @@ import Seo from '../../components/Seo'
 import { useSite } from '../../context/SiteContext'
 
 export default function AboutPage() {
-  const { site } = useSite()
+  const { site, error } = useSite()
   const identity = site?.blocks?.['about.identity']?.payload
   const approach = site?.blocks?.['about.approach']?.payload
   const page = (site?.pages || []).find((item) => item.slug === 'about')
@@ -14,10 +14,12 @@ export default function AboutPage() {
       <section className="bg-navy-950 px-4 py-16 text-white">
         <div className="mx-auto max-w-6xl">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">About us</p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">Helping businesses grow with practical marketing</h1>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">{page?.title || identity?.title || 'About Us'}</h1>
           <p className="mt-4 max-w-2xl text-white/75">{identity?.body}</p>
         </div>
       </section>
+      {error ? <p className="mx-auto max-w-6xl px-4 py-6 text-red-700" role="alert">{error}</p> : null}
+      {page?.body ? <section className="mx-auto max-w-3xl px-4 py-10"><p className="whitespace-pre-line text-sm leading-7 text-muted">{page.body}</p></section> : null}
       <section className="mx-auto grid max-w-6xl gap-4 px-4 py-16 md:grid-cols-3">
         {[
           ['Mission', identity?.mission],

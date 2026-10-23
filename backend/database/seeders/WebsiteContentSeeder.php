@@ -29,10 +29,12 @@ class WebsiteContentSeeder extends Seeder
         ];
 
         foreach ($pages as $page) {
+            $legal = in_array($page['slug'], ['privacy', 'terms'], true);
+
             Page::query()->updateOrCreate(['slug' => $page['slug']], [
                 ...$page,
-                'status' => 'published',
-                'published_at' => now(),
+                'status' => $legal ? 'draft' : 'published',
+                'published_at' => $legal ? null : now(),
                 'meta_title' => $page['title'].' · Marqetise',
                 'meta_description' => $page['excerpt'],
             ]);
@@ -81,12 +83,21 @@ class WebsiteContentSeeder extends Seeder
                 ],
             ]],
             ['key' => 'home.process', 'group' => 'home', 'label' => 'Process', 'sort_order' => 3, 'is_visible' => true, 'payload' => [
-                'title' => 'A simple, proven process',
+                'title' => 'A simple process',
                 'items' => [
                     ['title' => 'Discover', 'body' => 'We learn the offer, the audience, and what a useful result looks like.'],
                     ['title' => 'Plan', 'body' => 'We choose the work, the order, and how it will be reviewed.'],
                     ['title' => 'Execute', 'body' => 'The campaign, site, or training runs with a named owner.'],
                     ['title' => 'Review', 'body' => 'We look at what happened and decide the next step with you.'],
+                ],
+            ]],
+            ['key' => 'home.focus', 'group' => 'home', 'label' => 'Home focus areas', 'sort_order' => 2, 'is_visible' => true, 'payload' => [
+                'title' => 'What we work on',
+                'items' => [
+                    ['title' => 'Search', 'body' => 'Search visibility and the pages that should earn it.'],
+                    ['title' => 'Content', 'body' => 'Content that answers a real question.'],
+                    ['title' => 'Paid media', 'body' => 'Paid campaigns tied to a budget and an offer.'],
+                    ['title' => 'Training', 'body' => 'Courses and team training that a person reviews.'],
                 ],
             ]],
             ['key' => 'home.stats', 'group' => 'home', 'label' => 'Statistics', 'sort_order' => 4, 'is_visible' => false, 'payload' => [

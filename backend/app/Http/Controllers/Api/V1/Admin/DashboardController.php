@@ -10,6 +10,7 @@ use App\Models\Inquiry;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
@@ -90,20 +91,30 @@ class DashboardController extends Controller
         return response()->json(['data' => $data]);
     }
 
-    private function enrolmentTrend(): \Illuminate\Support\Collection
+    private function enrolmentTrend(): Collection
     {
         $start = now()->startOfMonth()->subMonths(11);
-        $studentRows = Student::query()->where('created_at', '>=', $start)->get(['created_at']);
-        $byMonth = $studentRows->groupBy(fn (Student $student) => $student->created_at->format('Y-m'))->map->count();
+        $driver = Student::query()->getConnection()->getDriverName();
+        $monthSql = match ($driver) {
+            'sqlite' => "strftime('%Y-%m', created_at)",
+            'pgsql' => "to_char(created_at, 'YYYY-MM')",
+            default => "date_format(created_at, '%Y-%m')",
+        };
 
-        return collect(range(0, 11))->map(function (int $offset) use ($start, $byMonth) {
+        $counts = Student::query()
+            ->where('created_at', '>=', $start)
+            ->selectRaw($monthSql.' as month_key, COUNT(*) as aggregate')
+            ->groupByRaw($monthSql)
+            ->pluck('aggregate', 'month_key');
+
+        return collect(range(0, 11))->map(function (int $offset) use ($start, $counts) {
             $month = $start->copy()->addMonths($offset);
             $key = $month->format('Y-m');
 
             return [
                 'month' => $key,
                 'label' => $month->format('M'),
-                'students' => (int) ($byMonth[$key] ?? 0),
+                'students' => (int) ($counts[$key] ?? 0),
             ];
         })->values();
     }

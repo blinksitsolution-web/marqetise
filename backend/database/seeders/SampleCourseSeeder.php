@@ -101,7 +101,8 @@ class SampleCourseSeeder extends Seeder
             $record = Course::query()->updateOrCreate(['slug' => $course['slug']], [
                 ...$course,
                 'description' => $course['summary'].' This starter record comes from the interface mockups and should be reviewed before it is treated as a live offer.',
-                'status' => 'published',
+                'status' => 'draft',
+                'featured' => false,
                 'sort_order' => $index,
                 'certificate_included' => $course['certificate_included'] ?? false,
                 'price_label' => $course['price_label'] ?? null,

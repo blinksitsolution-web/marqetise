@@ -463,24 +463,24 @@ The design source of truth is `docs/design/Marqetise-UI-Mockups.pdf`. The older 
 | F-08 | Medium | 1 | Fixed |
 | F-09 | Medium | 2 (ASK) | Fixed for access. Encryption stays Phase 4 |
 | F-10 | Low | 2 (ASK) | Fixed. Shared inbox after the permission is assigned |
-| F-11 | High | 2 | Open |
-| F-12 | Medium | 2 | Open |
-| F-13 | Medium | 2 | Open |
-| F-14 | Medium | 2 | Open |
+| F-11 | High | 2 | Fixed |
+| F-12 | Medium | 2 | Fixed |
+| F-13 | Medium | 2 | Fixed |
+| F-14 | Medium | 2 | Fixed |
 | F-15 | Medium | 2 | Fixed |
-| F-16 | Medium | 2–3 | Open |
-| F-17 | Medium | 3 | Open |
-| F-18 | Low | 3 | Open |
-| F-19 | Medium | 3 | Open |
-| F-20 | Medium | 2 | Open |
-| F-21 | Low | 2 | Open |
-| F-22 | Low | 4 | Keep as is (verify) |
-| F-23 | Low | 4 | Open |
-| F-24 | Medium | 4 | Open |
-| F-25 | Low | 4 | Open |
+| F-16 | Medium | 2–3 | Fixed |
+| F-17 | Medium | 3 | Fixed |
+| F-18 | Low | 3 | Fixed |
+| F-19 | Medium | 3 | Fixed |
+| F-20 | Medium | 2 | Fixed |
+| F-21 | Low | 2 | Fixed |
+| F-22 | Low | 4 | Verified. Text rendering and bound SQL remain |
+| F-23 | Low | 4 | Fixed. GIF uploads rejected |
+| F-24 | Medium | 4 | Fixed |
+| F-25 | Low | 4 | Fixed |
 | F-26 | Low | 1 | Fixed |
 | F-27 | Low | 1 (via F-01) | Fixed |
 
 Staff sign-in is the session cookie. Sanctum refuses every bearer token, including a row planted in `personal_access_tokens`. The table is unchanged. `sanctum.expiration` stays null because the application does not issue tokens.
 
-Visitors receive an email receipt for an enquiry or a booking when mail can be delivered. A pending or confirmed booking holds its date and time, so another booking cannot take that slot. Instructor and Read-Only Staff do not receive `students.view` or `bookings.view` until those permissions are assigned; after that they see the shared lists. Student records stay plaintext until encryption is requested. Published services are listed at `/services`.
+Visitors receive an email receipt for an enquiry or a booking when mail can be delivered. A pending or confirmed booking holds its date and time, so another booking cannot take that slot. Instructor and Read-Only Staff do not receive `students.view` or `bookings.view` until those permissions are assigned; after that they see the shared lists. Student records stay plaintext until encryption is requested. Soft deletes were not added. Published services are listed at `/services`. Enquiry types are `marketing_services`, `website_development`, `course`, `corporate_training`, and `other`, and a course enquiry uses the course slug. Privacy, terms, and sample courses stay unpublished until a person publishes them. A home results panel appears only when the CMS statistics block has published figures.

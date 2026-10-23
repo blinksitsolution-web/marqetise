@@ -8,14 +8,23 @@ export default function CmsPage() {
   const { slug } = useParams()
   const [page, setPage] = useState(null)
   const [missing, setMissing] = useState(false)
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
     setPage(null)
     setMissing(false)
+    setLoadError('')
     api.get(`/api/v1/pages/${slug}`)
       .then((response) => setPage(response.data.data))
-      .catch(() => setMissing(true))
+      .catch((error) => {
+        if (error?.response?.status === 404) setMissing(true)
+        else setLoadError('The page could not be loaded.')
+      })
   }, [slug])
+
+  if (loadError) {
+    return <div className="mx-auto max-w-3xl px-4 py-20 text-center"><p className="text-red-700" role="alert">{loadError}</p></div>
+  }
 
   if (missing) {
     return (

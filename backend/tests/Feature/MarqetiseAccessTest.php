@@ -128,7 +128,7 @@ class MarqetiseAccessTest extends TestCase
         $this->postJson('/api/v1/inquiries', [])->assertUnprocessable();
 
         $this->postJson('/api/v1/inquiries', [
-            'type' => 'contact',
+            'type' => 'other',
             'name' => 'Jordan Lee',
             'email' => 'jordan@example.com',
             'subject' => 'SEO help',
@@ -156,7 +156,7 @@ class MarqetiseAccessTest extends TestCase
         ]);
 
         $this->postJson('/api/v1/inquiries', [
-            'type' => 'contact',
+            'type' => 'other',
             'name' => 'Bot',
             'email' => 'bot@example.com',
             'subject' => 'Hello there',
