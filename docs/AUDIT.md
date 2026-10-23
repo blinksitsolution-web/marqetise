@@ -461,8 +461,8 @@ The design source of truth is `docs/design/Marqetise-UI-Mockups.pdf`. The older 
 | F-06 | Medium | 1 | Fixed |
 | F-07 | Medium | 1 | Fixed |
 | F-08 | Medium | 1 | Fixed |
-| F-09 | Medium | 2 (ASK) | Needs decision |
-| F-10 | Low | 2 (ASK) | Needs decision |
+| F-09 | Medium | 2 (ASK) | Fixed for access. Encryption stays Phase 4 |
+| F-10 | Low | 2 (ASK) | Fixed. Shared inbox after the permission is assigned |
 | F-11 | High | 2 | Open |
 | F-12 | Medium | 2 | Open |
 | F-13 | Medium | 2 | Open |
@@ -483,4 +483,4 @@ The design source of truth is `docs/design/Marqetise-UI-Mockups.pdf`. The older 
 
 Staff sign-in is the session cookie. Sanctum refuses every bearer token, including a row planted in `personal_access_tokens`. The table is unchanged. `sanctum.expiration` stays null because the application does not issue tokens.
 
-Visitors receive an email receipt for an enquiry or a booking when mail can be delivered. A pending or confirmed booking holds its date and time, so another booking cannot take that slot. F-09, F-10, and a standalone `/services` page are still undecided.
+Visitors receive an email receipt for an enquiry or a booking when mail can be delivered. A pending or confirmed booking holds its date and time, so another booking cannot take that slot. Instructor and Read-Only Staff do not receive `students.view` or `bookings.view` until those permissions are assigned; after that they see the shared lists. Student records stay plaintext until encryption is requested.

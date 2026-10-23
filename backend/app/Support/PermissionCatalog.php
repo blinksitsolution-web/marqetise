@@ -37,9 +37,11 @@ class PermissionCatalog
      */
     public static function roles(): array
     {
+        $assignedSeparately = ['students.view', 'bookings.view'];
+
         $viewOnly = array_values(array_filter(
             array_keys(self::permissions()),
-            fn (string $slug) => str_ends_with($slug, '.view'),
+            fn (string $slug) => str_ends_with($slug, '.view') && ! in_array($slug, $assignedSeparately, true),
         ));
 
         return [
@@ -75,9 +77,9 @@ class PermissionCatalog
             ],
             'instructor' => [
                 'name' => 'Instructor',
-                'description' => 'Maintains course material and can see student records.',
+                'description' => 'Maintains course material. Student and booking access is assigned separately.',
                 'permissions' => [
-                    'dashboard.view', 'courses.view', 'courses.manage', 'students.view',
+                    'dashboard.view', 'courses.view', 'courses.manage',
                 ],
             ],
             'student-support' => [
@@ -91,7 +93,7 @@ class PermissionCatalog
             ],
             'read-only' => [
                 'name' => 'Read-Only Staff',
-                'description' => 'Can review records but cannot change them.',
+                'description' => 'Can review records that have been granted. Students and bookings stay closed until those permissions are assigned.',
                 'permissions' => $viewOnly,
             ],
         ];

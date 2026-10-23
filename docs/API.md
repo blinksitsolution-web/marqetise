@@ -56,4 +56,6 @@ All admin routes require an active session and a permission.
 
 A person cannot change their own role, suspend themselves, assign Super Administrator unless they already are one, or remove the last active Super Administrator. The Super Administrator role cannot have permissions removed.
 
+Instructor and Read-Only Staff do not receive `students.view` or `bookings.view`. A role that has `roles.manage` assigns those permissions before either role can open students or bookings. Once assigned, that person sees the shared lists.
+
 HTML submitted to content fields is stripped before it is stored. Page bodies are rendered as text, not as HTML.
