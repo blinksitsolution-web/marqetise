@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreInquiryRequest;
+use App\Mail\InquiryReceipt;
 use App\Mail\InquiryReceived;
 use App\Models\Inquiry;
 use App\Models\Setting;
@@ -23,13 +24,13 @@ class PublicInquiryController extends Controller
 
         $inquiry->load('course');
         $recipient = (string) Setting::getValue('notification_email', '');
-        $delivered = $recipient !== '' && $mail->send($recipient, new InquiryReceived($inquiry));
+        $staffNotified = $recipient !== '' && $mail->send($recipient, new InquiryReceived($inquiry));
+        $receiptSent = $mail->send($inquiry->email, new InquiryReceipt($inquiry));
 
         return response()->json([
-            'message' => $delivered
-                ? 'Your inquiry has been saved and the team has been notified.'
-                : 'Your inquiry has been saved. Email delivery is not configured, so no notification email was sent.',
-            'email_delivered' => $delivered,
+            'message' => $mail->visitorMessage('Your inquiry has been saved.', $staffNotified, $receiptSent),
+            'email_delivered' => $staffNotified,
+            'receipt_sent' => $receiptSent,
             'data' => [
                 'id' => $inquiry->id,
                 'status' => $inquiry->status,

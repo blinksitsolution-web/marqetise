@@ -467,7 +467,7 @@ The design source of truth is `docs/design/Marqetise-UI-Mockups.pdf`. The older 
 | F-12 | Medium | 2 | Open |
 | F-13 | Medium | 2 | Open |
 | F-14 | Medium | 2 | Open |
-| F-15 | Medium | 2 | Open |
+| F-15 | Medium | 2 | Fixed |
 | F-16 | Medium | 2–3 | Open |
 | F-17 | Medium | 3 | Open |
 | F-18 | Low | 3 | Open |
@@ -482,3 +482,5 @@ The design source of truth is `docs/design/Marqetise-UI-Mockups.pdf`. The older 
 | F-27 | Low | 1 (via F-01) | Fixed |
 
 Staff sign-in is the session cookie. Sanctum refuses every bearer token, including a row planted in `personal_access_tokens`. The table is unchanged. `sanctum.expiration` stays null because the application does not issue tokens.
+
+Visitors receive an email receipt for an enquiry or a booking when mail can be delivered. A pending or confirmed booking holds its date and time, so another booking cannot take that slot. F-09, F-10, and a standalone `/services` page are still undecided.

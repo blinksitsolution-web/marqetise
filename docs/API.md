@@ -21,7 +21,7 @@ Successful JSON uses a `data` property. Validation errors return HTTP 422 with a
 
 `GET /sitemap.xml` and `GET /robots.txt` are outside the API prefix. Admin URLs are disallowed for crawlers.
 
-Inquiry and booking responses include `email_delivered`. That value is true only after Laravel accepts the message for a configured mail transport.
+Inquiry and booking responses include `email_delivered` and `receipt_sent`. `email_delivered` is true only after a staff notification is accepted by a configured mail transport. `receipt_sent` is true only after a receipt to the visitor is accepted by that same transport. Both messages are queued. Run `php artisan queue:work` where `QUEUE_CONNECTION` is not `sync`.
 
 ## Authentication
 

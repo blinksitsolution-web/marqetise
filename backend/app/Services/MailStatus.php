@@ -29,4 +29,21 @@ class MailStatus
             return false;
         }
     }
+
+    public function visitorMessage(string $saved, bool $staffNotified, bool $receiptSent): string
+    {
+        if ($staffNotified && $receiptSent) {
+            return $saved.' The team has been notified, and a receipt has been sent to your email.';
+        }
+
+        if ($receiptSent) {
+            return $saved.' A receipt has been sent to your email. Staff were not emailed because the notification address is not configured.';
+        }
+
+        if ($staffNotified) {
+            return $saved.' The team has been notified. A receipt could not be sent.';
+        }
+
+        return $saved.' Email delivery is not configured, so no receipt or team notification was sent.';
+    }
 }

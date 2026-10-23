@@ -7,8 +7,10 @@ use App\Http\Requests\UpdateBookingRequest;
 use App\Http\Resources\BookingResource;
 use App\Models\Booking;
 use App\Services\AuditLogger;
+use App\Services\BookingSlot;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -46,10 +48,25 @@ class BookingController extends Controller
         return new BookingResource($booking->load('assignee:id,name'));
     }
 
-    public function update(UpdateBookingRequest $request, Booking $booking, AuditLogger $audit): BookingResource
+    public function update(UpdateBookingRequest $request, Booking $booking, AuditLogger $audit, BookingSlot $slots): BookingResource
     {
         $from = $booking->status;
-        $booking->update($request->validated());
+
+        DB::transaction(function () use ($request, $booking, $slots): void {
+            $changes = $request->validated();
+
+            if (in_array($changes['status'], ['pending', 'confirmed'], true)) {
+                $slots->assertAvailable(
+                    $booking->preferred_date->toDateString(),
+                    (string) $booking->preferred_time,
+                    $booking->id,
+                    'status',
+                );
+            }
+
+            $booking->update($changes);
+        });
+
         $audit->log('booking.updated', $booking, ['from' => $from, 'to' => $booking->status]);
 
         return new BookingResource($booking->load('assignee'));

@@ -44,7 +44,10 @@ php artisan storage:link
 php artisan config:cache
 php artisan route:cache
 php artisan marqetise:create-admin --name="..." --email="..." --password="..."
+php artisan queue:work
 ```
+
+Inquiry receipts, booking receipts, and the matching staff notices are queued. Keep `php artisan queue:work` running in production, or the messages stay in the `jobs` table. `QUEUE_CONNECTION=sync` sends them during the request and does not need a worker.
 
 For a production database, set `SEED_SAMPLE_CONTENT=false` if the starter courses from the mockups should not be published. Review every published page in the CMS before launch.
 
