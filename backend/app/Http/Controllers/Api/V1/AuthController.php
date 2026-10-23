@@ -15,6 +15,7 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
@@ -27,17 +28,13 @@ class AuthController extends Controller
         $lockKey = 'login-lockout:'.$email;
 
         if (RateLimiter::tooManyAttempts($lockKey, 10)) {
-            throw ValidationException::withMessages([
-                'email' => 'Incorrect email or password.',
-            ]);
+            $this->refuseSignIn($email, 'locked');
         }
 
         if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             RateLimiter::hit($lockKey, 900);
-
-            throw ValidationException::withMessages([
-                'email' => 'Incorrect email or password.',
-            ]);
+            $reason = User::query()->where('email', $email)->exists() ? 'invalid_password' : 'unknown_email';
+            $this->refuseSignIn($email, $reason);
         }
 
         /** @var User $user */
@@ -47,12 +44,7 @@ class AuthController extends Controller
             Auth::logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-
-            throw ValidationException::withMessages([
-                'email' => $user->status === 'suspended'
-                    ? 'This account cannot sign in. Contact an administrator.'
-                    : 'Incorrect email or password.',
-            ]);
+            $this->refuseSignIn($email, $user->status);
         }
 
         RateLimiter::clear($lockKey);
@@ -62,6 +54,18 @@ class AuthController extends Controller
         $user->load('role.permissions');
 
         return new UserResource($user);
+    }
+
+    private function refuseSignIn(string $email, string $reason): never
+    {
+        Log::info('Sign-in refused.', [
+            'email' => $email,
+            'reason' => $reason,
+        ]);
+
+        throw ValidationException::withMessages([
+            'email' => 'Incorrect email or password.',
+        ]);
     }
 
     public function logout(Request $request, AuditLogger $audit): JsonResponse
