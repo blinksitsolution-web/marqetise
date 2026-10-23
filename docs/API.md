@@ -13,7 +13,7 @@ Successful JSON uses a `data` property. Validation errors return HTTP 422 with a
 | GET | `/api/v1/site` | Published settings, sections, services, featured courses, and FAQs |
 | GET | `/api/v1/courses` | Published courses. Query: `search`, `category`, `level`, `format`, `sort` |
 | GET | `/api/v1/courses/{slug}` | One published course, plus related courses |
-| GET | `/api/v1/services` | Published services |
+| GET | `/api/v1/services` | Published services. The public site lists them at `/services` |
 | GET | `/api/v1/services/{slug}` | One published service |
 | GET | `/api/v1/pages/{slug}` | One published CMS page |
 | POST | `/api/v1/inquiries` | Save a contact, course, or corporate inquiry |

@@ -483,4 +483,4 @@ The design source of truth is `docs/design/Marqetise-UI-Mockups.pdf`. The older 
 
 Staff sign-in is the session cookie. Sanctum refuses every bearer token, including a row planted in `personal_access_tokens`. The table is unchanged. `sanctum.expiration` stays null because the application does not issue tokens.
 
-Visitors receive an email receipt for an enquiry or a booking when mail can be delivered. A pending or confirmed booking holds its date and time, so another booking cannot take that slot. Instructor and Read-Only Staff do not receive `students.view` or `bookings.view` until those permissions are assigned; after that they see the shared lists. Student records stay plaintext until encryption is requested.
+Visitors receive an email receipt for an enquiry or a booking when mail can be delivered. A pending or confirmed booking holds its date and time, so another booking cannot take that slot. Instructor and Read-Only Staff do not receive `students.view` or `bookings.view` until those permissions are assigned; after that they see the shared lists. Student records stay plaintext until encryption is requested. Published services are listed at `/services`.

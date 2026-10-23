@@ -8,6 +8,7 @@ import HomePage from './pages/public/HomePage'
 import { can } from './services/api'
 
 const AboutPage = lazy(() => import('./pages/public/AboutPage'))
+const ServicesPage = lazy(() => import('./pages/public/ServicesPage'))
 const CoursesPage = lazy(() => import('./pages/public/CoursesPage'))
 const CourseDetailPage = lazy(() => import('./pages/public/CourseDetailPage'))
 const ContactPage = lazy(() => import('./pages/public/ContactPage'))
@@ -62,6 +63,7 @@ export default function App() {
       <Route element={<PublicLayout />}>
         <Route index element={<HomePage />} />
         <Route path="about" element={<AboutPage />} />
+        <Route path="services" element={<ServicesPage />} />
         <Route path="courses" element={<CoursesPage />} />
         <Route path="courses/:slug" element={<CourseDetailPage />} />
         <Route path="contact" element={<ContactPage />} />

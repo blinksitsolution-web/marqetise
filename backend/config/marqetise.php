@@ -18,7 +18,7 @@ return [
     ],
 
     'reserved_slugs' => [
-        'admin', 'api', 'book', 'courses', 'storage', 'sitemap', 'robots',
+        'admin', 'api', 'book', 'courses', 'services', 'storage', 'sitemap', 'robots',
         'login', 'sanctum', 'up', 'build', 'assets',
     ],
 

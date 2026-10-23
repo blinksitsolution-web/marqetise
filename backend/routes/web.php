@@ -17,6 +17,7 @@ Route::get('/sitemap.xml', function () {
     $urls = [
         $base.'/',
         $base.'/about',
+        $base.'/services',
         $base.'/courses',
         $base.'/contact',
         $base.'/book',

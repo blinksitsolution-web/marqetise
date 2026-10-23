@@ -58,7 +58,10 @@ export default function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <div className="flex items-end justify-between gap-4">
           <h2 className="text-3xl font-semibold">Services built to grow a business</h2>
-          <Link to="/book" className="text-sm font-semibold text-blue">Book a service</Link>
+          <div className="flex gap-4">
+            <Link to="/services" className="text-sm font-semibold text-blue">All services</Link>
+            <Link to="/book" className="text-sm font-semibold text-blue">Book a service</Link>
+          </div>
         </div>
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {services.map((service) => (

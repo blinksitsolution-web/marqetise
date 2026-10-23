@@ -6,6 +6,7 @@ import { useSite } from '../context/SiteContext'
 const links = [
   { to: '/', label: 'Home', end: true },
   { to: '/about', label: 'About Us' },
+  { to: '/services', label: 'Services' },
   { to: '/courses', label: 'Courses' },
   { to: '/contact', label: 'Contact Us' },
 ]
@@ -58,6 +59,7 @@ export default function PublicLayout() {
             <ul className="mt-3 space-y-2 text-sm text-white/70">
               <li><Link to="/">Home</Link></li>
               <li><Link to="/about">About Us</Link></li>
+              <li><Link to="/services">Services</Link></li>
               <li><Link to="/contact">Contact Us</Link></li>
             </ul>
           </div>
