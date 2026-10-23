@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(User::class, UserPolicy::class);
         app(ProductionConfiguration::class)->assertSafe();
+        Sanctum::authenticateAccessTokensUsing(static fn (): bool => false);
 
         Password::defaults(fn () => Password::min(12)->mixedCase()->numbers()->symbols());
 

@@ -481,4 +481,4 @@ The design source of truth is `docs/design/Marqetise-UI-Mockups.pdf`. The older 
 | F-26 | Low | 1 | Fixed |
 | F-27 | Low | 1 (via F-01) | Fixed |
 
-Staff users no longer use Sanctum personal access tokens. The `personal_access_tokens` table is unchanged. `sanctum.expiration` stays null because the application does not issue tokens.
+Staff sign-in is the session cookie. Sanctum refuses every bearer token, including a row planted in `personal_access_tokens`. The table is unchanged. `sanctum.expiration` stays null because the application does not issue tokens.
