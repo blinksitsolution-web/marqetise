@@ -444,3 +444,41 @@ About 3 to 5 days.
 - PDF pages have no text layer. Palette and layout notes come from the rendered pages. Hex values cited from the PDF are the labels visible on those pages (`#113DDA`, `#F36A09`).
 - I did not exploit F-01 against a live database. The path is the source above. A feature test should prove the fix.
 - Production hosting is not in the repo, so header and cookie behaviour on the real host could not be measured.
+
+## 9. Phase 1 status
+
+Recorded on branch `fix/phase-1-security` after the Phase 1 fixes. The findings above stay as the original audit. This table is the implementation status.
+
+The design source of truth is `docs/design/Marqetise-UI-Mockups.pdf`. The older 16-page diagrams are in `docs/design/archive/marqetise-ui-diagrams.pdf`. Primary blue for Phase 3 is `#113DA5`.
+
+| ID | Severity | Phase | Status |
+| --- | --- | --- | --- |
+| F-01 | Critical | 1 | Fixed |
+| F-02 | High | 1 | Fixed |
+| F-03 | High | 1 | Fixed |
+| F-04 | High | 1 | Fixed |
+| F-05 | High | 1 | Fixed |
+| F-06 | Medium | 1 | Fixed |
+| F-07 | Medium | 1 | Fixed |
+| F-08 | Medium | 1 | Fixed |
+| F-09 | Medium | 2 (ASK) | Needs decision |
+| F-10 | Low | 2 (ASK) | Needs decision |
+| F-11 | High | 2 | Open |
+| F-12 | Medium | 2 | Open |
+| F-13 | Medium | 2 | Open |
+| F-14 | Medium | 2 | Open |
+| F-15 | Medium | 2 | Open |
+| F-16 | Medium | 2–3 | Open |
+| F-17 | Medium | 3 | Open |
+| F-18 | Low | 3 | Open |
+| F-19 | Medium | 3 | Open |
+| F-20 | Medium | 2 | Open |
+| F-21 | Low | 2 | Open |
+| F-22 | Low | 4 | Keep as is (verify) |
+| F-23 | Low | 4 | Open |
+| F-24 | Medium | 4 | Open |
+| F-25 | Low | 4 | Open |
+| F-26 | Low | 1 | Fixed |
+| F-27 | Low | 1 (via F-01) | Fixed |
+
+Staff users no longer use Sanctum personal access tokens. The `personal_access_tokens` table is unchanged. `sanctum.expiration` stays null because the application does not issue tokens.
