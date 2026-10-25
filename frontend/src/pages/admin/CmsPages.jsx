@@ -79,7 +79,12 @@ export function CmsListPage() {
                   <td className="px-4 py-3" data-label="Title"><p className="font-medium">{row.title || row.label || row.name || row.question}</p><p className="text-xs text-muted">{row.slug || row.key || row.context}</p></td>
                   <td><Badge tone={statusTone(row.status || (row.is_visible || row.is_published ? 'published' : 'draft'))}>{row.status || (row.is_visible || row.is_published ? 'visible' : 'hidden')}</Badge></td>
                   <td className="px-4 py-3 text-right">
-                    {tab === 'pages' && manageable ? <Link to={`/admin/cms/pages/${row.id}`} className="inline-flex min-h-11 items-center font-semibold text-blue">Edit</Link> : null}
+                    {tab === 'pages' && manageable ? (
+                      <span className="inline-flex min-h-11 items-center gap-4">
+                        <Link to={`/admin/cms/pages/${row.id}`} className="font-semibold text-blue">Edit</Link>
+                        <button type="button" className="text-red-700" onClick={() => remove(`/api/v1/admin/pages/${row.id}`)}>Delete</button>
+                      </span>
+                    ) : null}
                     {manageable && tab !== 'pages' ? (
                       <span className="inline-flex min-h-11 items-center gap-4">
                         <button type="button" className="font-semibold text-blue" onClick={() => setEditing(row)}>Edit</button>
@@ -96,6 +101,129 @@ export function CmsListPage() {
       {tab === 'pages' ? <Pager meta={meta} onPage={setPage} /> : null}
       {manageable && tab !== 'pages' ? <BlockEditor tab={tab} record={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); setMessage('Saved.') }} /> : null}
     </>
+  )
+}
+
+const KNOWN_BLOCKS = {
+  'home.hero': 'hero',
+  'courses.hero': 'headline',
+  'contact.hero': 'headline',
+  'home.why': 'items',
+  'home.process': 'items',
+  'home.focus': 'items',
+  'about.approach': 'items',
+  'home.stats': 'stats',
+  'home.testimonials': 'quotes',
+  'about.identity': 'identity',
+}
+
+function parsePayload(raw) {
+  try {
+    const value = JSON.parse(raw)
+    return value && typeof value === 'object' && !Array.isArray(value) ? value : null
+  } catch {
+    return null
+  }
+}
+
+function BlockFields({ form, setForm }) {
+  const shape = KNOWN_BLOCKS[form.key]
+  const [advanced, setAdvanced] = useState(false)
+  const payload = parsePayload(form.payload)
+
+  if (!shape) {
+    return <Field label="JSON payload"><textarea className={`${inputClass} min-h-32`} value={form.payload} onChange={(event) => setForm({ ...form, payload: event.target.value })} /></Field>
+  }
+
+  function update(next) {
+    setForm({ ...form, payload: JSON.stringify(next, null, 2) })
+  }
+
+  return (
+    <>
+      <label className="flex min-h-11 items-center gap-2 text-sm">
+        <input type="checkbox" checked={advanced} onChange={(event) => setAdvanced(event.target.checked)} />
+        Edit as JSON
+      </label>
+      {advanced || !payload ? (
+        <Field label="JSON payload" hint={payload ? 'Use this only when the fields do not cover a value you need.' : 'This JSON is not valid yet.'}>
+          <textarea className={`${inputClass} min-h-32`} value={form.payload} onChange={(event) => setForm({ ...form, payload: event.target.value })} />
+        </Field>
+      ) : (
+        <StructuredBlock shape={shape} payload={payload} onChange={update} />
+      )}
+    </>
+  )
+}
+
+function StructuredBlock({ shape, payload, onChange }) {
+  function setField(key, value) {
+    onChange({ ...payload, [key]: value })
+  }
+
+  if (shape === 'hero' || shape === 'headline') {
+    return (
+      <>
+        <Field label="Headline"><input className={inputClass} value={payload.headline || ''} onChange={(event) => setField('headline', event.target.value)} /></Field>
+        <Field label="Subcopy"><textarea className={inputClass} value={payload.subcopy || ''} onChange={(event) => setField('subcopy', event.target.value)} /></Field>
+        {shape === 'hero' ? (
+          <>
+            <Field label="Primary label"><input className={inputClass} value={payload.primary_label || ''} onChange={(event) => setField('primary_label', event.target.value)} /></Field>
+            <Field label="Primary link" hint="Same-site path, such as /book."><input className={inputClass} value={payload.primary_href || ''} onChange={(event) => setField('primary_href', event.target.value)} /></Field>
+            <Field label="Secondary label"><input className={inputClass} value={payload.secondary_label || ''} onChange={(event) => setField('secondary_label', event.target.value)} /></Field>
+            <Field label="Secondary link" hint="Same-site path, such as /courses."><input className={inputClass} value={payload.secondary_href || ''} onChange={(event) => setField('secondary_href', event.target.value)} /></Field>
+          </>
+        ) : null}
+      </>
+    )
+  }
+
+  if (shape === 'identity') {
+    return (
+      <>
+        <Field label="Title"><input className={inputClass} value={payload.title || ''} onChange={(event) => setField('title', event.target.value)} /></Field>
+        <Field label="Body"><textarea className={inputClass} value={payload.body || ''} onChange={(event) => setField('body', event.target.value)} /></Field>
+        <Field label="Mission"><textarea className={inputClass} value={payload.mission || ''} onChange={(event) => setField('mission', event.target.value)} /></Field>
+        <Field label="Vision"><textarea className={inputClass} value={payload.vision || ''} onChange={(event) => setField('vision', event.target.value)} /></Field>
+        <ItemList label="Values" items={payload.values} fields={[['title', 'Title'], ['body', 'Body']]} onChange={(values) => setField('values', values)} />
+      </>
+    )
+  }
+
+  const itemFields = shape === 'stats'
+    ? [['value', 'Value'], ['label', 'Label']]
+    : [['title', 'Title'], ['body', 'Body']]
+
+  return (
+    <>
+      {shape !== 'items' || payload.title !== undefined ? <Field label="Title"><input className={inputClass} value={payload.title || ''} onChange={(event) => setField('title', event.target.value)} /></Field> : null}
+      {shape === 'stats' || shape === 'quotes' ? <Field label="Note"><textarea className={inputClass} value={payload.note || ''} onChange={(event) => setField('note', event.target.value)} /></Field> : null}
+      <ItemList label="Items" items={payload.items} fields={itemFields} onChange={(items) => setField('items', items)} />
+    </>
+  )
+}
+
+function ItemList({ label, items, fields, onChange }) {
+  const rows = Array.isArray(items) ? items : []
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-medium">{label}</p>
+      {rows.map((item, index) => (
+        <div key={index} className="space-y-2 rounded-2xl border border-line p-3">
+          {fields.map(([key, fieldLabel]) => (
+            <Field key={key} label={fieldLabel}>
+              <input className={inputClass} value={item?.[key] || ''} onChange={(event) => {
+                const next = rows.map((row, rowIndex) => rowIndex === index ? { ...row, [key]: event.target.value } : row)
+                onChange(next)
+              }} />
+            </Field>
+          ))}
+          <button type="button" className="text-sm text-red-700" onClick={() => onChange(rows.filter((_, rowIndex) => rowIndex !== index))}>Remove item</button>
+        </div>
+      ))}
+      <Button type="button" variant="outline" onClick={() => onChange([...rows, Object.fromEntries(fields.map(([key]) => [key, '']))])}>Add item</Button>
+    </div>
   )
 }
 
@@ -154,7 +282,14 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
         if (editing) await api.put(`/api/v1/admin/services/${record.id}`, payload)
         else await api.post('/api/v1/admin/services', payload)
       } else {
-        const payload = { key: form.key, group: form.group, label: form.label, is_visible: Boolean(form.is_visible), sort_order: form.sort_order || 0, payload: JSON.parse(form.payload) }
+        let parsed
+        try {
+          parsed = JSON.parse(form.payload)
+        } catch {
+          setError('The JSON payload is not valid.')
+          return
+        }
+        const payload = { key: form.key, group: form.group, label: form.label, is_visible: Boolean(form.is_visible), sort_order: form.sort_order || 0, payload: parsed }
         if (editing) await api.put(`/api/v1/admin/blocks/${record.id}`, payload)
         else await api.post('/api/v1/admin/blocks', payload)
       }
@@ -196,7 +331,7 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
                 <Field label="Key"><input className={inputClass} value={form.key} onChange={(event) => setForm({ ...form, key: event.target.value })} /></Field>
                 <Field label="Label"><input className={inputClass} value={form.label} onChange={(event) => setForm({ ...form, label: event.target.value })} /></Field>
                 <Field label="Group"><select className={inputClass} value={form.group} onChange={(event) => setForm({ ...form, group: event.target.value })}><option value="home">Home</option><option value="about">About</option><option value="courses">Courses</option><option value="contact">Contact</option><option value="global">Global</option></select></Field>
-                <Field label="JSON payload"><textarea className={`${inputClass} min-h-32`} value={form.payload} onChange={(event) => setForm({ ...form, payload: event.target.value })} /></Field>
+                <BlockFields form={form} setForm={setForm} />
                 <label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={form.is_visible} onChange={(event) => setForm({ ...form, is_visible: event.target.checked })} /> Visible on the website</label>
               </>
             ) : null}
