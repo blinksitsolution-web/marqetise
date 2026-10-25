@@ -25,11 +25,21 @@ export function formatDate(value) {
     return '—'
   }
 
+  const text = String(value)
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text)
+  const date = dateOnly
+    ? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+    : new Date(text)
+
+  if (Number.isNaN(date.getTime())) {
+    return '—'
+  }
+
   return new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
-  }).format(new Date(value))
+  }).format(date)
 }
 
 export function weekdaySlots(monthDate) {
