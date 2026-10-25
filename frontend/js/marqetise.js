@@ -455,29 +455,49 @@
       if (!site) return;
       var payload = site.data || site;
       var settings = payload.settings || {};
+      function revealSite(node) {
+        node.hidden = false;
+        var block = node.closest('[data-site-block]');
+        if (block) block.hidden = false;
+        if (node.parentElement && node.parentElement.tagName === 'LI') node.parentElement.hidden = false;
+      }
+
+      function applySiteText(selector, value, href) {
+        if (!value) return;
+        Array.prototype.forEach.call(document.querySelectorAll(selector), function (node) {
+          if (node.tagName === 'A' && href) node.setAttribute('href', href);
+          node.textContent = value;
+          revealSite(node);
+        });
+      }
+
       if (settings.logo_url) {
         Array.prototype.forEach.call(document.querySelectorAll('.logo img, .nav-logo img'), function (img) {
           img.src = settings.logo_url;
           img.alt = settings.company_name || 'Marqetise';
         });
       }
-      if (settings.phone) {
-        Array.prototype.forEach.call(document.querySelectorAll('a[href^="tel:"]'), function (link) {
-          link.href = 'tel:' + settings.phone;
-          link.textContent = settings.phone;
+      var phone = typeof settings.phone === 'string' ? settings.phone.trim() : '';
+      var email = typeof settings.email === 'string' ? settings.email.trim() : '';
+      var address = typeof settings.address === 'string' ? settings.address.trim() : '';
+      var hours = typeof settings.hours === 'string' ? settings.hours.trim() : '';
+      if (phone) applySiteText('[data-site="phone"]', phone, 'tel:' + phone.replace(/[^\d+]/g, ''));
+      if (email && /^[^\s@]+@[^\s@]+$/.test(email)) applySiteText('[data-site="email"]', email, 'mailto:' + email);
+      if (address) applySiteText('[data-site="address"]', address);
+      if (hours) applySiteText('[data-site="hours"]', hours);
+      ['social_facebook', 'social_x', 'social_linkedin', 'social_instagram', 'social_youtube'].forEach(function (key) {
+        var url = settings[key];
+        if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) return;
+        Array.prototype.forEach.call(document.querySelectorAll('[data-site="' + key + '"]'), function (node) {
+          node.setAttribute('href', url);
+          node.setAttribute('target', '_blank');
+          node.setAttribute('rel', 'noopener noreferrer');
+          revealSite(node);
         });
-      }
-      if (settings.email) {
-        Array.prototype.forEach.call(document.querySelectorAll('a[href^="mailto:"], [data-site="email"]'), function (link) {
-          if (link.tagName === 'A') link.href = 'mailto:' + settings.email;
-          link.textContent = settings.email;
-        });
-      }
-      if (settings.address) {
-        Array.prototype.forEach.call(document.querySelectorAll('[data-site="address"]'), function (node) {
-          node.textContent = settings.address;
-        });
-      }
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-site-group]'), function (group) {
+        group.hidden = !group.querySelector('[data-site]:not([hidden])');
+      });
       if (settings.company_name) {
         var copyright = document.querySelector('.ks-copyright-text p');
         if (copyright) copyright.textContent = '© ' + new Date().getFullYear() + ' ' + settings.company_name + '. All rights reserved.';
