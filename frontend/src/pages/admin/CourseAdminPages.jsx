@@ -43,10 +43,10 @@ export function CourseAdminListPage() {
               {rows.map((course) => (
                 <tr key={course.id} className="border-t border-line">
                   <td className="px-4 py-3" data-label="Course"><p className="font-medium">{course.title}</p><p className="text-xs text-muted">{course.category} · {course.level}</p></td>
-                  <td>{formatPrice(course)}</td>
-                  <td><Badge tone={statusTone(course.status)}>{course.status}</Badge></td>
-                  <td>{course.students_count ?? 0}</td>
-                  <td className="px-4 text-right">{can(user, 'courses.manage') ? <Link className="font-semibold text-blue" to={`/admin/courses/${course.id}`}>Edit</Link> : null}</td>
+                  <td data-label="Price">{formatPrice(course)}</td>
+                  <td data-label="Status"><Badge tone={statusTone(course.status)}>{course.status}</Badge></td>
+                  <td data-label="Students">{course.students_count ?? 0}</td>
+                  <td className="px-4 text-right" data-label="Action">{can(user, 'courses.manage') ? <Link className="font-semibold text-blue" to={`/admin/courses/${course.id}`}>Edit</Link> : null}</td>
                 </tr>
               ))}
             </tbody>
