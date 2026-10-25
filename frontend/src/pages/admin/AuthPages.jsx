@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import Brand from '../../components/Brand'
+import { LegalNotice } from '../../components/LegalNotice'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
@@ -44,6 +45,7 @@ export function LoginPage() {
           {form.formState.isSubmitting ? 'Signing in…' : 'Sign in'}
         </Button>
         <p className="rounded-xl bg-surface px-3 py-2 text-xs text-muted">Authorised staff only. Credentials are verified by the server.</p>
+        <LegalNotice>Staff sign-in stores a session. Read the</LegalNotice>
       </form>
     </AuthShell>
   )
@@ -71,6 +73,7 @@ export function ForgotPasswordPage() {
           <input className={inputClass} type="email" {...form.register('email')} />
         </Field>
         <Button type="submit" variant="blue" className="w-full">Send reset link</Button>
+        <LegalNotice>Password reset stores the email address you enter. Read the</LegalNotice>
       </form>
     </AuthShell>
   )
@@ -108,6 +111,7 @@ export function ResetPasswordPage() {
           <input className={inputClass} type="password" {...form.register('password_confirmation')} />
         </Field>
         <Button type="submit" variant="blue" className="w-full">Update password</Button>
+        <LegalNotice>This form sets a new password for the staff account. Read the</LegalNotice>
       </form>
     </AuthShell>
   )
@@ -121,7 +125,7 @@ function AuthShell({ title, description, children }) {
         <h1 className="mt-6 text-2xl font-semibold">{title}</h1>
         <p className="mt-1 text-sm text-muted">{description}</p>
         <div className="mt-6">{children}</div>
-        <Link to="/" className="mt-6 block text-center text-sm text-muted">Back to website</Link>
+        <a href="/" className="mt-6 block text-center text-sm text-muted">Back to website</a>
       </div>
     </div>
   )

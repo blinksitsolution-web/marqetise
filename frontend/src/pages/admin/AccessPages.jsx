@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { LegalNotice } from '../../components/LegalNotice'
 import Seo from '../../components/Seo'
 import { Badge, Button, EmptyState, Field, Modal, Notice, Spinner, inputClass, statusTone } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
@@ -96,6 +97,7 @@ export function UsersPage() {
               </select>
             </Field>
             <label className="flex gap-2 text-sm"><input type="checkbox" checked={form.send_invite} onChange={(event) => setForm({ ...form, send_invite: event.target.checked })} /> Send invitation to set a password</label>
+            <LegalNotice>A staff account stores the name and email. Read the</LegalNotice>
             <Button type="submit" variant="blue">Create user</Button>
           </form>
         </Modal>
