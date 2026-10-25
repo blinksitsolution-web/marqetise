@@ -171,13 +171,43 @@
       if (!label) return;
       var slot = home.querySelector('[data-form-label="' + name + '"]');
       if (slot) slot.textContent = label;
+      var input = home.elements[name];
+      if (input && input.classList && !slot) {
+        input.setAttribute('placeholder', label);
+        input.setAttribute('aria-label', label);
+      }
     });
     var homeButton = text(copy.home_button_label);
     if (homeButton) {
       var submit = home.querySelector('[type="submit"]');
-      if (submit) submit.textContent = homeButton;
+      if (submit) {
+        var faces = submit.querySelectorAll('.text-1, .text-2');
+        if (faces.length) {
+          Array.prototype.forEach.call(faces, function (face) { face.textContent = homeButton; });
+        } else {
+          submit.textContent = homeButton;
+        }
+      }
     }
     setText('#home_contact_form [data-form-label="consent"]', copy.home_consent);
+  }
+
+  function applyPackages(blocks) {
+    var payload = payloadOf(blocks, 'packages.plans');
+    if (!payload) return;
+    var rows = items(payload).filter(function (item) { return text(item.name) || text(item.price); });
+    if (!rows.length) return;
+    var cards = document.querySelectorAll('.ks-price-item');
+    rows.forEach(function (item, index) {
+      var card = cards[index];
+      if (!card) return;
+      var title = card.querySelector('.ks-price-title');
+      if (title && text(item.name)) title.textContent = text(item.name);
+      var price = card.querySelector('.ks-price-time i');
+      if (price && text(item.price)) price.textContent = text(item.price);
+      var summary = card.querySelector('.ks-price-text');
+      if (summary && text(item.summary)) summary.textContent = text(item.summary);
+    });
   }
 
   function applyBook(blocks) {
@@ -362,6 +392,7 @@
     applyBook(blocks);
     applyCourses(blocks);
     applyContact(blocks);
+    applyPackages(blocks);
     fillPanel(blocks);
     Array.prototype.forEach.call(document.querySelectorAll('#page-sections'), function (mount) {
       renderMount(mount, blocks, data);

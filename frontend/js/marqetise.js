@@ -581,6 +581,7 @@
       && new URLSearchParams(window.location.search).get('slug');
     if (!skipTitle && page.title) {
       inPage(root, '[data-cms="title"]').forEach(function (node) {
+        if (node.closest('.ks-slider-area')) return;
         node.textContent = page.title;
       });
       inPage(root, '.page-breadcrumb li:last-child').forEach(function (node) {

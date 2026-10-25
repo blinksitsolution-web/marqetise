@@ -6,6 +6,7 @@ use App\Models\ContentBlock;
 use App\Models\Course;
 use App\Models\Service;
 use App\Support\HomeSectionDefaults;
+use App\Support\TemplateDemoDefaults;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\WebsiteContentSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,8 +37,15 @@ class HomeSectionTest extends TestCase
         }
 
         $team = ContentBlock::query()->where('key', 'home.team')->firstOrFail();
-        $this->assertFalse($team->is_visible);
-        $this->assertSame([], $team->payload['items']);
+        $this->assertTrue($team->is_visible);
+        $this->assertSame('Kevin Martin', $team->payload['items'][0]['name']);
+
+        $team->update([
+            'is_visible' => true,
+            'payload' => ['title' => 'Kept team', 'items' => [['name' => 'Kept Person', 'role' => 'Lead']]],
+        ]);
+        TemplateDemoDefaults::sync();
+        $this->assertSame('Kept Person', ContentBlock::query()->where('key', 'home.team')->firstOrFail()->payload['items'][0]['name']);
     }
 
     public function test_the_public_home_payload_omits_hidden_sections_and_includes_real_ones(): void
@@ -47,10 +55,8 @@ class HomeSectionTest extends TestCase
         $site = $this->getJson('/api/v1/site')->assertOk()->json('data');
 
         $this->assertSame('Marketing that grows your business and your skills', $site['blocks']['home.hero']['payload']['headline']);
-        $this->assertArrayNotHasKey('home.team', $site['blocks']);
-        $this->assertArrayNotHasKey('home.projects', $site['blocks']);
-        $this->assertArrayNotHasKey('home.stats', $site['blocks']);
-        $this->assertArrayNotHasKey('home.testimonials', $site['blocks']);
+        $this->assertSame('Kevin Martin', $site['blocks']['home.team']['payload']['items'][0]['name']);
+        $this->assertSame('230k', $site['blocks']['home.stats']['payload']['items'][0]['value']);
         $this->assertSame('Services', $site['blocks']['home.services']['payload']['title']);
     }
 
