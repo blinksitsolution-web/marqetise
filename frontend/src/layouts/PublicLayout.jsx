@@ -31,7 +31,7 @@ export default function PublicLayout() {
       <a href="#content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-white focus:px-4 focus:py-2">Skip to content</a>
       <header className="sticky top-0 z-40 border-b border-white/10 bg-navy-900/95 text-white backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
-          <Link to="/" aria-label="Marqetise home"><Brand /></Link>
+          <Link to="/" aria-label="Marqetise home"><Brand logoUrl={settings.logo_url} /></Link>
           {/* Desktop links start at lg (1024px), matching the admin sidebar. At 768px this row also holds Admin login and Book a service, so tablet portrait keeps the menu. */}
           <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
             {links.map((link) => <NavLink key={link.label} to={link.to} end={link.end} className={navClass}>{link.label}</NavLink>)}
@@ -56,7 +56,7 @@ export default function PublicLayout() {
       <footer className="bg-navy-950 text-white">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Brand />
+            <Brand logoUrl={settings.logo_url} />
             <p className="mt-4 text-sm text-white/70">{settings.tagline || 'Digital marketing services and training.'}</p>
           </div>
           <div>
@@ -84,6 +84,15 @@ export default function PublicLayout() {
               {settings.phone ? <li><a href={`tel:${settings.phone}`}>{settings.phone}</a></li> : null}
               {settings.address ? <li>{settings.address}</li> : null}
               {settings.hours ? <li>{settings.hours}</li> : null}
+              {[
+                ['LinkedIn', settings.social_linkedin],
+                ['Instagram', settings.social_instagram],
+                ['Facebook', settings.social_facebook],
+                ['X', settings.social_x],
+                ['YouTube', settings.social_youtube],
+              ].filter(([, url]) => typeof url === 'string' && url.startsWith('https://')).map(([label, url]) => (
+                <li key={label}><a href={url}>{label}</a></li>
+              ))}
               {!settings.email && !settings.phone ? <li>Add contact details in Admin settings.</li> : null}
             </ul>
           </div>

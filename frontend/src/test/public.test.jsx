@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ContactPage from '../pages/public/ContactPage.jsx'
+import AboutPage from '../pages/public/AboutPage.jsx'
+import HomePage from '../pages/public/HomePage.jsx'
 import PublicLayout from '../layouts/PublicLayout.jsx'
 import { can } from '../services/api'
 
@@ -54,6 +56,33 @@ describe('public contact form', () => {
 })
 
 describe('legal links', () => {
+  it('uses a published logo on the header mark', () => {
+    siteState.site = {
+      ...siteState.site,
+      pages: [],
+      settings: { ...siteState.site.settings, logo_url: '/storage/logo.png' },
+    }
+    render(<MemoryRouter><PublicLayout /></MemoryRouter>)
+    expect(document.querySelector('header img')).toHaveAttribute('src', '/storage/logo.png')
+  })
+
+  it('ignores an unsafe logo and a non-https social link', () => {
+    siteState.site = {
+      ...siteState.site,
+      pages: [],
+      settings: {
+        ...siteState.site.settings,
+        logo_url: 'javascript:alert(1)',
+        social_linkedin: 'https://www.linkedin.com/company/example',
+        social_facebook: 'http://facebook.com/example',
+      },
+    }
+    render(<MemoryRouter><PublicLayout /></MemoryRouter>)
+    expect(document.querySelector('header img')).toHaveAttribute('src', '/brand/mark.png')
+    expect(screen.getByRole('link', { name: 'LinkedIn' })).toHaveAttribute('href', 'https://www.linkedin.com/company/example')
+    expect(screen.queryByRole('link', { name: 'Facebook' })).not.toBeInTheDocument()
+  })
+
   it('hides privacy and terms until those pages are published', () => {
     siteState.site = { ...siteState.site, pages: [] }
     render(
@@ -111,6 +140,22 @@ describe('legal links', () => {
     render(<MemoryRouter><ContactPage /></MemoryRouter>)
     expect(screen.getByText('A privacy notice has not been published, so this form is closed.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled()
+  })
+})
+
+describe('public pages', () => {
+  it('waits for the site payload before painting About', () => {
+    siteState.site = null
+    render(<MemoryRouter><AboutPage /></MemoryRouter>)
+    expect(screen.getByRole('status')).toHaveTextContent('Loading the page')
+  })
+
+  it('gives the secondary hero link the same minimum height and shows an empty services note', () => {
+    siteState.site = { settings: {}, blocks: {}, services: [], pages: [] }
+    render(<MemoryRouter><HomePage /></MemoryRouter>)
+    expect(screen.getAllByRole('link', { name: 'Explore courses' })[0].className).toContain('min-h-11')
+    expect(screen.getByRole('link', { name: 'Book a strategy call' }).className).toContain('min-h-11')
+    expect(screen.getByText('Published services will appear here.')).toBeInTheDocument()
   })
 })
 
