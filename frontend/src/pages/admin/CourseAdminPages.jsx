@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Badge, Button, EmptyState, Field, Notice, Pager, Spinner, inputClass } from '../../components/ui'
@@ -62,6 +62,7 @@ export function CourseEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [form, setForm] = useState(blank)
+  const formRef = useRef(form)
   const [error, setError] = useState('')
   const [ready, setReady] = useState(!id)
 
@@ -71,7 +72,7 @@ export function CourseEditorPage() {
     api.get(`/api/v1/admin/courses/${id}`).then((response) => {
       if (!active) return
       const course = response.data.data
-      setForm({
+      const next = {
         ...course,
         price: course.price ?? '',
         outcomes: (course.outcomes || []).join('\n'),
@@ -80,7 +81,9 @@ export function CourseEditorPage() {
         instructor_bio: course.instructor_bio || '',
         next_start_date: course.next_start_date ? String(course.next_start_date).slice(0, 10) : '',
         modules: (course.modules || [{ title: '', lessons: [] }]).map((module) => ({ title: module.title, lessons: (module.lessons || []).join('\n') })),
-      })
+      }
+      formRef.current = next
+      setForm(next)
       setReady(true)
     }).catch(() => {
       if (active) setError('The course could not be loaded.')
@@ -91,13 +94,15 @@ export function CourseEditorPage() {
   }, [id])
 
   function update(key, value) {
-    const next = { ...form, [key]: value }
+    const next = { ...formRef.current, [key]: value }
     if (key === 'title' && !id) next.slug = value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    formRef.current = next
     setForm(next)
   }
 
   async function save(event) {
     event.preventDefault()
+    const form = formRef.current
     setError('')
     const payload = {
       ...form,
