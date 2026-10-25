@@ -31,6 +31,8 @@ Custom domain: add it in Render, then update `APP_URL`, `FRONTEND_URL`, and `SAN
 
 When `APP_ENV=production` and `APP_URL` starts with `https://`, generated links (including pagination) use that https root. Leave `TRUSTED_PROXIES` empty or set it to the TLS terminator only. Do not set it to `*`. `/courses/{slug}` is served by Laravel: a published course returns the detail page, and an unknown slug returns `page-404.html` with HTTP 404. Nginx hides the Laravel copies of `Referrer-Policy` and `X-Frame-Options` so those headers are sent once.
 
+Render’s free plan blocks outbound SMTP on ports 25, 465, and 587. A connection to `smtp-relay.brevo.com:587` waits until it times out. Brevo accepts port 2525, and the Blueprint sets `MAIL_PORT` to `2525` so a later Blueprint sync keeps that port. `MAIL_TIMEOUT` defaults to 10 seconds. When SMTP is blocked or the relay does not answer, each message stops after that limit. The inquiry or booking is already saved, and `POST /api/v1/inquiries` and `POST /api/v1/bookings` return HTTP 201 with `email_delivered` and `receipt_sent` set to false.
+
 Uploads live on the container disk and are wiped on redeploy unless you later attach an S3-compatible disk (`FILESYSTEM_DISK` / AWS env). Logo and media uploads should be re-uploaded after a fresh deploy on the free plan.
 
 ## Assumptions
@@ -77,7 +79,7 @@ php artisan route:cache
 php artisan marqetise:create-admin --name="..." --email="..." --password="..."
 ```
 
-Inquiry receipts, booking receipts, and the matching staff notices are sent during the request. They do not use the queue. A missing `queue:work` process cannot turn a queued job into a “receipt has been sent” message, because those four messages are not queued. Password-reset and invitation mail use Laravel’s notification and are also sent during the request.
+Inquiry receipts, booking receipts, and the matching staff notices are sent during the request. They do not use the queue. A missing `queue:work` process cannot turn a queued job into a “receipt has been sent” message, because those four messages are not queued. A transport error or an SMTP timeout is caught. The saved inquiry or booking stays saved, and the API answers with HTTP 201 and the existing “email not sent” flags (`email_delivered` and `receipt_sent` false). Password-reset and invitation mail use Laravel’s notification and are also sent during the request.
 
 `APP_ENV` must be set to `production` in the environment before the application boots in production. A checkout with no `APP_ENV` is treated as unconfigured so `composer install` can finish. After `php artisan config:cache`, the production safety checks still run from the cached config. Do not deploy a production host that has neither `APP_ENV=production` nor a config cache built from that value.
 
@@ -99,7 +101,7 @@ Set these in `backend/.env`. Do not commit that file.
 - `SESSION_DOMAIN=your-domain`
 - `TRUSTED_PROXIES` set to the address of the TLS terminator only. Leave it empty when PHP sees the client directly. Do not set it to `*`.
 - Database credentials for a dedicated MySQL user, not root and not an empty password
-- `MAIL_MAILER`, host, port, username, and password for the real mailbox
+- `MAIL_MAILER`, host, port, username, and password for the real mailbox. On Render’s free plan use port `2525` (ports 25, 465, and 587 are blocked). `MAIL_TIMEOUT` defaults to 10 seconds.
 - `MAIL_FROM_ADDRESS` for the address recipients should see
 
 `VITE_API_URL` can stay empty when the site and API share a hostname. Set it only for a split-origin deployment, and add that origin to `config/cors.php` and `SANCTUM_STATEFUL_DOMAINS`. Never put the application key, database password, or mail password in a `VITE_` variable.

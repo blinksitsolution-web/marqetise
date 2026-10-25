@@ -65,7 +65,9 @@ services:
       - key: MAIL_HOST
         sync: false
       - key: MAIL_PORT
-        value: "587"
+        value: "2525"
+      - key: MAIL_TIMEOUT
+        value: "10"
       - key: MAIL_USERNAME
         sync: false
       - key: MAIL_PASSWORD

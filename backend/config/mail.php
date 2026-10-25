@@ -45,7 +45,10 @@ return [
             'port' => env('MAIL_PORT', 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            // A blocked SMTP port must fail fast. null falls through to
+            // default_socket_timeout (often 60s) and the web server returns 504
+            // after the inquiry or booking has already been saved.
+            'timeout' => max(1.0, (float) env('MAIL_TIMEOUT', 10)),
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
