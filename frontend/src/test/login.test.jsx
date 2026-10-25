@@ -10,6 +10,10 @@ vi.mock('../context/useAuth', () => ({
   useAuth: () => ({ login }),
 }))
 
+vi.mock('../context/useSite', () => ({
+  useSite: () => ({ site: { settings: {} }, error: '' }),
+}))
+
 describe('admin login', () => {
   it('asks for a valid email and shows the server error', async () => {
     const user = userEvent.setup()

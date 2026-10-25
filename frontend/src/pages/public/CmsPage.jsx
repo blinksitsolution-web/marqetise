@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Spinner } from '../../components/ui'
 import { useKeyedState } from '../../hooks/useKeyedState'
 import { api } from '../../services/api'
+import NotFoundPage from './NotFoundPage'
 
 export default function CmsPage() {
   const { slug } = useParams()
@@ -30,14 +31,7 @@ export default function CmsPage() {
     return <div className="mx-auto max-w-3xl px-4 py-20 text-center"><p className="text-red-700" role="alert">{loadError}</p></div>
   }
 
-  if (missing) {
-    return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <h1 className="text-3xl font-semibold">Page not found</h1>
-        <Link to="/" className="mt-6 inline-flex text-sm font-semibold text-blue">Back home</Link>
-      </div>
-    )
-  }
+  if (missing) return <NotFoundPage />
 
   if (!page) return <div className="px-4 py-16"><Spinner label="Loading page" /></div>
 

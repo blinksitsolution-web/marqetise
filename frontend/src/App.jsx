@@ -9,11 +9,13 @@ import { can } from './services/api'
 
 const AboutPage = lazy(() => import('./pages/public/AboutPage'))
 const ServicesPage = lazy(() => import('./pages/public/ServicesPage'))
+const ServiceDetailPage = lazy(() => import('./pages/public/ServiceDetailPage'))
 const CoursesPage = lazy(() => import('./pages/public/CoursesPage'))
 const CourseDetailPage = lazy(() => import('./pages/public/CourseDetailPage'))
 const ContactPage = lazy(() => import('./pages/public/ContactPage'))
 const BookPage = lazy(() => import('./pages/public/BookPage'))
 const CmsPage = lazy(() => import('./pages/public/CmsPage'))
+const NotFoundPage = lazy(() => import('./pages/public/NotFoundPage'))
 const LoginPage = lazy(() => import('./pages/admin/AuthPages').then((module) => ({ default: module.LoginPage })))
 const ForgotPasswordPage = lazy(() => import('./pages/admin/AuthPages').then((module) => ({ default: module.ForgotPasswordPage })))
 const ResetPasswordPage = lazy(() => import('./pages/admin/AuthPages').then((module) => ({ default: module.ResetPasswordPage })))
@@ -75,6 +77,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="about" element={<AboutPage />} />
         <Route path="services" element={<ServicesPage />} />
+        <Route path="services/:slug" element={<ServiceDetailPage />} />
         <Route path="courses" element={<CoursesPage />} />
         <Route path="courses/:slug" element={<CourseDetailPage />} />
         <Route path="contact" element={<ContactPage />} />
@@ -102,7 +105,9 @@ export default function App() {
         <Route path="permissions" element={<RequireAuth permission="roles.view"><PermissionsPage /></RequireAuth>} />
         <Route path="settings" element={<RequireAuth permission="settings.view"><SettingsPage /></RequireAuth>} />
       </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<PublicLayout />}>
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
     </Routes>
     </Suspense>
   )
