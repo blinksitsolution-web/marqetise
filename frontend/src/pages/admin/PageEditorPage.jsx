@@ -13,10 +13,17 @@ export function PageEditorPage() {
 
   useEffect(() => {
     if (!id) return
+    let active = true
     api.get(`/api/v1/admin/pages/${id}`).then((response) => {
+      if (!active) return
       setForm(response.data.data)
       setLoaded(true)
-    }).catch(() => setError('The page could not be loaded.'))
+    }).catch(() => {
+      if (active) setError('The page could not be loaded.')
+    })
+    return () => {
+      active = false
+    }
   }, [id])
 
   function setField(key, value) {

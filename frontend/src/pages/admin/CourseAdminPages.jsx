@@ -67,7 +67,9 @@ export function CourseEditorPage() {
 
   useEffect(() => {
     if (!id) return
+    let active = true
     api.get(`/api/v1/admin/courses/${id}`).then((response) => {
+      if (!active) return
       const course = response.data.data
       setForm({
         ...course,
@@ -80,7 +82,12 @@ export function CourseEditorPage() {
         modules: (course.modules || [{ title: '', lessons: [] }]).map((module) => ({ title: module.title, lessons: (module.lessons || []).join('\n') })),
       })
       setReady(true)
-    }).catch(() => setError('The course could not be loaded.'))
+    }).catch(() => {
+      if (active) setError('The course could not be loaded.')
+    })
+    return () => {
+      active = false
+    }
   }, [id])
 
   function update(key, value) {
