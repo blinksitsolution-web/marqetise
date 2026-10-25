@@ -1,15 +1,8 @@
-function safeLogo(url) {
-  if (typeof url !== 'string' || url === '') return '/brand/mark.png'
-  if (url.startsWith('/') && !url.startsWith('//')) return url
-  if (url.startsWith('https://')) return url
-  return '/brand/mark.png'
-}
-
-export default function Brand({ light = false, compact = false, logoUrl = '' }) {
+export default function Brand({ light = false, compact = false }) {
   return (
     <span className="inline-flex items-center gap-2.5">
       <img
-        src={safeLogo(logoUrl)}
+        src="/brand/mark.png"
         alt=""
         width="36"
         height="36"

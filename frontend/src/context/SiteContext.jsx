@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { api } from '../services/api'
-import { SiteContext } from './useSite'
+
+const SiteContext = createContext(null)
 
 export function SiteProvider({ children }) {
   const [site, setSite] = useState(null)
@@ -21,4 +22,12 @@ export function SiteProvider({ children }) {
   }, [])
 
   return <SiteContext.Provider value={{ site, error }}>{children}</SiteContext.Provider>
+}
+
+export function useSite() {
+  const context = useContext(SiteContext)
+  if (!context) {
+    throw new Error('useSite must be used within SiteProvider')
+  }
+  return context
 }

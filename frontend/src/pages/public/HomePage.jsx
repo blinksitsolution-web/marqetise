@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Spinner } from '../../components/ui'
-import { useSite } from '../../context/useSite'
+import { useSite } from '../../context/SiteContext'
 import { formatPrice } from '../../utils/format'
 
 function items(block) {
@@ -34,7 +34,7 @@ export default function HomePage() {
             <p className="mt-5 max-w-xl text-lg text-white/75">{hero?.subcopy}</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to={hero?.primary_href || '/book'} className="inline-flex min-h-11 items-center rounded-full bg-brand px-5 text-lg font-bold text-ink">{hero?.primary_label || 'Book a strategy call'}</Link>
-              <Link to={hero?.secondary_href || '/courses'} className="inline-flex min-h-11 items-center rounded-full border border-white/20 px-5 text-sm font-semibold">{hero?.secondary_label || 'Explore courses'}</Link>
+              <Link to={hero?.secondary_href || '/courses'} className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold">{hero?.secondary_label || 'Explore courses'}</Link>
             </div>
           </div>
           <div className="relative rounded-3xl border border-white/10 bg-navy-800 p-6">
@@ -77,7 +77,6 @@ export default function HomePage() {
             <Link to="/book" className="text-sm font-semibold text-blue">Book a service</Link>
           </div>
         </div>
-        {services.length === 0 ? <p className="mt-6 text-sm text-muted">Published services will appear here.</p> : (
         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {services.map((service) => (
             <article key={service.id} className="rounded-3xl border border-line bg-white p-6">
@@ -87,7 +86,6 @@ export default function HomePage() {
             </article>
           ))}
         </div>
-        )}
       </section>
 
       {why ? (

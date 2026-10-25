@@ -1,13 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
-import { useSite } from '../../context/useSite'
+import { useSite } from '../../context/SiteContext'
 import { enquiryTypes, inquirySchema } from '../../schemas/forms'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
-import { hasPublishedPage } from '../../utils/pages'
 
 export default function ContactPage() {
   const { site } = useSite()
@@ -16,8 +15,6 @@ export default function ContactPage() {
   const [courseError, setCourseError] = useState('')
   const [status, setStatus] = useState(null)
   const settings = site?.settings || {}
-  const privacyPublished = hasPublishedPage(site, 'privacy')
-  const formClosed = site !== null && !privacyPublished
   const hero = site?.blocks?.['contact.hero']?.payload
   const faqs = site?.faqs?.contact || []
   const requestedType = params.get('enquiry') || params.get('type') || 'other'
@@ -39,7 +36,6 @@ export default function ContactPage() {
       hp_field: '',
     },
   })
-  const enquiryType = useWatch({ control: form.control, name: 'type' })
 
   useEffect(() => {
     api.get('/api/v1/courses?per_page=24').then((response) => setCourses(response.data.data || [])).catch(() => setCourseError('Courses could not be loaded.'))
@@ -73,7 +69,6 @@ export default function ContactPage() {
       <section className="mx-auto grid max-w-6xl gap-8 px-4 py-12 lg:grid-cols-[1.3fr_.7fr]">
         <form className="space-y-4 rounded-3xl border border-line p-6" onSubmit={form.handleSubmit(onSubmit)} noValidate>
           <h2 className="text-2xl font-semibold">Send a message</h2>
-          {formClosed ? <Notice tone="error">A privacy notice has not been published, so this form is closed.</Notice> : null}
           {status ? <Notice tone={status.tone}>{status.text}</Notice> : null}
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Full name" error={form.formState.errors.name?.message}>
@@ -91,7 +86,7 @@ export default function ContactPage() {
               </select>
             </Field>
           </div>
-          {enquiryType === 'course' ? (
+          {form.watch('type') === 'course' ? (
             <>
               {courseError ? <p className="text-sm text-red-700" role="alert">{courseError}</p> : null}
               <Field label="Course" error={form.formState.errors.course?.message}>
@@ -114,7 +109,7 @@ export default function ContactPage() {
           </label>
           {form.formState.errors.consent ? <p className="text-sm text-red-700" role="alert">{form.formState.errors.consent.message}</p> : null}
           <input className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" {...form.register('hp_field')} />
-          <Button type="submit" disabled={formClosed || site === null || form.formState.isSubmitting}>{form.formState.isSubmitting ? 'Sending…' : 'Send message'}</Button>
+          <Button type="submit" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting ? 'Sending…' : 'Send message'}</Button>
         </form>
         <aside className="space-y-4">
           <div className="rounded-3xl bg-surface p-6 text-sm">

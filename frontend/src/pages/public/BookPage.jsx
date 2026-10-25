@@ -1,20 +1,15 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useState } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
 import { bookingSchema } from '../../schemas/forms'
-import { useSite } from '../../context/useSite'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 import { BOOKING_TIMES, toIsoDate, weekdaySlots } from '../../utils/format'
-import { hasPublishedPage } from '../../utils/pages'
 
 export default function BookPage() {
   const { slug } = useParams()
-  const { site } = useSite()
-  const privacyPublished = hasPublishedPage(site, 'privacy')
-  const formClosed = site !== null && !privacyPublished
   const [services, setServices] = useState([])
   const [serviceError, setServiceError] = useState('')
   const [month, setMonth] = useState(() => new Date())
@@ -26,9 +21,6 @@ export default function BookPage() {
       goals: '', format: 'video', preferred_date: '', preferred_time: '', consent: false, hp_field: '',
     },
   })
-  const { setValue } = form
-  const serviceId = useWatch({ control: form.control, name: 'service_id' })
-  const preferredDate = useWatch({ control: form.control, name: 'preferred_date' })
 
   useEffect(() => {
     let active = true
@@ -37,21 +29,18 @@ export default function BookPage() {
       const rows = response.data.data || []
       setServices(rows)
       const match = rows.find((service) => service.slug === slug)
-      if (match) setValue('service_id', String(match.id))
+      if (match) form.setValue('service_id', String(match.id))
     }).catch(() => {
       if (active) setServiceError('Services could not be loaded.')
     })
     return () => {
       active = false
     }
-  }, [slug, setValue])
+  }, [slug, form.setValue])
 
   const days = useMemo(() => weekdaySlots(month), [month])
-  const [today] = useState(() => {
-    const date = new Date()
-    date.setHours(0, 0, 0, 0)
-    return date
-  })
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   async function onSubmit(values) {
     setStatus(null)
@@ -89,7 +78,7 @@ export default function BookPage() {
             {serviceError ? <p className="mt-2 text-sm text-red-700" role="alert">{serviceError}</p> : null}
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {services.map((service) => (
-                <label key={service.id} className={`rounded-2xl border p-4 ${serviceId === String(service.id) ? 'border-brand' : 'border-line'}`}>
+                <label key={service.id} className={`rounded-2xl border p-4 ${form.watch('service_id') === String(service.id) ? 'border-brand' : 'border-line'}`}>
                   <input type="radio" className="sr-only" value={service.id} {...form.register('service_id')} />
                   <span className="font-semibold">{service.name}</span>
                   <span className="mt-1 block text-sm text-muted">{service.summary}</span>
@@ -113,15 +102,12 @@ export default function BookPage() {
               {days.map((date) => {
                 const iso = toIsoDate(date)
                 const disabled = date < today || date.getDay() === 0 || date.getDay() === 6 || date.getMonth() !== month.getMonth()
-                const selected = preferredDate === iso
-                const label = date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                const selected = form.watch('preferred_date') === iso
                 return (
                   <button
                     key={iso + date.getMonth()}
                     type="button"
                     disabled={disabled}
-                    aria-label={label}
-                    aria-pressed={selected}
                     onClick={() => form.setValue('preferred_date', iso, { shouldValidate: true })}
                     className={`min-h-11 rounded-xl py-2 text-sm ${selected ? 'bg-blue text-white' : 'bg-surface'} disabled:opacity-30`}
                   >
@@ -156,14 +142,13 @@ export default function BookPage() {
               <option value="office">Office</option>
             </select>
           </Field>
-          {formClosed ? <Notice tone="error">A privacy notice has not been published, so this form is closed.</Notice> : null}
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" className="mt-1" {...form.register('consent')} />
             I agree to be contacted about this request.
           </label>
           {form.formState.errors.consent ? <p className="text-sm text-red-700" role="alert">{form.formState.errors.consent.message}</p> : null}
           <input className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" {...form.register('hp_field')} />
-          <Button type="submit" disabled={formClosed || site === null || form.formState.isSubmitting}>{form.formState.isSubmitting ? 'Sending…' : 'Request time'}</Button>
+          <Button type="submit" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting ? 'Sending…' : 'Request time'}</Button>
         </div>
         <aside className="h-fit rounded-3xl bg-navy-900 p-6 text-white">
           <h2 className="text-lg font-semibold">Your request</h2>

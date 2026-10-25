@@ -5,7 +5,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import Brand from '../../components/Brand'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
-import { useAuth } from '../../context/useAuth'
+import { useAuth } from '../../context/AuthContext'
 import { forgotSchema, loginSchema, resetSchema } from '../../schemas/forms'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 
@@ -37,7 +37,7 @@ export function LoginPage() {
           <input className={inputClass} type="password" autoComplete="current-password" {...form.register('password')} />
         </Field>
         <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2"><input type="checkbox" {...form.register('remember')} /> Remember me for 14 days</label>
+          <label className="flex items-center gap-2"><input type="checkbox" {...form.register('remember')} /> Remember me</label>
           <Link to="/admin/forgot-password" className="font-semibold text-blue">Forgot password?</Link>
         </div>
         <Button type="submit" variant="blue" className="w-full" disabled={form.formState.isSubmitting}>

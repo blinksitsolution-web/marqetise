@@ -1,37 +1,39 @@
-import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Spinner } from '../../components/ui'
-import { useKeyedState } from '../../hooks/useKeyedState'
 import { api } from '../../services/api'
-import NotFoundPage from './NotFoundPage'
 
 export default function CmsPage() {
   const { slug } = useParams()
-  const [state, setState] = useKeyedState(slug, () => ({ page: null, missing: false, loadError: '' }))
-  const { page, missing, loadError } = state
+  const [page, setPage] = useState(null)
+  const [missing, setMissing] = useState(false)
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
-    let active = true
+    setPage(null)
+    setMissing(false)
+    setLoadError('')
     api.get(`/api/v1/pages/${slug}`)
-      .then((response) => {
-        if (active) setState((current) => ({ ...current, page: response.data.data }))
-      })
+      .then((response) => setPage(response.data.data))
       .catch((error) => {
-        if (!active) return
-        if (error?.response?.status === 404) setState((current) => ({ ...current, missing: true }))
-        else setState((current) => ({ ...current, loadError: 'The page could not be loaded.' }))
+        if (error?.response?.status === 404) setMissing(true)
+        else setLoadError('The page could not be loaded.')
       })
-    return () => {
-      active = false
-    }
-  }, [slug, setState])
+  }, [slug])
 
   if (loadError) {
     return <div className="mx-auto max-w-3xl px-4 py-20 text-center"><p className="text-red-700" role="alert">{loadError}</p></div>
   }
 
-  if (missing) return <NotFoundPage />
+  if (missing) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+        <h1 className="text-3xl font-semibold">Page not found</h1>
+        <Link to="/" className="mt-6 inline-flex text-sm font-semibold text-blue">Back home</Link>
+      </div>
+    )
+  }
 
   if (!page) return <div className="px-4 py-16"><Spinner label="Loading page" /></div>
 

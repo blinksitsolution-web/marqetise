@@ -59,13 +59,9 @@ export default function ServicesPage() {
               <article key={service.id} className="flex flex-col rounded-3xl border border-line bg-white p-6">
                 <h2 className="text-2xl font-semibold">{service.name}</h2>
                 <p className="mt-3 flex-1 text-sm leading-6 text-muted">{service.summary}</p>
-                {service.description ? <p className="mt-3 text-sm leading-6 text-muted">{service.description}</p> : null}
                 {service.duration_label ? <p className="mt-4 text-sm text-muted">{service.duration_label}</p> : null}
                 {price ? <p className="mt-2 text-sm text-ink">Starting price {price}</p> : null}
-                <div className="mt-5 flex gap-4">
-                  <Link to={`/services/${service.slug}`} className="inline-flex min-h-11 items-center text-sm font-semibold text-blue">View service</Link>
-                  <Link to={`/book/${service.slug}`} className="inline-flex min-h-11 items-center text-sm font-semibold text-blue">Book this service</Link>
-                </div>
+                <Link to={`/book/${service.slug}`} className="mt-5 inline-flex text-sm font-semibold text-blue">Book this service</Link>
               </article>
             )
           })}
