@@ -31,4 +31,28 @@ class Booking extends Model
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
+
+    protected static function booted(): void
+    {
+        static::saving(function (Booking $booking): void {
+            $booking->slot_key = $booking->blockingSlotKey();
+        });
+    }
+
+    public function blockingSlotKey(): ?string
+    {
+        if (! in_array($this->status, ['pending', 'confirmed'], true)) {
+            return null;
+        }
+
+        $date = $this->preferred_date;
+        $date = $date instanceof \DateTimeInterface ? $date->format('Y-m-d') : substr((string) $date, 0, 10);
+        $time = substr((string) $this->preferred_time, 0, 5);
+
+        if ($date === '' || $time === '') {
+            return null;
+        }
+
+        return $date.'|'.$time;
+    }
 }

@@ -3,7 +3,17 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ContactPage from '../pages/public/ContactPage.jsx'
+import PublicLayout from '../layouts/PublicLayout.jsx'
 import { can } from '../services/api'
+
+const siteState = vi.hoisted(() => ({
+  site: {
+    settings: { email: 'hello@marqetise.test', hours: 'Weekdays' },
+    blocks: { 'contact.hero': { payload: { headline: 'Contact the team', subcopy: 'Send a message.' } } },
+    faqs: { contact: [] },
+    pages: [{ slug: 'privacy', title: 'Privacy' }],
+  },
+}))
 
 vi.mock('../services/api', async () => {
   const actual = await vi.importActual('../services/api')
@@ -19,11 +29,7 @@ vi.mock('../services/api', async () => {
 
 vi.mock('../context/SiteContext', () => ({
   useSite: () => ({
-    site: {
-      settings: { email: 'hello@marqetise.test', hours: 'Weekdays' },
-      blocks: { 'contact.hero': { payload: { headline: 'Contact the team', subcopy: 'Send a message.' } } },
-      faqs: { contact: [] },
-    },
+    site: siteState.site,
     error: '',
   }),
 }))
@@ -31,6 +37,10 @@ vi.mock('../context/SiteContext', () => ({
 describe('public contact form', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    siteState.site = {
+      ...siteState.site,
+      pages: [{ slug: 'privacy', title: 'Privacy' }],
+    }
   })
 
   it('shows a validation message before anything is sent', async () => {
@@ -40,6 +50,36 @@ describe('public contact form', () => {
     expect(await screen.findByText('Enter your name')).toBeInTheDocument()
     const { api } = await import('../services/api')
     expect(api.post).not.toHaveBeenCalled()
+  })
+})
+
+describe('legal links', () => {
+  it('hides privacy and terms until those pages are published', () => {
+    siteState.site = { ...siteState.site, pages: [] }
+    render(
+      <MemoryRouter>
+        <PublicLayout />
+      </MemoryRouter>,
+    )
+    expect(screen.queryByRole('link', { name: 'Privacy' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Terms' })).not.toBeInTheDocument()
+  })
+
+  it('shows a published privacy page', () => {
+    siteState.site = { ...siteState.site, pages: [{ slug: 'privacy', title: 'Privacy' }] }
+    render(
+      <MemoryRouter>
+        <PublicLayout />
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy')
+  })
+
+  it('closes the contact form when privacy is unpublished', () => {
+    siteState.site = { ...siteState.site, pages: [] }
+    render(<MemoryRouter><ContactPage /></MemoryRouter>)
+    expect(screen.getByText('A privacy notice has not been published, so this form is closed.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send message' })).toBeDisabled()
   })
 })
 

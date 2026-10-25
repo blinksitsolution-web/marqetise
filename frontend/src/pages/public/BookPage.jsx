@@ -5,11 +5,16 @@ import { useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
 import { bookingSchema } from '../../schemas/forms'
+import { useSite } from '../../context/SiteContext'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 import { BOOKING_TIMES, toIsoDate, weekdaySlots } from '../../utils/format'
+import { hasPublishedPage } from '../../utils/pages'
 
 export default function BookPage() {
   const { slug } = useParams()
+  const { site } = useSite()
+  const privacyPublished = hasPublishedPage(site, 'privacy')
+  const formClosed = site !== null && !privacyPublished
   const [services, setServices] = useState([])
   const [serviceError, setServiceError] = useState('')
   const [month, setMonth] = useState(() => new Date())
@@ -142,13 +147,14 @@ export default function BookPage() {
               <option value="office">Office</option>
             </select>
           </Field>
+          {formClosed ? <Notice tone="error">A privacy notice has not been published, so this form is closed.</Notice> : null}
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" className="mt-1" {...form.register('consent')} />
             I agree to be contacted about this request.
           </label>
           {form.formState.errors.consent ? <p className="text-sm text-red-700" role="alert">{form.formState.errors.consent.message}</p> : null}
           <input className="hidden" tabIndex={-1} autoComplete="off" aria-hidden="true" {...form.register('hp_field')} />
-          <Button type="submit" disabled={form.formState.isSubmitting}>{form.formState.isSubmitting ? 'Sending…' : 'Request time'}</Button>
+          <Button type="submit" disabled={formClosed || site === null || form.formState.isSubmitting}>{form.formState.isSubmitting ? 'Sending…' : 'Request time'}</Button>
         </div>
         <aside className="h-fit rounded-3xl bg-navy-900 p-6 text-white">
           <h2 className="text-lg font-semibold">Your request</h2>

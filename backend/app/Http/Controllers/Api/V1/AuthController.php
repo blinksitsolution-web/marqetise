@@ -25,7 +25,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request, AuditLogger $audit): UserResource
     {
         $email = strtolower($request->string('email')->value());
-        $lockKey = 'login-lockout:'.$email;
+        $lockKey = 'login-lockout:'.$email.'|'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($lockKey, 10)) {
             $this->refuseSignIn($email, 'locked');

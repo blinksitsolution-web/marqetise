@@ -23,6 +23,17 @@ class SecurityHeadersTest extends TestCase
         }
     }
 
+    public function test_robots_txt_is_the_route_and_not_a_static_file(): void
+    {
+        $this->assertFileDoesNotExist(public_path('robots.txt'));
+
+        $this->get('/robots.txt')
+            ->assertOk()
+            ->assertSee('Disallow: /admin', false)
+            ->assertSee('Disallow: /api', false)
+            ->assertSee('Sitemap:', false);
+    }
+
     public function test_production_responses_send_hsts(): void
     {
         $this->app->instance('env', 'production');

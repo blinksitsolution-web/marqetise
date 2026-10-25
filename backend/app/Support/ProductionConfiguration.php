@@ -12,6 +12,14 @@ class ProductionConfiguration
             return;
         }
 
+        // A checkout with no APP_ENV boots as production because that is the
+        // config default. Skip the guard only in that unconfigured state so
+        // `composer install` can discover packages. A cached production config
+        // still runs the checks below, because env() is null after config:cache.
+        if (self::isUnconfiguredCheckout(env('APP_ENV'), app()->configurationIsCached())) {
+            return;
+        }
+
         if (config('app.debug')) {
             throw new RuntimeException('Production cannot run with APP_DEBUG enabled.');
         }
@@ -36,5 +44,14 @@ class ProductionConfiguration
         if (in_array((string) config('mail.default'), ['log', 'array'], true)) {
             throw new RuntimeException('Production cannot use the log or array mailer.');
         }
+    }
+
+    public static function isUnconfiguredCheckout(mixed $appEnv, bool $configurationIsCached): bool
+    {
+        if ($configurationIsCached) {
+            return false;
+        }
+
+        return $appEnv === null || $appEnv === false || $appEnv === '';
     }
 }
