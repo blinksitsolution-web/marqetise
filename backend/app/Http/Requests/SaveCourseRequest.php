@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\SanitizesStrings;
 use App\Support\SafeText;
+use App\Support\SameSitePath;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,7 +21,7 @@ class SaveCourseRequest extends FormRequest
     {
         $this->sanitize([
             'title', 'slug', 'summary', 'description', 'category', 'level', 'format',
-            'duration_label', 'price_label', 'instructor_name', 'instructor_title', 'instructor_bio',
+            'duration_label', 'price_label', 'instructor_name', 'instructor_title', 'instructor_bio', 'image_path',
         ]);
         $this->merge([
             'slug' => strtolower((string) $this->input('slug')),
@@ -54,6 +55,11 @@ class SaveCourseRequest extends FormRequest
             'instructor_name' => ['nullable', 'string', 'max:120'],
             'instructor_title' => ['nullable', 'string', 'max:160'],
             'instructor_bio' => ['nullable', 'string', 'max:2000'],
+            'image_path' => ['nullable', 'string', 'max:255', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (is_string($value) && $value !== '' && ! SameSitePath::isAllowed($value)) {
+                    $fail('The image must be a file uploaded on this site.');
+                }
+            }],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'modules' => ['nullable', 'array', 'max:20'],
             'modules.*.title' => ['required', 'string', 'max:160'],

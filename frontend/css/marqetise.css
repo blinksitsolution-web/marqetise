@@ -1039,3 +1039,201 @@ html,
   opacity: 1;
   visibility: visible;
 }
+
+.mq-cms-body:empty,
+.mq-cms-lead:empty,
+[data-home-fallback-title][hidden] {
+  display: none;
+}
+
+.mq-home {
+  padding: 4.5rem 0;
+}
+
+.mq-home > .container {
+  max-width: 1180px;
+}
+
+.mq-home-hero {
+  background: #070b14;
+  color: #fff;
+  padding: 7.5rem 0 4rem;
+}
+
+.mq-home-hero h1,
+.mq-home h2.ks-section-title {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.mq-home-hero .container {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+}
+
+.mq-home-lead,
+.mq-home-intro,
+.mq-home-card p,
+.mq-home-proof,
+.mq-home-phone {
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+
+.mq-home-hero .mq-home-lead,
+.mq-home-hero .mq-home-proof,
+.mq-home-hero .mq-home-phone a {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.mq-home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.mq-home-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.mq-home-secondary {
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.65rem 1.1rem;
+  color: inherit;
+}
+
+.mq-home-grid {
+  display: grid;
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mq-home-card {
+  border: 1px solid rgba(7, 11, 20, 0.08);
+  border-radius: 1.25rem;
+  padding: 1.25rem;
+  background: #fff;
+  color: #0b1220;
+}
+
+.mq-home-card h3 {
+  margin: 0.75rem 0 0;
+  font-size: 1.25rem;
+}
+
+.mq-home-card img,
+.mq-home-hero img {
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  border-radius: 1rem;
+}
+
+.mq-home-stat {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 650;
+}
+
+.mq-home-cta {
+  background: #113da5;
+  color: #fff;
+}
+
+.mq-home-enquiry label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.mq-home-enquiry input,
+.mq-home-enquiry textarea {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(7, 11, 20, 0.16);
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  font-weight: 400;
+}
+
+.mq-home-enquiry textarea {
+  min-height: 8rem;
+}
+
+.mq-home-enquiry .mq-consent-label {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-top: 1rem;
+  font-weight: 400;
+}
+
+.mq-home-enquiry .mq-consent-label input {
+  width: auto;
+  min-height: 1.25rem;
+  margin-top: 0.2rem;
+}
+
+.mq-home-enquiry button {
+  margin-top: 1rem;
+}
+
+.mq-partner-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem 2rem;
+  align-items: center;
+  margin-top: 1.5rem;
+}
+
+.mq-partner-row img {
+  max-height: 48px;
+  width: auto;
+  object-fit: contain;
+}
+
+h2.ks-footer-widget-title {
+  font-size: 1.25rem;
+}
+
+.mq-home-page-title {
+  max-width: 1180px;
+  margin: 6.5rem auto 0;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .mq-home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .mq-home-hero .container {
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+
+  .mq-home-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .mq-home {
+    padding: 3rem 0;
+  }
+
+  .mq-home-hero {
+    padding: 6.5rem 0 3rem;
+  }
+}

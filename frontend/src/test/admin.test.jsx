@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AccountPage from '../pages/admin/AccountPage.jsx'
 import { CmsListPage } from '../pages/admin/CmsListPage.jsx'
+import { HomeEditorPage } from '../pages/admin/HomeEditorPage.jsx'
 import { CourseEditorPage } from '../pages/admin/CourseAdminPages.jsx'
 import { SettingsPage } from '../pages/admin/SettingsPage.jsx'
 import { UsersPage } from '../pages/admin/UsersPage.jsx'
@@ -98,6 +99,57 @@ describe('admin remediation', () => {
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(api.put).toHaveBeenCalledWith('/api/v1/admin/blocks/3', expect.objectContaining({
+      payload: expect.objectContaining({ headline: 'New headline', primary_href: '/book' }),
+    }))
+  })
+
+  it('saves the home hero from labeled fields', async () => {
+    const user = userEvent.setup()
+    api.get.mockImplementation((url) => {
+      if (String(url).includes('/blocks')) {
+        return Promise.resolve({
+          data: {
+            data: [{
+              id: 3,
+              key: 'home.hero',
+              group: 'home',
+              label: 'Home hero',
+              is_visible: true,
+              sort_order: 1,
+              payload: { headline: 'Old headline', primary_label: 'Book', primary_href: '/book' },
+            }],
+          },
+        })
+      }
+      return Promise.resolve({
+        data: {
+          data: [{ id: 1, title: 'Home', slug: 'home', excerpt: '', body: 'Saved body', meta_title: '', meta_description: '', status: 'published' }],
+        },
+      })
+    })
+    api.put.mockResolvedValue({
+      data: {
+        data: {
+          id: 3,
+          key: 'home.hero',
+          label: 'Home hero',
+          is_visible: true,
+          sort_order: 1,
+          payload: { headline: 'New headline', primary_label: 'Book', primary_href: '/book' },
+        },
+      },
+    })
+
+    render(<MemoryRouter><HomeEditorPage /></MemoryRouter>)
+    expect(await screen.findByRole('link', { name: 'View live page' })).toHaveAttribute('href', '/')
+    const headline = await screen.findByRole('textbox', { name: 'Headline' })
+    await user.clear(headline)
+    await user.type(headline, 'New headline')
+    await user.click(screen.getByRole('button', { name: 'Save Hero' }))
+
+    expect(api.put).toHaveBeenCalledWith('/api/v1/admin/blocks/3', expect.objectContaining({
+      key: 'home.hero',
+      is_visible: true,
       payload: expect.objectContaining({ headline: 'New headline', primary_href: '/book' }),
     }))
   })

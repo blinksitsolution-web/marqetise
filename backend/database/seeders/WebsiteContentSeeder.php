@@ -6,6 +6,7 @@ use App\Models\ContentBlock;
 use App\Models\Faq;
 use App\Models\Page;
 use App\Models\Service;
+use App\Support\HomeSectionDefaults;
 use App\Support\LegalCopy;
 use Illuminate\Database\Seeder;
 
@@ -138,8 +139,8 @@ class WebsiteContentSeeder extends Seeder
             ]],
         ];
 
-        foreach ($blocks as $block) {
-            ContentBlock::query()->updateOrCreate(['key' => $block['key']], $block);
+        foreach (array_merge($blocks, HomeSectionDefaults::blocks()) as $block) {
+            ContentBlock::query()->firstOrCreate(['key' => $block['key']], $block);
         }
     }
 

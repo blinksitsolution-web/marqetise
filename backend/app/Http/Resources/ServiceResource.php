@@ -16,6 +16,7 @@ class ServiceResource extends JsonResource
             'summary' => $this->summary,
             'description' => $this->description,
             'icon' => $this->icon,
+            'image_path' => $this->image_path,
             'starting_price' => $this->starting_price,
             'duration_label' => $this->duration_label,
             'status' => $this->status,

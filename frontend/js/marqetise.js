@@ -737,9 +737,15 @@
       listOf(payload.pages).forEach(function (page) {
         if (page && page.slug) pages[page.slug] = page;
       });
+      if (window.renderHomeSections) window.renderHomeSections(payload);
       Array.prototype.forEach.call(document.querySelectorAll('[data-cms-page]'), function (root) {
         applyPage(root, pages[root.getAttribute('data-cms-page')]);
       });
+      var fallbackTitle = document.querySelector('[data-home-fallback-title]');
+      if (fallbackTitle) {
+        var heroHeading = document.querySelector('#home-hero h1');
+        fallbackTitle.hidden = Boolean(heroHeading) || !fallbackTitle.textContent.trim();
+      }
       var services = listOf(payload.services);
       fillBookingForm(payload);
       fillServices(services);

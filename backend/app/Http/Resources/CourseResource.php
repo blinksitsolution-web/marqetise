@@ -29,6 +29,7 @@ class CourseResource extends JsonResource
             'instructor_name' => $this->instructor_name,
             'instructor_title' => $this->instructor_title,
             'instructor_bio' => $this->instructor_bio,
+            'image_path' => $this->image_path,
             'sort_order' => $this->sort_order,
             'students_count' => $this->whenCounted('students'),
             'modules' => $this->whenLoaded('modules', fn () => $this->modules->map(fn ($module) => [

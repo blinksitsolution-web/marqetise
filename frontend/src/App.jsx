@@ -11,6 +11,7 @@ const ResetPasswordPage = lazy(() => import('./pages/admin/AuthPages').then((mod
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
 const CmsListPage = lazy(() => import('./pages/admin/CmsListPage').then((module) => ({ default: module.CmsListPage })))
 const PageEditorPage = lazy(() => import('./pages/admin/PageEditorPage').then((module) => ({ default: module.PageEditorPage })))
+const HomeEditorPage = lazy(() => import('./pages/admin/HomeEditorPage').then((module) => ({ default: module.HomeEditorPage })))
 const CourseAdminListPage = lazy(() => import('./pages/admin/CourseAdminPages').then((module) => ({ default: module.CourseAdminListPage })))
 const CourseEditorPage = lazy(() => import('./pages/admin/CourseAdminPages').then((module) => ({ default: module.CourseEditorPage })))
 const InquiriesPage = lazy(() => import('./pages/admin/InquiriesPage').then((module) => ({ default: module.InquiriesPage })))
@@ -69,6 +70,7 @@ export default function App() {
         <Route path="admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<RequireAuth permission="dashboard.view"><DashboardPage /></RequireAuth>} />
           <Route path="cms" element={<RequireAuth permission="content.view"><CmsListPage /></RequireAuth>} />
+          <Route path="cms/home" element={<RequireAuth permission="content.manage"><HomeEditorPage /></RequireAuth>} />
           <Route path="cms/pages/new" element={<RequireAuth permission="content.manage"><PageEditorPage /></RequireAuth>} />
           <Route path="cms/pages/:id" element={<RequireAuth permission="content.manage"><PageEditorPage /></RequireAuth>} />
           <Route path="courses" element={<RequireAuth permission="courses.view"><CourseAdminListPage /></RequireAuth>} />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Seo from '../../components/Seo'
+import { MediaImageField } from '../../components/MediaImageField'
 import { Badge, Button, EmptyState, Field, Modal, Notice, Pager, Skeleton, inputClass } from '../../components/ui'
 import { statusTone } from '../../components/statusTone'
 import { useAuth } from '../../context/useAuth'
@@ -61,7 +62,12 @@ export function CmsListPage() {
           <h1 className="text-2xl font-semibold">Content management</h1>
           <p className="text-sm text-muted">Only published pages, services, and visible sections appear on the website.</p>
         </div>
-        {manageable && tab === 'pages' ? <Link to="/admin/cms/pages/new" className="rounded-full bg-blue px-4 py-2 text-sm font-semibold text-white">Create page</Link> : null}
+        {manageable && tab === 'pages' ? (
+          <div className="flex flex-wrap gap-2">
+            <Link to="/admin/cms/home" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit home page</Link>
+            <Link to="/admin/cms/pages/new" className="rounded-full bg-blue px-4 py-2 text-sm font-semibold text-white">Create page</Link>
+          </div>
+        ) : null}
       </div>
       <div className="mt-4 flex gap-2 overflow-auto">
         {['pages', 'blocks', 'faqs', 'services'].map((item) => (
@@ -240,7 +246,7 @@ function ItemList({ label, items, fields, onChange }) {
 }
 
 function blankForm() {
-  return { question: '', answer: '', context: 'contact', is_published: false, name: '', slug: '', summary: '', description: '', icon: 'spark', duration_label: '', starting_price: '', status: 'draft', key: '', label: '', group: 'home', is_visible: false, payload: '{"title":"","items":[]}' }
+  return { question: '', answer: '', context: 'contact', is_published: false, name: '', slug: '', summary: '', description: '', icon: 'spark', image_path: '', duration_label: '', starting_price: '', status: 'draft', key: '', label: '', group: 'home', is_visible: false, payload: '{"title":"","items":[]}' }
 }
 
 function recordForm(record) {
@@ -296,6 +302,7 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
           description: form.description || null,
           icon: form.icon || 'spark',
           duration_label: form.duration_label || null,
+          image_path: form.image_path || null,
           starting_price: form.starting_price === '' ? null : form.starting_price,
           status: form.status,
           sort_order: form.sort_order || 0,
@@ -341,6 +348,7 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
                 <Field label="Name"><input className={inputClass} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></Field>
                 <Field label="Slug"><input className={inputClass} value={form.slug} onChange={(event) => setForm({ ...form, slug: event.target.value })} /></Field>
                 <Field label="Summary"><textarea className={inputClass} value={form.summary} onChange={(event) => setForm({ ...form, summary: event.target.value })} /></Field>
+                <MediaImageField label="Service image" value={form.image_path || ''} onChange={(url) => setForm({ ...form, image_path: url })} onError={setError} />
                 <Field label="Description"><textarea className={inputClass} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></Field>
                 <Field label="Duration"><input className={inputClass} value={form.duration_label} onChange={(event) => setForm({ ...form, duration_label: event.target.value })} /></Field>
                 <Field label="Starting price"><input className={inputClass} inputMode="decimal" value={form.starting_price} onChange={(event) => setForm({ ...form, starting_price: event.target.value })} /></Field>
