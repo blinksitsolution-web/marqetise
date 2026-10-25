@@ -539,6 +539,10 @@ label a:focus-visible,
   white-space: pre-wrap;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .preloader,
   .preloader .loader,
