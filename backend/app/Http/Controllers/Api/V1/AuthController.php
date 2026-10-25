@@ -59,7 +59,7 @@ class AuthController extends Controller
     private function refuseSignIn(string $email, string $reason): never
     {
         Log::info('Sign-in refused.', [
-            'email' => $email,
+            'email_hash' => hash('sha256', $email),
             'reason' => $reason,
         ]);
 

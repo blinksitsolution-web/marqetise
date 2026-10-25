@@ -24,7 +24,7 @@ Copy `frontend/dist` to the directory your web server uses for the public site, 
 
 Laravel sends these headers on API and web responses: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`, `Content-Security-Policy: frame-ancestors 'none'`, and `Permissions-Policy: camera=(), microphone=(), geolocation=()`. `Strict-Transport-Security` is added only when `APP_ENV=production`.
 
-The static host that serves the React build must send its own headers, because those HTML and asset responses do not pass through Laravel. Start with report-only, watch the browser console for violations, then send the same policy as `Content-Security-Policy`.
+The static host that serves the React build must send its own headers, because those HTML and asset responses do not pass through Laravel. A copyable nginx example is `docs/deploy/spa.conf.example`. It sends a report-only content security policy, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and HSTS, and it falls back to `index.html` for client routes. Start with report-only, watch the browser console for violations, then rename that header to `Content-Security-Policy`. Do not treat the Vite dev server as production.
 
 ```
 Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
@@ -66,7 +66,8 @@ Set these in `backend/.env`. Do not commit that file.
 - `SESSION_DRIVER=database`
 - `SESSION_SECURE_COOKIE=true`
 - `SESSION_DOMAIN=your-domain`
-- Database credentials for a dedicated MySQL user, not the Laragon root account
+- `TRUSTED_PROXIES` set to the address of the TLS terminator only. Leave it empty when PHP sees the client directly. Do not set it to `*`.
+- Database credentials for a dedicated MySQL user, not root and not an empty password
 - `MAIL_MAILER`, host, port, username, and password for the real mailbox
 - `MAIL_FROM_ADDRESS` for the address recipients should see
 
@@ -85,7 +86,17 @@ Route these paths to Laravel:
 
 Serve the React `index.html` for every other path, including `/admin`, so the client router can load. Do not add a static `public/robots.txt`. That file would be served before the Laravel route. `GET /robots.txt` must be the route, which disallows `/admin` and `/api`.
 
-Take a database backup before migrating. The booking slot migration stops if two pending or confirmed rows already share a date and time. It does not delete those rows.
+Take a database backup before every migration and keep the dump off the server. Do not put the database password on the command line:
+
+```bash
+mysqldump --single-transaction --no-tablespaces --host="$DB_HOST" --user="$DB_USERNAME" --password "$DB_DATABASE" > "marqetise-$(date +%F).sql"
+```
+
+`--password` with no value prompts. Restore is a manual owner step: load that file into a new database and point `.env` at it. The booking slot migration stops if two pending or confirmed rows already share a date and time. The student-email and FAQ migrations stop if duplicates already exist. None of those migrations delete rows.
+
+`GET /up` runs `select 1`. A database outage returns HTTP 503 and `{"status":"down"}`. It does not include the database error.
+
+`backend/scripts/create-database.php` refuses to run as `root` or with an empty password. Pass `DB_USERNAME`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, and `DB_DATABASE` in the environment. It does not print the password.
 
 Point the document root at files that are meant to be public. Do not expose `backend/.env` or `backend/storage`.
 

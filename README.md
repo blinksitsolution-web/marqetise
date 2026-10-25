@@ -37,6 +37,8 @@ npm run dev
 
 Open http://localhost:5173. The Vite server proxies `/api`, `/sanctum`, `/storage`, `/sitemap.xml`, and `/robots.txt` to Laravel, so the browser stays on one origin and the session cookie works.
 
+`backend/.env.example` sets `SESSION_SECURE_COOKIE=false` so that cookie is stored on local HTTP. Production must set `SESSION_SECURE_COOKIE=true`. The application refuses to boot in production when that flag is false.
+
 ### First administrator
 
 There is no public registration page and no default password in the repository.

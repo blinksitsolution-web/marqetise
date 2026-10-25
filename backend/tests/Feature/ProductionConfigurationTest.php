@@ -74,9 +74,10 @@ class ProductionConfigurationTest extends TestCase
         $example = (string) file_get_contents(base_path('.env.example'));
 
         $this->assertMatchesRegularExpression('/^APP_DEBUG=false$/m', $example);
-        $this->assertMatchesRegularExpression('/^SESSION_SECURE_COOKIE=true$/m', $example);
+        $this->assertMatchesRegularExpression('/^SESSION_SECURE_COOKIE=false$/m', $example);
+        $this->assertStringContainsString('Production must set SESSION_SECURE_COOKIE=true', $example);
         $this->assertMatchesRegularExpression('/^SESSION_ENCRYPT=true$/m', $example);
-        $this->assertStringContainsString('local HTTP', $example);
+        $this->assertStringContainsString('Local HTTP must use false', $example);
     }
 
     /**
