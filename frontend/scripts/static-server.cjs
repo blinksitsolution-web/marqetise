@@ -45,6 +45,8 @@ http.createServer((req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1');
   let pathname = decodeURIComponent(url.pathname);
   if (pathname === '/') pathname = '/index.html';
+  if (pathname === '/privacy') pathname = '/page-privacy.html';
+  if (pathname === '/terms') pathname = '/page-terms.html';
   const file = path.normalize(path.join(root, pathname));
   if (!file.startsWith(root)) {
     res.writeHead(403);

@@ -21,5 +21,7 @@ describe('admin login', () => {
     await user.type(screen.getByLabelText('Password'), 'wrong-password')
     await user.click(screen.getByRole('button', { name: 'Sign in' }))
     expect(await screen.findByText('Incorrect email or password.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Privacy Policy' })).toHaveAttribute('href', '/privacy')
+    expect(screen.getByRole('link', { name: 'Terms of Service' })).toHaveAttribute('href', '/terms')
   })
 })

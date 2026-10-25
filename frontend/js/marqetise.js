@@ -322,6 +322,10 @@
 
   Array.prototype.forEach.call(document.querySelectorAll('#contact_form, #home_contact_form'), bindEnquiryForm);
 
+  Array.prototype.forEach.call(document.querySelectorAll('[data-cms="body"]'), function (node) {
+    if (node.childElementCount === 0 && node.textContent.trim()) renderPlain(node, node.textContent);
+  });
+
   function listOf(value) {
     if (!value) return [];
     if (Array.isArray(value)) return value;
@@ -332,6 +336,19 @@
   function inPage(root, selector) {
     return Array.prototype.filter.call(root.querySelectorAll(selector), function (node) {
       return node.closest('[data-cms-page]') === root;
+    });
+  }
+
+  function renderPlain(node, text) {
+    var blocks = String(text || '').replace(/\r\n/g, '\n').split(/\n{2,}/);
+    node.replaceChildren();
+    blocks.forEach(function (block) {
+      var trimmed = block.trim();
+      if (!trimmed) return;
+      var heading = /^(#{1,2}) ([^\n]+)$/.exec(trimmed);
+      var el = document.createElement(heading ? (heading[1] === '#' ? 'h2' : 'h3') : 'p');
+      el.textContent = heading ? heading[2] : trimmed;
+      node.appendChild(el);
     });
   }
 
@@ -351,7 +368,7 @@
       node.textContent = page.excerpt || '';
     });
     inPage(root, '[data-cms="body"]').forEach(function (node) {
-      node.textContent = page.body || '';
+      renderPlain(node, page.body || '');
     });
     if (root === document.body && page.meta_title) document.title = page.meta_title;
   }

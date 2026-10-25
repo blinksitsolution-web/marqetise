@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { LegalNotice } from '../../components/LegalNotice'
 import Seo from '../../components/Seo'
 import { Badge, Button, EmptyState, Field, Modal, Notice, Skeleton, Spinner, inputClass, statusTone } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
@@ -286,6 +287,7 @@ export function StudentsPage() {
             <Field label="Status"><select className={inputClass} value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}><option value="waitlist">Waitlist</option><option value="active">Active</option><option value="completed">Completed</option><option value="withdrawn">Withdrawn</option></select></Field>
             <Field label="Course"><select className={inputClass} value={form.course_id} onChange={(event) => setForm({ ...form, course_id: event.target.value })}><option value="">No course</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}</select></Field>
             <Field label="Notes"><textarea className={inputClass} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></Field>
+            <LegalNotice>A student record stores the name, email, and phone. Read the</LegalNotice>
             <Button type="submit" variant="blue">Save student</Button>
           </form>
         </Modal>
@@ -349,6 +351,7 @@ export function StudentProfilePage() {
       <Field label="Status"><select className={inputClass} value={student.status} disabled={!manageable} onChange={(event) => setStudent({ ...student, status: event.target.value })}><option value="waitlist">Waitlist</option><option value="active">Active</option><option value="completed">Completed</option><option value="withdrawn">Withdrawn</option></select></Field>
       <Field label="Course"><select className={inputClass} value={student.course_id || ''} disabled={!manageable} onChange={(event) => setStudent({ ...student, course_id: event.target.value })}><option value="">No course</option>{student.course && !courses.some((course) => course.id === student.course.id) ? <option value={student.course.id}>{student.course.title}</option> : null}{courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}</select></Field>
       <Field label="Internal notes"><textarea className={inputClass} value={student.notes || ''} disabled={!manageable} onChange={(event) => setStudent({ ...student, notes: event.target.value })} /></Field>
+      <LegalNotice>This record stores student details. Read the</LegalNotice>
       {manageable ? <Button type="submit" variant="blue">Save</Button> : <p className="text-sm text-muted">Saving a student record needs the manage permission.</p>}
     </form>
   )

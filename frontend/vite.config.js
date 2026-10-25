@@ -62,7 +62,8 @@ function serveBixomAndAdmin() {
           return
         }
 
-        const relative = urlPath === '/' ? '/index.html' : urlPath
+        const legal = { '/privacy': '/page-privacy.html', '/terms': '/page-terms.html' }
+        const relative = legal[urlPath] || (urlPath === '/' ? '/index.html' : urlPath)
         const file = path.normalize(path.join(rootDir, relative))
         if (!file.startsWith(rootDir) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
           next()

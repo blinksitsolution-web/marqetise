@@ -6,6 +6,7 @@ use App\Models\ContentBlock;
 use App\Models\Faq;
 use App\Models\Page;
 use App\Models\Service;
+use App\Support\LegalCopy;
 use Illuminate\Database\Seeder;
 
 class WebsiteContentSeeder extends Seeder
@@ -24,21 +25,19 @@ class WebsiteContentSeeder extends Seeder
             ['title' => 'Home', 'slug' => 'home', 'excerpt' => 'Marketing services and practical training.', 'body' => 'Marqetise helps businesses improve their marketing and helps people build practical digital marketing skills.'],
             ['title' => 'About Us', 'slug' => 'about', 'excerpt' => 'An agency and a training practice.', 'body' => 'Marqetise combines client work with training. The public pages describe the offer; replace any section from the content manager when the final company story is ready.'],
             ['title' => 'Contact', 'slug' => 'contact', 'excerpt' => 'Send an inquiry to the team.', 'body' => 'Use the contact form to request a conversation. Submissions are stored for the team to review.'],
-            ['title' => 'Privacy', 'slug' => 'privacy', 'excerpt' => 'How inquiry details are handled.', 'body' => 'Marqetise stores the details you submit so the team can reply. Add the finished privacy policy in this page before launch. Do not send information you are not comfortable storing.'],
-            ['title' => 'Terms', 'slug' => 'terms', 'excerpt' => 'Terms of use placeholder.', 'body' => 'Add the finished terms of use in this page before launch. Course enrolment requests are inquiries, not completed payments or confirmed places.'],
         ];
 
         foreach ($pages as $page) {
-            $legal = in_array($page['slug'], ['privacy', 'terms'], true);
-
             Page::query()->updateOrCreate(['slug' => $page['slug']], [
                 ...$page,
-                'status' => $legal ? 'draft' : 'published',
-                'published_at' => $legal ? null : now(),
+                'status' => 'published',
+                'published_at' => now(),
                 'meta_title' => $page['title'].' · Marqetise',
                 'meta_description' => $page['excerpt'],
             ]);
         }
+
+        LegalCopy::publish();
     }
 
     private function services(): void

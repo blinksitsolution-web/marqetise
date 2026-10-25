@@ -25,7 +25,7 @@ A second student with the same email is HTTP 422. Deleting a course that still h
 
 `GET /sitemap.xml` and `GET /robots.txt` are outside the API prefix. Admin URLs are disallowed for crawlers.
 
-Inquiry and booking responses include `email_delivered` and `receipt_sent`. `email_delivered` is true only after a staff notification is accepted by a configured mail transport during the request. `receipt_sent` is true only after a receipt to the visitor is accepted by that same transport during the request. Those four messages are sent immediately. They are not queued, so a stopped queue worker cannot make the API say the email was sent. `GET /api/v1/site` lists published pages only. Contact and booking forms stay closed in the web app until a page with slug `privacy` is published. The seeded privacy and terms pages are drafts and are not a finished policy.
+Inquiry and booking responses include `email_delivered` and `receipt_sent`. `email_delivered` is true only after a staff notification is accepted by a configured mail transport during the request. `receipt_sent` is true only after a receipt to the visitor is accepted by that same transport during the request. Those four messages are sent immediately. They are not queued, so a stopped queue worker cannot make the API say the email was sent. `GET /api/v1/site` lists published pages only. The privacy and terms pages are published CMS pages. Square-bracket placeholders in those pages are company facts the repository does not contain. A lawyer qualified in Ghana should review them before launch.
 
 ## Authentication
 
