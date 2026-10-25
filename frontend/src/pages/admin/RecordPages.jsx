@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Badge, Button, EmptyState, Field, Modal, Notice, Pager, Skeleton, Spinner, inputClass } from '../../components/ui'
 import { statusTone } from '../../components/statusTone'
@@ -153,6 +153,8 @@ export function InquiryDetailPage() {
 }
 
 export function BookingsPage() {
+  const { id } = useParams()
+  const navigate = useNavigate()
   const [status, setStatus] = useState('')
   const [search, setSearch] = useState('')
   const [from, setFrom] = useState('')
@@ -177,6 +179,25 @@ export function BookingsPage() {
   const { user } = useAuth()
   const [saveError, setSaveError] = useState('')
 
+  useEffect(() => {
+    if (!id) return undefined
+    let cancelled = false
+    api.get(`/api/v1/admin/bookings/${id}`)
+      .then((response) => {
+        if (!cancelled) setSelected(response.data.data)
+      })
+      .catch(() => {
+        if (!cancelled) setSaveError('That booking could not be opened.')
+      })
+    return () => { cancelled = true }
+  }, [id])
+
+  function closeReview() {
+    setSelected(null)
+    setSaveError('')
+    if (id) navigate('/admin/bookings')
+  }
+
   async function save(event) {
     event.preventDefault()
     setSaveError('')
@@ -187,7 +208,7 @@ export function BookingsPage() {
         internal_notes: selected.internal_notes,
         cancellation_reason: selected.cancellation_reason,
       })
-      setSelected(null)
+      closeReview()
       reload()
     } catch (saveError) {
       setSaveError(errorMessage(saveError, 'The booking was not saved.'))
@@ -212,6 +233,7 @@ export function BookingsPage() {
         <input className={inputClass} aria-label="To date" type="date" value={to} onChange={changeFilter(setTo)} />
       </div>
       {error ? <p className="mt-4 text-red-700">{error}</p> : null}
+      {saveError && !selected ? <p className="mt-4 text-red-700" role="alert">{saveError}</p> : null}
       {!rows ? (error ? null : <Skeleton label="Loading records" />) : data.length === 0 ? <div className="mt-6"><EmptyState title="No bookings" body="Service requests from the public form will appear here." /></div> : (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
           <table className="record-table w-full text-left text-sm">
@@ -232,7 +254,7 @@ export function BookingsPage() {
       )}
       <Pager meta={rows?.meta} onPage={setPage} />
       {selected ? (
-        <Modal title={selected.reference} onClose={() => setSelected(null)}>
+        <Modal title={selected.reference} onClose={closeReview}>
           <form className="space-y-3" onSubmit={save}>
             {saveError ? <Notice tone="error">{saveError}</Notice> : null}
             <p className="text-sm">{selected.goals}</p>

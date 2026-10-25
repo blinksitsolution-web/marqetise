@@ -4,8 +4,10 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\SanitizesStrings;
 use App\Support\SafeText;
+use App\Support\SameSitePath;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class SaveContentBlockRequest extends FormRequest
 {
@@ -37,5 +39,14 @@ class SaveContentBlockRequest extends FormRequest
             'is_visible' => ['required', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:1000'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if (SameSitePath::invalidHrefs($this->input('payload')) !== []) {
+                $validator->errors()->add('payload', 'Links in a content block must be a same-site path starting with /.');
+            }
+        });
     }
 }

@@ -73,6 +73,10 @@ export function CourseEditorPage() {
         ...course,
         price: course.price ?? '',
         outcomes: (course.outcomes || []).join('\n'),
+        instructor_name: course.instructor_name || '',
+        instructor_title: course.instructor_title || '',
+        instructor_bio: course.instructor_bio || '',
+        next_start_date: course.next_start_date ? String(course.next_start_date).slice(0, 10) : '',
         modules: (course.modules || [{ title: '', lessons: [] }]).map((module) => ({ title: module.title, lessons: (module.lessons || []).join('\n') })),
       })
       setReady(true)
@@ -94,6 +98,10 @@ export function CourseEditorPage() {
       certificate_included: Boolean(form.certificate_included),
       featured: Boolean(form.featured),
       outcomes: String(form.outcomes || '').split('\n').map((line) => line.trim()).filter(Boolean),
+      instructor_name: form.instructor_name || null,
+      instructor_title: form.instructor_title || null,
+      instructor_bio: form.instructor_bio || null,
+      next_start_date: form.next_start_date || null,
       modules: form.modules.filter((module) => module.title).map((module) => ({
         title: module.title,
         lessons: String(module.lessons || '').split('\n').map((line) => line.trim()).filter(Boolean),
@@ -106,6 +114,18 @@ export function CourseEditorPage() {
       navigate('/admin/courses')
     } catch (saveError) {
       setError(errorMessage(saveError))
+    }
+  }
+
+  async function removeCourse() {
+    if (!id || !window.confirm('Delete this course? This cannot be undone.')) return
+    setError('')
+    try {
+      await ensureCsrf()
+      await api.delete(`/api/v1/admin/courses/${id}`)
+      navigate('/admin/courses')
+    } catch (deleteError) {
+      setError(errorMessage(deleteError, 'The course was not deleted.'))
     }
   }
 
@@ -129,6 +149,12 @@ export function CourseEditorPage() {
         <Field label="Price label"><input className={inputClass} value={form.price_label || ''} onChange={(event) => update('price_label', event.target.value)} /></Field>
       </div>
       <Field label="Outcomes, one per line"><textarea className={inputClass} value={form.outcomes} onChange={(event) => update('outcomes', event.target.value)} /></Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label="Instructor name"><input className={inputClass} value={form.instructor_name || ''} onChange={(event) => update('instructor_name', event.target.value)} /></Field>
+        <Field label="Instructor title"><input className={inputClass} value={form.instructor_title || ''} onChange={(event) => update('instructor_title', event.target.value)} /></Field>
+        <Field label="Next start date"><input className={inputClass} type="date" value={form.next_start_date || ''} onChange={(event) => update('next_start_date', event.target.value)} /></Field>
+      </div>
+      <Field label="Instructor bio"><textarea className={inputClass} value={form.instructor_bio || ''} onChange={(event) => update('instructor_bio', event.target.value)} /></Field>
       <label className="flex gap-2 text-sm"><input type="checkbox" checked={Boolean(form.featured)} onChange={(event) => update('featured', event.target.checked)} /> Featured</label>
       <label className="flex gap-2 text-sm"><input type="checkbox" checked={Boolean(form.certificate_included)} onChange={(event) => update('certificate_included', event.target.checked)} /> Certificate included</label>
       <Field label="Status"><select className={inputClass} value={form.status} onChange={(event) => update('status', event.target.value)}><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></Field>
@@ -146,11 +172,15 @@ export function CourseEditorPage() {
               modules[index] = { ...module, lessons: event.target.value }
               update('modules', modules)
             }} />
+            <button type="button" className="mt-2 text-sm text-red-700" onClick={() => update('modules', form.modules.filter((_, moduleIndex) => moduleIndex !== index))}>Remove module</button>
           </div>
         ))}
         <Button type="button" variant="outline" onClick={() => update('modules', [...form.modules, { title: '', lessons: '' }])}>Add module</Button>
       </div>
-      <Button type="submit" variant="blue">Save course</Button>
+      <div className="flex flex-wrap gap-3">
+        <Button type="submit" variant="blue">Save course</Button>
+        {id ? <Button type="button" variant="danger" onClick={removeCourse}>Delete course</Button> : null}
+      </div>
     </form>
   )
 }

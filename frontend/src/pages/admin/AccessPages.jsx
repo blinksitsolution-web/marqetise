@@ -69,6 +69,19 @@ export function UsersPage() {
     }
   }
 
+  async function removeUser(account) {
+    if (!window.confirm(`Delete ${account.name}? They will lose access. This cannot be undone.`)) return
+    setError('')
+    try {
+      await ensureCsrf()
+      await api.delete(`/api/v1/admin/users/${account.id}`)
+      setMessage('User deleted.')
+      load()
+    } catch (deleteError) {
+      setError(errorMessage(deleteError, 'The user was not deleted.'))
+    }
+  }
+
   async function resendInvite(account) {
     setError('')
     try {
@@ -119,6 +132,7 @@ export function UsersPage() {
                         <button type="button" className="inline-flex min-h-11 items-center text-sm font-semibold text-blue" onClick={() => changeStatus(account, account.status === 'suspended' ? 'active' : 'suspended')}>
                           {account.status === 'suspended' ? 'Activate' : 'Suspend'}
                         </button>
+                        <button type="button" className="inline-flex min-h-11 items-center text-sm font-semibold text-red-700" onClick={() => removeUser(account)}>Delete</button>
                       </div>
                     ) : null}
                   </td>
@@ -275,13 +289,28 @@ export function SettingsPage() {
 
   async function upload(event) {
     const file = event.target.files?.[0]
+    event.target.value = ''
     if (!file) return
+    setError('')
+    setMessage('')
     const body = new FormData()
     body.append('file', file)
     body.append('alt', 'Marqetise logo')
-    await ensureCsrf()
-    const response = await api.post('/api/v1/admin/media', body)
-    setSettings({ ...settings, logo_url: response.data.data.url })
+    try {
+      await ensureCsrf()
+      const response = await api.post('/api/v1/admin/media', body)
+      const next = { ...settings, logo_url: response.data.data.url }
+      setSettings(next)
+      try {
+        const saved = await api.put('/api/v1/admin/settings', { settings: next })
+        applySettings(saved)
+        setMessage('Logo saved.')
+      } catch (saveError) {
+        setError(errorMessage(saveError, 'The logo was uploaded. Save settings to keep it.'))
+      }
+    } catch (uploadError) {
+      setError(errorMessage(uploadError, 'The logo was not uploaded.'))
+    }
   }
 
   if (!settings) return <Spinner />

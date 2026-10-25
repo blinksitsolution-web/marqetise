@@ -90,7 +90,7 @@ export default function DashboardPage() {
       {hasBlock('recent_inquiries') || hasBlock('upcoming_bookings') ? (
         <div className="mt-6 grid gap-4 lg:grid-cols-2">
           {hasBlock('recent_inquiries') ? (
-            <RecordList title="Recent inquiries" rows={data.recent_inquiries} empty="No inquiries yet." render={(row) => (
+            <RecordList title="Recent inquiries" rows={data.recent_inquiries} empty="No inquiries yet." hrefFor={(row) => `/admin/inquiries/${row.id}`} render={(row) => (
               <div className="flex items-center justify-between gap-3">
                 <div><p className="font-medium">{row.name}</p><p className="text-xs text-muted">{row.subject}</p></div>
                 <Badge tone={statusTone(row.status)}>{row.status}</Badge>
@@ -98,7 +98,7 @@ export default function DashboardPage() {
             )} />
           ) : null}
           {hasBlock('upcoming_bookings') ? (
-            <RecordList title="Upcoming bookings" rows={data.upcoming_bookings} empty="No upcoming bookings." render={(row) => (
+            <RecordList title="Upcoming bookings" rows={data.upcoming_bookings} empty="No upcoming bookings." hrefFor={(row) => `/admin/bookings/${row.id}`} render={(row) => (
               <div className="flex items-center justify-between gap-3">
                 <div><p className="font-medium">{row.name}</p><p className="text-xs text-muted">{row.service_name} · {formatDate(row.preferred_date)} {row.preferred_time}</p></div>
                 <Badge tone={statusTone(row.status)}>{row.status}</Badge>
@@ -143,11 +143,19 @@ function TrendChart({ points, maxStudents }) {
   )
 }
 
-function RecordList({ title, rows, empty, render }) {
+function RecordList({ title, rows, empty, render, hrefFor }) {
   return (
     <section className="rounded-2xl bg-white p-5">
       <h2 className="font-semibold">{title}</h2>
-      {!rows?.length ? <p className="mt-4 text-sm text-muted">{empty}</p> : <ul className="mt-4 space-y-3">{rows.map((row) => <li key={row.id}>{render(row)}</li>)}</ul>}
+      {!rows?.length ? <p className="mt-4 text-sm text-muted">{empty}</p> : (
+        <ul className="mt-4 space-y-3">
+          {rows.map((row) => (
+            <li key={row.id}>
+              {hrefFor ? <Link to={hrefFor(row)} className="block rounded-xl hover:bg-surface">{render(row)}</Link> : render(row)}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

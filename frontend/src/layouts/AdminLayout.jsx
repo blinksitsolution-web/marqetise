@@ -75,10 +75,10 @@ export default function AdminLayout() {
               {query.trim().length >= 2 && results ? <SearchResults results={results} onPick={() => { setQuery(''); setResults(null) }} /> : null}
             </label>
             <div className="ml-auto flex items-center gap-3">
-              <div className="text-right">
+              <Link to="/admin/account" className="text-right">
                 <p className="text-sm font-semibold">{user?.name}</p>
                 <p className="text-xs text-muted">{user?.role?.name}</p>
-              </div>
+              </Link>
               <button type="button" className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" onClick={signOut}>Sign out</button>
             </div>
           </header>
@@ -108,7 +108,7 @@ function SearchResults({ results, onPick }) {
     ['courses', 'Courses', (row) => ({ to: `/admin/courses/${row.id}`, label: row.title })],
     ['pages', 'Pages', (row) => ({ to: `/admin/cms/pages/${row.id}`, label: row.title })],
     ['inquiries', 'Inquiries', (row) => ({ to: `/admin/inquiries/${row.id}`, label: row.subject })],
-    ['bookings', 'Bookings', (row) => ({ to: '/admin/bookings', label: row.reference })],
+    ['bookings', 'Bookings', (row) => ({ to: `/admin/bookings/${row.id}`, label: row.reference })],
   ].filter(([key]) => Array.isArray(results[key]) && results[key].length > 0)
 
   return (
