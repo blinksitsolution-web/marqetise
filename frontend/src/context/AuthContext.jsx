@@ -51,10 +51,13 @@ export function AuthProvider({ children }) {
       setUser(null)
       setSessionUnconfirmed(false)
     }
+    const onForbidden = () => { refresh() }
     window.addEventListener('marqetise:unauthorized', onUnauthorized)
+    window.addEventListener('marqetise:forbidden', onForbidden)
     return () => {
       active = false
       window.removeEventListener('marqetise:unauthorized', onUnauthorized)
+      window.removeEventListener('marqetise:forbidden', onForbidden)
     }
   }, [])
 

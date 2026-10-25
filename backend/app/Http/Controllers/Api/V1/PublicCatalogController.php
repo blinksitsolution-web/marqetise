@@ -16,7 +16,7 @@ class PublicCatalogController extends Controller
 {
     public function courses(Request $request): AnonymousResourceCollection
     {
-        $query = Course::query()->published()->with('modules');
+        $query = Course::query()->published();
         $this->filterCourses($request, $query);
 
         return CourseResource::collection(

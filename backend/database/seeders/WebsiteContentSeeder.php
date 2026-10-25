@@ -155,7 +155,7 @@ class WebsiteContentSeeder extends Seeder
         ];
 
         foreach ($faqs as $index => $faq) {
-            Faq::query()->updateOrCreate(['question' => $faq['question']], [
+            Faq::query()->updateOrCreate(['context' => $faq['context'], 'question' => $faq['question']], [
                 ...$faq,
                 'sort_order' => $index,
                 'is_published' => true,
