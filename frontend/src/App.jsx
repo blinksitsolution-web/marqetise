@@ -32,6 +32,7 @@ const StudentProfilePage = lazy(() => import('./pages/admin/RecordPages').then((
 const UsersPage = lazy(() => import('./pages/admin/AccessPages').then((module) => ({ default: module.UsersPage })))
 const PermissionsPage = lazy(() => import('./pages/admin/AccessPages').then((module) => ({ default: module.PermissionsPage })))
 const SettingsPage = lazy(() => import('./pages/admin/AccessPages').then((module) => ({ default: module.SettingsPage })))
+const AccountPage = lazy(() => import('./pages/admin/AccountPage'))
 
 function RequireAuth({ children, permission }) {
   const { user, loading, sessionUnconfirmed } = useAuth()
@@ -99,6 +100,8 @@ export default function App() {
         <Route path="inquiries" element={<RequireAuth permission="inquiries.view"><InquiriesPage /></RequireAuth>} />
         <Route path="inquiries/:id" element={<RequireAuth permission="inquiries.view"><InquiryDetailPage /></RequireAuth>} />
         <Route path="bookings" element={<RequireAuth permission="bookings.view"><BookingsPage /></RequireAuth>} />
+        <Route path="bookings/:id" element={<RequireAuth permission="bookings.view"><BookingsPage /></RequireAuth>} />
+        <Route path="account" element={<AccountPage />} />
         <Route path="students" element={<RequireAuth permission="students.view"><StudentsPage /></RequireAuth>} />
         <Route path="students/:id" element={<RequireAuth permission="students.view"><StudentProfilePage /></RequireAuth>} />
         <Route path="users" element={<RequireAuth permission="users.view"><UsersPage /></RequireAuth>} />
