@@ -92,7 +92,7 @@ The written brief says the public site is near-black `#101010` / `#181818` with 
 
 The code follows the PDF more than the brief: `--color-brand: #f36a09` matches the PDF orange, and `--color-blue: #113da5` is close to `#113DDA` but not the same (`frontend/src/index.css` lines 4–15). Public pages use `bg-navy-950` (`#070b14`) and `bg-navy-900` (`#0b1220`). Admin buttons in the CMS, users, and settings screens use `variant="blue"`.
 
-Do not treat this as a defect until you pick one source. Phase 3 should wait on that choice.
+The choice is recorded in [PHASE_3.md](PHASE_3.md): follow the mockups. Primary blue is `#113DA5`. Accent orange is `#F36A09`. Hero navy is `#070B14` and `#0B1220`.
 
 ## 2. Findings
 
@@ -395,7 +395,7 @@ Seeders create roles and permissions, empty public contact fields, a tagline, we
 
 ## 7. Phased fix plan
 
-No phase should start until you approve it. Phase 3 needs a brand decision first: follow the PDF (`#113DDA` and `#F36A09`) or the brief (`#101010` and `#FF6B2C`).
+No phase should start until you approve it. Phase 3 is specified in [PHASE_3.md](PHASE_3.md) and starts only after Phase 1 and Phase 2 are merged.
 
 ### Phase 1 — Critical security
 
@@ -420,14 +420,9 @@ About 4 to 6 days.
 - Queue staff notification mail only if a worker will run in every environment you care about. Leave the visitor message truthful.
 - Ask before adding a visitor receipt, a services page, or slot capacity. Those are product choices.
 
-### Phase 3 — Mobile and HIG, after the brand decision
+### Phase 3 — Match the mockups
 
-About 1 to 2 weeks.
-
-- Apply the chosen palette. Keep blue out of body text if the brief wins. If the PDF wins, set `--color-blue` to `#113DDA` and keep admin primary buttons blue.
-- 44px targets, no sideways scroll on admin lists at 320px, skeletons, focus traps, and darker orange or navy for small links.
-- Restore mockup chrome that is real UI (contact "Book a call", admin search, dashboard quick actions) without copying sample statistics, testimonials, addresses, or phone numbers.
-- Check the changed screens in a browser at 320px and at desktop, including empty, error, and success.
+Specified in [PHASE_3.md](PHASE_3.md). That file is the prompt for this phase. It locks the mockup palette, splits the work into five review stops, and sets the Playwright, axe-core, and Lighthouse pass marks. It does not repeat Phase 1 or Phase 2.
 
 ### Phase 4 — Quality and performance
 

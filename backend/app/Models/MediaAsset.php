@@ -19,6 +19,10 @@ class MediaAsset extends Model
 
     public function url(): string
     {
+        if (str_starts_with($this->path, 'http://') || str_starts_with($this->path, 'https://')) {
+            return $this->path;
+        }
+
         return Storage::disk($this->disk)->url($this->path);
     }
 }

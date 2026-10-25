@@ -125,6 +125,8 @@ Route::prefix('v1')->group(function () {
 
         Route::middleware('permission:settings.view')->get('admin/settings', [SettingController::class, 'index']);
         Route::middleware('permission:settings.manage')->put('admin/settings', [SettingController::class, 'update']);
+        Route::middleware('permission:content.view')->get('admin/media', [MediaController::class, 'index']);
         Route::middleware('permission:media.manage')->post('admin/media', [MediaController::class, 'store']);
+        Route::middleware('permission:media.manage')->delete('admin/media/{mediaAsset}', [MediaController::class, 'destroy']);
     });
 });

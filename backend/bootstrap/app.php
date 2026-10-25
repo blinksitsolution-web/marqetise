@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->throttleApi('api');
         $middleware->web(append: [SecurityHeaders::class]);
         $middleware->api(append: [SecurityHeaders::class]);
+        $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : route('login'));
         $middleware->alias([
             'active' => EnsureAccountIsActive::class,
             'permission' => EnsureUserHasPermission::class,

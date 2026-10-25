@@ -11,25 +11,23 @@ class SettingsSeeder extends Seeder
     {
         $public = [
             'company_name' => 'Marqetise',
-            'tagline' => 'Digital marketing services and practical training for growing businesses.',
-            'email' => null,
+            'tagline' => 'Beyond Marketing',
+            'email' => 'hello@marqetise.com',
             'phone' => null,
-            'address' => null,
-            'hours' => null,
-            'social_linkedin' => null,
-            'social_instagram' => null,
-            'social_facebook' => null,
-            'social_x' => null,
-            'social_youtube' => null,
-            'meta_title' => 'Marqetise',
-            'meta_description' => 'Digital marketing services, strategy, and training.',
-            'logo_url' => null,
+            'address' => 'Accra, Ghana',
+            'hours' => 'Mon – Fri: 8:30 AM – 5:30 PM GMT',
+            'social_linkedin' => 'https://linkedin.com/company/marqetise',
+            'social_instagram' => 'https://instagram.com/marqetise',
+            'social_facebook' => 'https://facebook.com/marqetise',
+            'social_x' => 'https://x.com/marqetise',
+            'social_youtube' => 'https://youtube.com/@marqetise',
+            'meta_title' => 'Marqetise | Beyond Marketing · Digital Solutions, Academy & Cybersecurity',
+            'meta_description' => 'A storytelling-led digital solutions business helping businesses grow, equipping people with practical digital skills, and advancing responsible digital practices.',
+            'logo_url' => '/storage/media/marqetise-logo.png',
         ];
 
         foreach ($public as $key => $value) {
-            if (! Setting::query()->where('key', $key)->exists()) {
-                Setting::putValue($key, $value, 'general', true);
-            }
+            Setting::putValue($key, $value, 'general', true);
         }
 
         if (! Setting::query()->where('key', 'notification_email')->exists()) {
