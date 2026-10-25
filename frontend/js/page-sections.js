@@ -62,7 +62,7 @@
   }
 
   function card(title, body, href, image) {
-    var inner = image + '<h3>' + esc(title) + '</h3>' + (body ? '<p>' + lines(body) + '</p>' : '');
+    var inner = image + '<h2>' + esc(title) + '</h2>' + (body ? '<p>' + lines(body) + '</p>' : '');
     if (href) return '<a class="mq-home-card" href="' + esc(href) + '">' + inner + '</a>';
     return '<article class="mq-home-card">' + inner + '</article>';
   }
