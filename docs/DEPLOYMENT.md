@@ -86,6 +86,10 @@ Route these paths to Laravel:
 
 Serve `index.html` for `/`, `page-about.html` for `/about`, `page-services.html` for `/services`, `page-courses.html` for `/courses`, `page-contact.html` for `/contact`, `page-book.html` for `/book`, `page-privacy.html` for `/privacy`, `page-terms.html` for `/terms`, and `page-course-details.html` for `/courses/{slug}`. Serve `admin.html` for `/admin`. Do not add a static `public/robots.txt`. That file would be served before the Laravel route. `GET /robots.txt` must be the route, which disallows `/admin` and `/api`.
 
+The static file server in `frontend/scripts/static-server.cjs` sends `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Content-Security-Policy: frame-ancestors 'none'`, a report-only content security policy, and `Permissions-Policy`. It does not send HSTS, because that header belongs on the TLS host in `docs/deploy/spa.conf.example`.
+
+`php artisan marqetise:backup` writes a copy under `storage/app/backups` only when `BACKUP_ENABLED=true`. The daily schedule calls it, and it does nothing while the flag is false. `php artisan marqetise:forget-ip-addresses` clears inquiry and audit IP addresses only after a staff member saves a number of days under Settings. Leave that field blank until the privacy page's `[IP ADDRESS RETENTION PERIOD]` is a real period, and use the same number in both places. Neither command chooses a period or a proxy address. `TRUSTED_PROXIES` stays empty until it lists only the TLS terminator. Add a cron entry for `php artisan schedule:run` every minute so those two commands can run. Copy backup files off the server. Do not serve `storage/app/backups`.
+
 Take a database backup before every migration and keep the dump off the server. Do not put the database password on the command line:
 
 ```bash

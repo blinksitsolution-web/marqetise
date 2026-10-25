@@ -67,21 +67,19 @@ export default function AdminLayout() {
           <p className="mt-auto px-2 pt-6 text-xs text-muted">Access is checked on the server for every request.</p>
         </aside>
         <div className="min-w-0 flex-1">
-          <header className="flex flex-wrap items-center gap-3 border-b border-line bg-white px-4 py-3">
-            <button type="button" className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm lg:hidden" onClick={() => setOpen(true)}>Menu</button>
-            <label className="relative order-last w-full min-w-0 text-sm sm:order-none sm:w-auto sm:flex-1">
+          <header className="flex items-center gap-2 border-b border-line bg-white px-3 py-2 sm:gap-3 sm:px-4 sm:py-3">
+            <button type="button" className="inline-flex min-h-11 shrink-0 items-center rounded-xl border border-line px-3 text-sm lg:hidden" onClick={() => setOpen(true)}>Menu</button>
+            <label className="relative min-w-0 flex-1 text-sm">
               <span className="sr-only">Search admin records</span>
               <input className="w-full rounded-xl border border-line px-3 py-2" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search records" />
               {query.trim().length >= 2 && results ? <SearchResults results={results} onPick={() => { setQuery(''); setResults(null) }} /> : null}
             </label>
-            <div className="ml-auto flex items-center gap-3">
-              <Link to="/admin/account" className="hidden max-w-36 text-right sm:block">
-                <p className="truncate text-sm font-semibold">{user?.name}</p>
-                <p className="truncate text-xs text-muted">{user?.role?.name}</p>
-              </Link>
-              <Link to="/admin/account" className="inline-flex min-h-11 items-center text-sm font-semibold sm:hidden">Account</Link>
-              <button type="button" className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" onClick={signOut}>Sign out</button>
-            </div>
+            <Link to="/admin/account" className="hidden max-w-36 shrink-0 text-right sm:block">
+              <p className="truncate text-sm font-semibold">{user?.name}</p>
+              <p className="truncate text-xs text-muted">{user?.role?.name}</p>
+            </Link>
+            <Link to="/admin/account" className="inline-flex min-h-11 shrink-0 items-center text-sm font-semibold sm:hidden">Account</Link>
+            <button type="button" className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line px-3 text-sm sm:px-4" onClick={signOut}>Sign out</button>
           </header>
           <div className="p-4 sm:p-6">
             <Outlet />

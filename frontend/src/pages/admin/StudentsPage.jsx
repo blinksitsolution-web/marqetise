@@ -138,6 +138,14 @@ export function StudentProfilePage() {
       <Field label="Status"><select className={inputClass} value={student.status} disabled={!manageable} onChange={(event) => setStudent({ ...student, status: event.target.value })}><option value="waitlist">Waitlist</option><option value="active">Active</option><option value="completed">Completed</option><option value="withdrawn">Withdrawn</option></select></Field>
       <Field label="Course"><select className={inputClass} value={student.course_id || ''} disabled={!manageable} onChange={(event) => setStudent({ ...student, course_id: event.target.value })}><option value="">No course</option>{student.course && !courses.some((course) => course.id === student.course.id) ? <option value={student.course.id}>{student.course.title}</option> : null}{courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}</select></Field>
       <Field label="Internal notes"><textarea className={inputClass} value={student.notes || ''} disabled={!manageable} onChange={(event) => setStudent({ ...student, notes: event.target.value })} /></Field>
+      {student.other_courses?.length ? (
+        <div>
+          <p className="text-sm font-medium">Other courses</p>
+          <ul className="mt-1 list-disc pl-5 text-sm">
+            {student.other_courses.map((course) => <li key={course.id}>{course.title}</li>)}
+          </ul>
+        </div>
+      ) : null}
       <LegalNotice>This record stores student details. Read the</LegalNotice>
       {manageable ? <Button type="submit" variant="blue">Save</Button> : <p className="text-sm text-muted">Saving a student record needs the manage permission.</p>}
     </form>

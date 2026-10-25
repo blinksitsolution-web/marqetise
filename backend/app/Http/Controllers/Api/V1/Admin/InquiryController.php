@@ -88,14 +88,26 @@ class InquiryController extends Controller
                 $student = Student::query()->where('inquiry_id', $inquiry->id)->first();
 
                 if ($student === null) {
-                    throw ValidationException::withMessages([
-                        'email' => 'A student with this email already exists. A second course needs an enrolment record, which is not available yet.',
-                    ]);
+                    $student = Student::query()->where('email', $inquiry->email)->first();
+
+                    if ($student === null) {
+                        throw ValidationException::withMessages([
+                            'email' => 'A student with this email already exists.',
+                        ]);
+                    }
+
+                    if ($inquiry->course_id === null) {
+                        throw ValidationException::withMessages([
+                            'email' => 'A student with this email already exists. Add a course to the enquiry before recording another enrolment.',
+                        ]);
+                    }
+
+                    $student->addCourse((int) $inquiry->course_id, 'waitlist');
                 }
             }
         }
 
-        return (new StudentResource($student->load('course')))->additional([
+        return (new StudentResource($student->load(['course', 'enrolments.course'])))->additional([
             'created' => $student->wasRecentlyCreated,
         ]);
     }

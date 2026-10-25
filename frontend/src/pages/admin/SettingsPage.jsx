@@ -66,6 +66,7 @@ export function SettingsPage() {
     ['address', 'Address'],
     ['hours', 'Hours'],
     ['notification_email', 'Staff notification email'],
+    ['ip_retention_days', 'IP retention days'],
     ['meta_title', 'Default meta title'],
     ['meta_description', 'Default meta description'],
     ['social_linkedin', 'LinkedIn'],
@@ -83,8 +84,12 @@ export function SettingsPage() {
       {error ? <Notice tone="error">{error}</Notice> : null}
       {mailCanDeliver === false ? <Notice tone="error">Email delivery is not configured. Reset and invitation emails are not being sent.</Notice> : null}
       {fields.map(([key, label]) => (
-        <Field key={key} label={label}>
-          <input className={inputClass} value={settings[key] || ''} onChange={(event) => setSettings({ ...settings, [key]: event.target.value })} />
+        <Field
+          key={key}
+          label={label}
+          hint={key === 'ip_retention_days' ? 'Leave blank to keep inquiry and audit IP addresses. A number is how many days after the record was created those addresses are cleared. Do not guess a period.' : undefined}
+        >
+          <input className={inputClass} inputMode={key === 'ip_retention_days' ? 'numeric' : undefined} value={settings[key] ?? ''} onChange={(event) => setSettings({ ...settings, [key]: event.target.value })} />
         </Field>
       ))}
       <Field label="Logo" hint="JPEG, PNG, or WebP. Maximum 5 MB.">

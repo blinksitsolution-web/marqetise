@@ -57,11 +57,21 @@ function publicHtml(urlPath) {
   return urlPath === '/' ? '/index.html' : urlPath
 }
 
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'X-Frame-Options': 'DENY',
+  'Content-Security-Policy': "frame-ancestors 'none'",
+  'Content-Security-Policy-Report-Only': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+}
+
 function serveBixomAndAdmin() {
   return {
     name: 'serve-bixom-and-admin',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
+        for (const [key, value] of Object.entries(securityHeaders)) res.setHeader(key, value)
         const raw = req.url || '/'
         const urlPath = decodeURIComponent(raw.split('?')[0] || '/')
         const query = raw.includes('?') ? raw.slice(raw.indexOf('?')) : ''

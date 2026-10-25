@@ -150,7 +150,7 @@ describe('admin remediation', () => {
     expect(api.delete).toHaveBeenCalledWith('/api/v1/admin/users/2')
   })
 
-  it('labels every user cell and wraps the admin header', async () => {
+  it('labels every user cell and keeps the admin header on one row', async () => {
     api.get.mockImplementation((url) => {
       if (String(url).includes('/roles')) {
         return Promise.resolve({ data: { data: { roles: [{ id: 3, name: 'Editor' }] } } })
@@ -174,7 +174,8 @@ describe('admin remediation', () => {
     unmount()
 
     render(<MemoryRouter><AdminLayout /></MemoryRouter>)
-    expect(document.querySelector('header').className).toContain('flex-wrap')
+    expect(document.querySelector('header').className).not.toContain('flex-wrap')
+    expect(screen.getByRole('button', { name: 'Sign out' })).toBeInTheDocument()
     expect(document.querySelector('header p')).toHaveClass('truncate')
     expect(screen.getByRole('link', { name: 'Account' })).toBeInTheDocument()
   })

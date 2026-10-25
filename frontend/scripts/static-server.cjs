@@ -3,6 +3,14 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'X-Frame-Options': 'DENY',
+  'Content-Security-Policy': "frame-ancestors 'none'",
+  'Content-Security-Policy-Report-Only': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'",
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+};
 const types = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -75,17 +83,20 @@ http.createServer((req, res) => {
   }
   const file = path.normalize(path.join(root, pathname));
   if (!file.startsWith(root)) {
-    res.writeHead(403);
+    res.writeHead(403, { ...securityHeaders, 'Content-Type': 'text/plain' });
     res.end('Forbidden');
     return;
   }
   fs.readFile(file, (error, data) => {
     if (error) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.writeHead(404, { ...securityHeaders, 'Content-Type': 'text/plain' });
       res.end('Not found');
       return;
     }
-    res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' });
+    res.writeHead(200, {
+      ...securityHeaders,
+      'Content-Type': types[path.extname(file)] || 'application/octet-stream',
+    });
     res.end(data);
   });
-}).listen(5173, '127.0.0.1');
+}).listen(Number(process.env.STATIC_PORT || 5173), '127.0.0.1');
