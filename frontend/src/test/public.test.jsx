@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ContactPage from '../pages/public/ContactPage.jsx'
 import PublicLayout from '../layouts/PublicLayout.jsx'
@@ -63,6 +63,37 @@ describe('legal links', () => {
     )
     expect(screen.queryByRole('link', { name: 'Privacy' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Terms' })).not.toBeInTheDocument()
+  })
+
+  it('closes the mobile menu when Escape is pressed', async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter>
+        <PublicLayout />
+      </MemoryRouter>,
+    )
+    await user.click(screen.getByRole('button', { name: 'Menu' }))
+    expect(screen.getByRole('navigation', { name: 'Mobile' })).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('navigation', { name: 'Mobile' })).not.toBeInTheDocument()
+  })
+
+  it('marks only Contact Us current on the contact page', () => {
+    siteState.site = { ...siteState.site, pages: [] }
+    render(
+      <MemoryRouter initialEntries={['/contact']}>
+        <Routes>
+          <Route element={<PublicLayout />}>
+            <Route path="/contact" element={<h1>Contact</h1>} />
+            <Route path="/book" element={<h1>Book</h1>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    )
+    const primary = screen.getByRole('navigation', { name: 'Primary' })
+    expect(within(primary).getByRole('link', { name: 'Contact Us' })).toHaveAttribute('aria-current', 'page')
+    expect(within(primary).getByRole('link', { name: 'Get Started' })).not.toHaveAttribute('aria-current')
+    expect(within(primary).getByRole('link', { name: 'Get Started' })).toHaveAttribute('href', '/book')
   })
 
   it('shows a published privacy page', () => {
