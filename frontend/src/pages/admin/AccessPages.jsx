@@ -114,16 +114,16 @@ export function UsersPage() {
               {data.map((account) => (
                 <tr key={account.id} className="border-t border-line">
                   <td className="px-4 py-3" data-label="User"><p className="font-medium">{account.name}</p><p className="text-xs text-muted">{account.email}</p></td>
-                  <td>
+                  <td data-label="Role">
                     {can(user, 'users.manage') && can(user, 'roles.view') && account.id !== user.id ? (
                       <select className={inputClass} aria-label={`Role for ${account.name}`} value={account.role?.id || ''} onChange={(event) => changeRole(account, event.target.value)}>
                         {roles.map((role) => <option key={role.id} value={role.id}>{role.name}</option>)}
                       </select>
                     ) : account.role?.name}
                   </td>
-                  <td><Badge tone={statusTone(account.status)}>{account.status}</Badge></td>
-                  <td>{formatDate(account.last_login_at)}</td>
-                  <td className="px-4 text-right">
+                  <td data-label="Status"><Badge tone={statusTone(account.status)}>{account.status}</Badge></td>
+                  <td data-label="Last login">{formatDate(account.last_login_at)}</td>
+                  <td className="px-4 text-right" data-label="Action">
                     {can(user, 'users.manage') && account.id !== user.id ? (
                       <div className="flex flex-wrap justify-end gap-3">
                         {account.status !== 'suspended' ? (

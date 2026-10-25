@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import BookPage from '../pages/public/BookPage.jsx'
 import ContactPage from '../pages/public/ContactPage.jsx'
 import AboutPage from '../pages/public/AboutPage.jsx'
 import HomePage from '../pages/public/HomePage.jsx'
@@ -156,6 +157,15 @@ describe('public pages', () => {
     expect(screen.getAllByRole('link', { name: 'Explore courses' })[0].className).toContain('min-h-11')
     expect(screen.getByRole('link', { name: 'Book a strategy call' }).className).toContain('min-h-11')
     expect(screen.getByText('Published services will appear here.')).toBeInTheDocument()
+  })
+})
+
+describe('booking calendar', () => {
+  it('names each day and exposes whether it is pressed', async () => {
+    siteState.site = { settings: {}, pages: [{ slug: 'privacy', title: 'Privacy' }] }
+    render(<MemoryRouter><BookPage /></MemoryRouter>)
+    const days = await screen.findAllByRole('button', { pressed: false })
+    expect(days.some((button) => /Monday|Tuesday|Wednesday|Thursday|Friday/.test(button.getAttribute('aria-label') || ''))).toBe(true)
   })
 })
 

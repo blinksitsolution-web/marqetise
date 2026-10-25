@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -147,6 +147,35 @@ describe('admin remediation', () => {
     await user.click(await screen.findByRole('button', { name: 'Delete' }))
 
     expect(api.delete).toHaveBeenCalledWith('/api/v1/admin/users/2')
+  })
+
+  it('labels every user cell and wraps the admin header', async () => {
+    api.get.mockImplementation((url) => {
+      if (String(url).includes('/roles')) {
+        return Promise.resolve({ data: { data: { roles: [{ id: 3, name: 'Editor' }] } } })
+      }
+      if (String(url).includes('/settings')) {
+        return Promise.resolve({ data: { data: {}, mail_can_deliver: true } })
+      }
+      return Promise.resolve({
+        data: {
+          data: [{ id: 2, name: 'Other Person', email: 'other@example.com', status: 'active', role: { id: 3, name: 'Editor' } }],
+          meta: { current_page: 1, last_page: 1 },
+        },
+      })
+    })
+
+    const { unmount } = render(<MemoryRouter><UsersPage /></MemoryRouter>)
+    const table = await screen.findByRole('table')
+    const cells = within(table).getAllByRole('cell')
+    expect(cells.length).toBeGreaterThan(0)
+    expect(cells.every((cell) => cell.getAttribute('data-label'))).toBe(true)
+    unmount()
+
+    render(<MemoryRouter><AdminLayout /></MemoryRouter>)
+    expect(document.querySelector('header').className).toContain('flex-wrap')
+    expect(document.querySelector('header p')).toHaveClass('truncate')
+    expect(screen.getByRole('link', { name: 'Account' })).toBeInTheDocument()
   })
 
   it('saves the signed-in profile', async () => {
