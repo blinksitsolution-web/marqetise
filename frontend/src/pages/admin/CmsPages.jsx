@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { Badge, Button, EmptyState, Field, Modal, Notice, Skeleton, Spinner, inputClass, statusTone } from '../../components/ui'
+import { Badge, Button, EmptyState, Field, Modal, Notice, Pager, Skeleton, Spinner, inputClass, statusTone } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
 import { api, can, ensureCsrf, errorMessage } from '../../services/api'
 
@@ -11,6 +11,8 @@ export function CmsListPage() {
   const [rows, setRows] = useState(null)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
+  const [page, setPage] = useState(1)
+  const [meta, setMeta] = useState(null)
   const [message, setMessage] = useState('')
   const [loadError, setLoadError] = useState('')
   const [editing, setEditing] = useState(null)
@@ -18,12 +20,15 @@ export function CmsListPage() {
 
   useEffect(() => {
     const path = tab === 'pages'
-      ? `/api/v1/admin/pages?search=${encodeURIComponent(search)}&status=${status}`
+      ? `/api/v1/admin/pages?search=${encodeURIComponent(search)}&status=${status}&page=${page}`
       : tab === 'blocks' ? '/api/v1/admin/blocks' : tab === 'faqs' ? '/api/v1/admin/faqs' : '/api/v1/admin/services'
     setRows(null)
     setLoadError('')
-    api.get(path).then((response) => setRows(response.data.data)).catch(() => setLoadError('Content could not be loaded.'))
-  }, [tab, search, status, message])
+    api.get(path).then((response) => {
+      setRows(response.data.data || [])
+      setMeta(response.data.meta || null)
+    }).catch(() => setLoadError('Content could not be loaded.'))
+  }, [tab, search, status, message, page])
 
   async function remove(path) {
     if (!window.confirm('Delete this item? This cannot be undone.')) return
@@ -48,15 +53,15 @@ export function CmsListPage() {
       </div>
       <div className="mt-4 flex gap-2 overflow-auto">
         {['pages', 'blocks', 'faqs', 'services'].map((item) => (
-          <button key={item} type="button" className={`rounded-full px-4 py-2 text-sm capitalize ${tab === item ? 'bg-ink text-white' : 'bg-white'}`} onClick={() => setTab(item)}>{item}</button>
+          <button key={item} type="button" className={`rounded-full px-4 py-2 text-sm capitalize ${tab === item ? 'bg-ink text-white' : 'bg-white'}`} onClick={() => { setTab(item); setPage(1) }}>{item}</button>
         ))}
       </div>
       {message ? <div className="mt-4"><Notice tone="success">{message}</Notice></div> : null}
       {loadError ? <div className="mt-4"><Notice tone="error">{loadError}</Notice></div> : null}
       {tab === 'pages' ? (
         <div className="mt-4 flex gap-2">
-          <input className={inputClass} placeholder="Search pages" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search pages" />
-          <select className={inputClass} value={status} onChange={(event) => setStatus(event.target.value)} aria-label="Status">
+          <input className={inputClass} placeholder="Search pages" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} aria-label="Search pages" />
+          <select className={inputClass} value={status} onChange={(event) => { setStatus(event.target.value); setPage(1) }} aria-label="Status">
             <option value="">All</option>
             <option value="published">Published</option>
             <option value="draft">Draft</option>
@@ -88,6 +93,7 @@ export function CmsListPage() {
           </table>
         </div>
       )}
+      {tab === 'pages' ? <Pager meta={meta} onPage={setPage} /> : null}
       {manageable && tab !== 'pages' ? <BlockEditor tab={tab} record={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); setMessage('Saved.') }} /> : null}
     </>
   )

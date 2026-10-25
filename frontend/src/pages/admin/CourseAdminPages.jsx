@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { Badge, Button, EmptyState, Field, Notice, Spinner, inputClass, statusTone } from '../../components/ui'
+import { Badge, Button, EmptyState, Field, Notice, Pager, Spinner, inputClass, statusTone } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
 import { api, can, ensureCsrf, errorMessage } from '../../services/api'
 import { formatPrice } from '../../utils/format'
@@ -15,11 +15,16 @@ const blank = {
 export function CourseAdminListPage() {
   const { user } = useAuth()
   const [rows, setRows] = useState(null)
+  const [meta, setMeta] = useState(null)
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
-    api.get(`/api/v1/admin/courses?search=${encodeURIComponent(search)}`).then((response) => setRows(response.data.data)).catch(() => setRows([]))
-  }, [search])
+    api.get(`/api/v1/admin/courses?search=${encodeURIComponent(search)}&page=${page}`).then((response) => {
+      setRows(response.data.data || [])
+      setMeta(response.data.meta || null)
+    }).catch(() => setRows([]))
+  }, [search, page])
 
   return (
     <>
@@ -28,7 +33,7 @@ export function CourseAdminListPage() {
         <h1 className="text-2xl font-semibold">Courses</h1>
         {can(user, 'courses.manage') ? <Link to="/admin/courses/new" className="rounded-full bg-blue px-4 py-2 text-sm font-semibold text-white">Create course</Link> : null}
       </div>
-      <input className={`${inputClass} mt-4 max-w-sm`} placeholder="Search courses" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Search courses" />
+      <input className={`${inputClass} mt-4 max-w-sm`} placeholder="Search courses" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} aria-label="Search courses" />
       {!rows ? <div className="mt-6"><Spinner /></div> : rows.length === 0 ? <div className="mt-6"><EmptyState title="No courses" body="Published courses are the only ones visitors can open." /></div> : (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
           <table className="record-table w-full text-left text-sm">
@@ -47,6 +52,7 @@ export function CourseAdminListPage() {
           </table>
         </div>
       )}
+      <Pager meta={meta} onPage={setPage} />
     </>
   )
 }

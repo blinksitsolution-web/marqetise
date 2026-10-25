@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\SanitizesStrings;
+use App\Support\StatusTransition;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -28,5 +29,17 @@ class UpdateBookingRequest extends FormRequest
             'internal_notes' => ['nullable', 'string', 'max:5000'],
             'cancellation_reason' => ['required_if:status,cancelled', 'nullable', 'string', 'max:300'],
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            $booking = $this->route('booking');
+            $next = (string) $this->input('status');
+
+            if ($booking && ! StatusTransition::booking((string) $booking->status, $next)) {
+                $validator->errors()->add('status', 'That status change is not allowed.');
+            }
+        });
     }
 }

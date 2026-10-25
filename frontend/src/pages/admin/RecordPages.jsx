@@ -19,7 +19,8 @@ function useRows(path) {
 export function InquiriesPage() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
-  const { rows, error } = useRows(`/api/v1/admin/inquiries?search=${encodeURIComponent(search)}&status=${status}`)
+  const [page, setPage] = useState(1)
+  const { rows, error } = useRows(`/api/v1/admin/inquiries?search=${encodeURIComponent(search)}&status=${status}&page=${page}`)
   const data = rows?.data || []
 
   return (
@@ -27,8 +28,8 @@ export function InquiriesPage() {
       <Seo title="Inquiries" path="/admin/inquiries" robots="noindex,nofollow" />
       <h1 className="text-2xl font-semibold">Inquiries</h1>
       <div className="mt-4 flex gap-2">
-        <input className={inputClass} aria-label="Search inquiries" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name, email, or subject" />
-        <select className={inputClass} aria-label="Inquiry status" value={status} onChange={(event) => setStatus(event.target.value)}>
+        <input className={inputClass} aria-label="Search inquiries" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} placeholder="Search name, email, or subject" />
+        <select className={inputClass} aria-label="Inquiry status" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1) }}>
           <option value="">All</option>
           <option value="new">New</option>
           <option value="in_progress">In progress</option>
@@ -54,6 +55,7 @@ export function InquiriesPage() {
           </table>
         </div>
       )}
+      <Pager meta={rows?.meta} onPage={setPage} />
     </section>
   )
 }
@@ -251,7 +253,8 @@ export function StudentsPage() {
   const [error, setError] = useState('')
   const [courses, setCourses] = useState([])
   const [form, setForm] = useState({ name: '', email: '', phone: '', status: 'waitlist', course_id: '', notes: '' })
-  const { rows, error: loadError, reload } = useRows(`/api/v1/admin/students?search=${encodeURIComponent(search)}`)
+  const [page, setPage] = useState(1)
+  const { rows, error: loadError, reload } = useRows(`/api/v1/admin/students?search=${encodeURIComponent(search)}&page=${page}`)
 
   useEffect(() => {
     if (!can(user, 'students.manage')) return
@@ -279,7 +282,7 @@ export function StudentsPage() {
         <h1 className="text-2xl font-semibold">Students</h1>
         {can(user, 'students.manage') ? <Button variant="blue" onClick={() => setOpen(true)}>Add student</Button> : null}
       </div>
-      <input className={`${inputClass} mt-4 max-w-sm`} aria-label="Search students" value={search} onChange={(event) => setSearch(event.target.value)} />
+      <input className={`${inputClass} mt-4 max-w-sm`} aria-label="Search students" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
       {loadError ? <p className="mt-4 text-red-700" role="alert">{loadError}</p> : null}
       {!rows ? (loadError ? null : <Skeleton label="Loading records" />) : data.length === 0 ? <div className="mt-6"><EmptyState title="No students" body="Student records are created by staff. The public site does not create them automatically." /></div> : (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
@@ -298,6 +301,7 @@ export function StudentsPage() {
           </table>
         </div>
       )}
+      <Pager meta={rows?.meta} onPage={setPage} />
       {open ? (
         <Modal title="Add student" onClose={() => setOpen(false)}>
           <form className="space-y-3" onSubmit={create}>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Seo from '../../components/Seo'
-import { Badge, Button, EmptyState, Field, Modal, Notice, Spinner, inputClass, statusTone } from '../../components/ui'
+import { Badge, Button, EmptyState, Field, Modal, Notice, Pager, Spinner, inputClass, statusTone } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
 import { api, can, ensureCsrf, errorMessage } from '../../services/api'
 import { formatDate } from '../../utils/format'
@@ -10,6 +10,7 @@ export function UsersPage() {
   const [payload, setPayload] = useState(null)
   const [roles, setRoles] = useState([])
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -17,10 +18,10 @@ export function UsersPage() {
   const [mailCanDeliver, setMailCanDeliver] = useState(null)
 
   function load() {
-    api.get(`/api/v1/admin/users?search=${encodeURIComponent(search)}`).then((response) => setPayload(response.data))
+    api.get(`/api/v1/admin/users?search=${encodeURIComponent(search)}&page=${page}`).then((response) => setPayload(response.data))
   }
 
-  useEffect(load, [search])
+  useEffect(load, [search, page])
   useEffect(() => {
     if (can(user, 'roles.view')) {
       api.get('/api/v1/admin/roles').then((response) => setRoles(response.data.data.roles)).catch(() => setRoles([]))
@@ -90,7 +91,7 @@ export function UsersPage() {
       <p className="mt-1 text-sm text-muted">Passwords are never shown. New people set their own password from an invitation link.</p>
       {message ? <div className="mt-4"><Notice tone="success">{message}</Notice></div> : null}
       {error && !open ? <div className="mt-4"><Notice tone="error">{error}</Notice></div> : null}
-      <input className={`${inputClass} mt-4 max-w-sm`} aria-label="Search users" value={search} onChange={(event) => setSearch(event.target.value)} />
+      <input className={`${inputClass} mt-4 max-w-sm`} aria-label="Search users" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} />
       {!payload ? <div className="mt-6"><Spinner /></div> : data.length === 0 ? <div className="mt-6"><EmptyState title="No users match" body="Try another name or email." /></div> : (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
           <table className="record-table w-full text-left text-sm">
@@ -126,6 +127,7 @@ export function UsersPage() {
           </table>
         </div>
       )}
+      <Pager meta={payload?.meta} onPage={setPage} />
       {open ? (
         <Modal title="Add user" onClose={() => setOpen(false)}>
           <form className="space-y-3" onSubmit={create}>
@@ -152,6 +154,7 @@ export function PermissionsPage() {
   const { user } = useAuth()
   const [data, setData] = useState(null)
   const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
 
   function load() {
     api.get('/api/v1/admin/roles').then((response) => setData(response.data.data))
@@ -164,14 +167,20 @@ export function PermissionsPage() {
     const current = new Set(role.permissions.map((permission) => permission.id))
     if (current.has(permissionId)) current.delete(permissionId)
     else current.add(permissionId)
-    await ensureCsrf()
-    await api.put(`/api/v1/admin/roles/${role.id}`, {
-      name: role.name,
-      slug: role.slug,
-      description: role.description,
-      permission_ids: [...current],
-    })
-    setMessage('Permissions saved.')
+    setMessage('')
+    setError('')
+    try {
+      await ensureCsrf()
+      await api.put(`/api/v1/admin/roles/${role.id}`, {
+        name: role.name,
+        slug: role.slug,
+        description: role.description,
+        permission_ids: [...current],
+      })
+      setMessage('Permissions saved.')
+    } catch (saveError) {
+      setError(errorMessage(saveError, 'Permissions were not saved.'))
+    }
     load()
   }
 
@@ -184,6 +193,7 @@ export function PermissionsPage() {
       <h1 className="text-2xl font-semibold">Permissions</h1>
       <p className="mt-1 text-sm text-muted">The server rejects any action the signed-in role cannot perform. Hiding a button is not the control.</p>
       {message ? <div className="mt-4"><Notice tone="success">{message}</Notice></div> : null}
+      {error ? <div className="mt-4"><Notice tone="error">{error}</Notice></div> : null}
       <div className="mt-4 space-y-3 md:hidden">
         {data.permissions.map((permission) => (
           <article key={permission.id} className="rounded-2xl bg-white p-4">
@@ -303,8 +313,8 @@ export function SettingsPage() {
           <input className={inputClass} value={settings[key] || ''} onChange={(event) => setSettings({ ...settings, [key]: event.target.value })} />
         </Field>
       ))}
-      <Field label="Logo" hint="JPEG, PNG, WebP, or GIF. Maximum 5 MB.">
-        <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={upload} />
+      <Field label="Logo" hint="JPEG, PNG, or WebP. Maximum 5 MB.">
+        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={upload} />
       </Field>
       {settings.logo_url ? <img src={settings.logo_url} alt="Uploaded logo" className="h-16 rounded-xl bg-navy-900" /> : null}
       <Button type="submit" variant="blue">Save settings</Button>
