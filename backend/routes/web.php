@@ -2,6 +2,7 @@
 
 use App\Models\Course;
 use App\Models\Page;
+use App\Support\PublicSite;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -23,14 +24,22 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/courses/{slug}', function (string $slug) {
+    $published = Course::query()->published()->where('slug', $slug)->exists();
+
+    return $published
+        ? PublicSite::response('page-course-details.html')
+        : PublicSite::response('page-404.html', 404);
+})->where('slug', '[A-Za-z0-9_-]+');
+
 Route::get('/sitemap.xml', function () {
     $base = rtrim((string) config('marqetise.frontend_url'), '/');
     $urls = array_map(
         fn (string $path) => $base.$path,
-        ['/', '/about', '/services', '/courses', '/contact', '/book'],
+        ['/', '/about', '/services', '/courses', '/contact', '/book', '/privacy', '/terms'],
     );
 
-    $frontend = dirname(base_path()).DIRECTORY_SEPARATOR.'frontend'.DIRECTORY_SEPARATOR;
+    $frontend = PublicSite::root().DIRECTORY_SEPARATOR;
     foreach (Page::query()->published()->pluck('slug') as $slug) {
         if (! is_string($slug) || ! preg_match('/^[a-z0-9-]+$/', $slug)) {
             continue;

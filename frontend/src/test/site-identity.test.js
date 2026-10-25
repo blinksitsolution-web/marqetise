@@ -57,6 +57,12 @@ describe('public template identity', () => {
       for (const needle of forbidden) {
         expect(html, `${name} still contains ${needle}`).not.toContain(needle)
       }
+      const lower = html.toLowerCase()
+      expect(lower, name).not.toContain('lorem ipsum')
+      expect(lower, name).not.toContain('dolorem')
+      expect(lower, name).not.toContain('bixom')
+      expect(html, name).not.toContain('HTTrack')
+      expect(html, name).not.toContain('kodesolution.com')
       expect(html, name).toContain('data-site="email"')
       expect(html, name).toContain('data-site="phone"')
       expect(html, name).toContain('data-site="address"')

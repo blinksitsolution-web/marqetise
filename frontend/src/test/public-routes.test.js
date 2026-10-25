@@ -77,6 +77,8 @@ describe('public routes and booking', () => {
       expect(source).toContain("'/book': '/page-book.html'")
       expect(source).toContain("'/courses': '/page-courses.html'")
       expect(source).toContain('/page-course-details.html')
+      expect(source).toContain('/page-404.html')
+      expect(source).toContain('404')
     }
     expect(page).toContain('id="booking_form"')
     expect(page).toContain('name="consent"')
