@@ -50,6 +50,10 @@ class LoginErrorEnumerationTest extends TestCase
         $this->assertContains('suspended', $reasons);
         $this->assertContains('invited', $reasons);
         $this->assertContains('unknown_email', $reasons);
-        $this->assertStringNotContainsString('wrong-password', json_encode($records));
+        $encoded = json_encode($records);
+        $this->assertStringNotContainsString('wrong-password', $encoded);
+        $this->assertStringNotContainsString($suspended->email, $encoded);
+        $this->assertStringNotContainsString('missing-person@example.com', $encoded);
+        $this->assertStringContainsString(hash('sha256', $suspended->email), $encoded);
     }
 }

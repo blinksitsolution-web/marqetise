@@ -6,6 +6,10 @@ The React app authenticates with a Laravel Sanctum session cookie. Call `GET /sa
 
 Successful JSON uses a `data` property. Validation errors return HTTP 422 with an `errors` object. Missing or insufficient permission returns 401 or 403. Production responses do not include stack traces when `APP_DEBUG=false`.
 
+`GET /up` is outside `/api/v1`. It runs `select 1` and returns `{"status":"ok"}`. A database failure returns HTTP 503 and `{"status":"down"}` without the driver error.
+
+A second student with the same email is HTTP 422. Deleting a course that still has students is HTTP 409. A repeated FAQ question in the same context is HTTP 422. Failed sign-in logs a hash of the email, not the address. `X-Forwarded-For` is ignored unless `TRUSTED_PROXIES` lists the proxy.
+
 ## Public
 
 | Method | Path | Purpose |

@@ -5,6 +5,15 @@ return [
     'frontend_url' => rtrim((string) env('FRONTEND_URL', 'http://localhost:5173'), '/'),
 
     /*
+    | Comma-separated proxy addresses. Empty means forwarded headers are ignored.
+    | Set this only to the TLS terminator in front of PHP. Do not use "*".
+    */
+    'trusted_proxies' => array_values(array_filter(array_map(
+        trim(...),
+        explode(',', (string) env('TRUSTED_PROXIES', ''))
+    ), fn (string $proxy) => $proxy !== '' && $proxy !== '*')),
+
+    /*
     | Starter courses and illustrative catalog copy are optional.
     | They are taken from the approved interface mockups and are not
     | verified commercial results. Testimonials, statistics, team members,

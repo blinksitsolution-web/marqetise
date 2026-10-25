@@ -8,6 +8,7 @@ use App\Support\ProductionConfiguration;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\SessionGuard;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -27,6 +28,11 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(User::class, UserPolicy::class);
         app(ProductionConfiguration::class)->assertSafe();
+
+        $proxies = config('marqetise.trusted_proxies', []);
+        if (is_array($proxies) && $proxies !== []) {
+            TrustProxies::at($proxies);
+        }
         Sanctum::authenticateAccessTokensUsing(static fn (): bool => false);
 
         $this->app->booted(function (): void {

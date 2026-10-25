@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, Spinner, inputClass } from '../../components/ui'
@@ -8,31 +8,42 @@ export function PageEditorPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [form, setForm] = useState({ title: '', slug: '', excerpt: '', body: '', meta_title: '', meta_description: '', status: 'draft' })
+  const formRef = useRef(form)
   const [error, setError] = useState('')
   const [loaded, setLoaded] = useState(id === undefined)
 
   useEffect(() => {
     if (!id) return
+    let active = true
     api.get(`/api/v1/admin/pages/${id}`).then((response) => {
+      if (!active) return
+      formRef.current = response.data.data
       setForm(response.data.data)
       setLoaded(true)
-    }).catch(() => setError('The page could not be loaded.'))
+    }).catch(() => {
+      if (active) setError('The page could not be loaded.')
+    })
+    return () => {
+      active = false
+    }
   }, [id])
 
   function setField(key, value) {
-    const next = { ...form, [key]: value }
+    const next = { ...formRef.current, [key]: value }
     if (key === 'title' && !id) {
       next.slug = value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
     }
+    formRef.current = next
     setForm(next)
   }
 
   async function save(event) {
     event.preventDefault()
+    const current = formRef.current
     setError('')
     try {
       await ensureCsrf()
-      const payload = { title: form.title, slug: form.slug, excerpt: form.excerpt, body: form.body, meta_title: form.meta_title, meta_description: form.meta_description, status: form.status }
+      const payload = { title: current.title, slug: current.slug, excerpt: current.excerpt, body: current.body, meta_title: current.meta_title, meta_description: current.meta_description, status: current.status }
       if (id) await api.put(`/api/v1/admin/pages/${id}`, payload)
       else await api.post('/api/v1/admin/pages', payload)
       navigate('/admin/cms')
