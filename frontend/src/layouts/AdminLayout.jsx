@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import Brand from '../components/Brand'
-import { useDialog } from '../components/ui'
-import { useAuth } from '../context/AuthContext'
+import { useDialog } from '../components/useDialog'
+import { useAuth } from '../context/useAuth'
 import { api, can } from '../services/api'
 
 const items = [
@@ -67,18 +67,19 @@ export default function AdminLayout() {
           <p className="mt-auto px-2 pt-6 text-xs text-muted">Access is checked on the server for every request.</p>
         </aside>
         <div className="min-w-0 flex-1">
-          <header className="flex items-center justify-between gap-3 border-b border-line bg-white px-4 py-3">
+          <header className="flex flex-wrap items-center gap-3 border-b border-line bg-white px-4 py-3">
             <button type="button" className="inline-flex min-h-11 items-center rounded-xl border border-line px-4 text-sm lg:hidden" onClick={() => setOpen(true)}>Menu</button>
-            <label className="relative min-w-0 flex-1 text-sm">
+            <label className="relative order-last w-full min-w-0 text-sm sm:order-none sm:w-auto sm:flex-1">
               <span className="sr-only">Search admin records</span>
               <input className="w-full rounded-xl border border-line px-3 py-2" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search records" />
               {query.trim().length >= 2 && results ? <SearchResults results={results} onPick={() => { setQuery(''); setResults(null) }} /> : null}
             </label>
             <div className="ml-auto flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-sm font-semibold">{user?.name}</p>
-                <p className="text-xs text-muted">{user?.role?.name}</p>
-              </div>
+              <Link to="/admin/account" className="hidden max-w-36 text-right sm:block">
+                <p className="truncate text-sm font-semibold">{user?.name}</p>
+                <p className="truncate text-xs text-muted">{user?.role?.name}</p>
+              </Link>
+              <Link to="/admin/account" className="inline-flex min-h-11 items-center text-sm font-semibold sm:hidden">Account</Link>
               <button type="button" className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm" onClick={signOut}>Sign out</button>
             </div>
           </header>
@@ -108,7 +109,7 @@ function SearchResults({ results, onPick }) {
     ['courses', 'Courses', (row) => ({ to: `/admin/courses/${row.id}`, label: row.title })],
     ['pages', 'Pages', (row) => ({ to: `/admin/cms/pages/${row.id}`, label: row.title })],
     ['inquiries', 'Inquiries', (row) => ({ to: `/admin/inquiries/${row.id}`, label: row.subject })],
-    ['bookings', 'Bookings', (row) => ({ to: '/admin/bookings', label: row.reference })],
+    ['bookings', 'Bookings', (row) => ({ to: `/admin/bookings/${row.id}`, label: row.reference })],
   ].filter(([key]) => Array.isArray(results[key]) && results[key].length > 0)
 
   return (

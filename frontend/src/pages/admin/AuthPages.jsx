@@ -6,7 +6,7 @@ import Brand from '../../components/Brand'
 import { LegalNotice } from '../../components/LegalNotice'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import { forgotSchema, loginSchema, resetSchema } from '../../schemas/forms'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 

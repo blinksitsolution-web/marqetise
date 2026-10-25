@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useDialog } from './useDialog'
 
 export const inputClass = 'w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-blue'
 
@@ -17,7 +17,7 @@ export function Field({ label, error, hint, children }) {
 
 export function Button({ children, variant = 'primary', className = '', ...props }) {
   const styles = {
-    primary: 'bg-brand text-white hover:bg-brand-700',
+    primary: 'bg-brand text-ink hover:bg-brand-hover',
     blue: 'bg-blue text-white hover:bg-blue-700',
     ghost: 'border border-white/20 bg-white/5 text-white hover:bg-white/10',
     outline: 'border border-line bg-white text-ink hover:bg-surface',
@@ -38,19 +38,12 @@ export function Badge({ children, tone = 'neutral' }) {
   const tones = {
     neutral: 'bg-surface text-ink',
     green: 'bg-emerald-50 text-emerald-800',
-    orange: 'bg-orange-50 text-brand-700',
+    orange: 'bg-orange-50 text-brand-text',
     red: 'bg-red-50 text-red-700',
     blue: 'bg-blue-50 text-blue',
   }
 
   return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span>
-}
-
-export function statusTone(status) {
-  if (['published', 'active', 'confirmed', 'resolved', 'completed'].includes(status)) return 'green'
-  if (['pending', 'invited', 'in_progress', 'waitlist', 'draft'].includes(status)) return 'orange'
-  if (['suspended', 'cancelled', 'withdrawn', 'archived'].includes(status)) return 'red'
-  return 'blue'
 }
 
 export function EmptyState({ title, body, action }) {
@@ -59,6 +52,18 @@ export function EmptyState({ title, body, action }) {
       <h2 className="text-lg font-semibold">{title}</h2>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted">{body}</p>
       {action ? <div className="mt-5">{action}</div> : null}
+    </div>
+  )
+}
+
+export function Pager({ meta, onPage }) {
+  if (!meta || meta.last_page <= 1) return null
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+      <button type="button" className="inline-flex min-h-11 items-center rounded-full border border-line px-4 disabled:opacity-50" disabled={meta.current_page <= 1} onClick={() => onPage(meta.current_page - 1)}>Previous</button>
+      <span>Page {meta.current_page} of {meta.last_page}</span>
+      <button type="button" className="inline-flex min-h-11 items-center rounded-full border border-line px-4 disabled:opacity-50" disabled={meta.current_page >= meta.last_page} onClick={() => onPage(meta.current_page + 1)}>Next</button>
     </div>
   )
 }
@@ -79,60 +84,6 @@ export function Skeleton({ label = 'Loading' }) {
       {[0, 1, 2].map((item) => <div key={item} className="h-16 animate-pulse rounded-2xl bg-white" />)}
     </div>
   )
-}
-
-export function useDialog(open, onClose) {
-  const ref = useRef(null)
-  const closeRef = useRef(onClose)
-
-  useEffect(() => {
-    closeRef.current = onClose
-  }, [onClose])
-
-  useEffect(() => {
-    if (!open) return undefined
-    const node = ref.current
-    if (!node) return undefined
-    const previous = document.activeElement
-
-    function focusable() {
-      return [...node.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
-    }
-
-    const initial = focusable()
-    ;(initial[0] || node).focus()
-
-    function onKey(event) {
-      if (event.key === 'Escape') {
-        event.preventDefault()
-        closeRef.current()
-        return
-      }
-      if (event.key !== 'Tab') return
-      const items = focusable()
-      if (items.length === 0) {
-        event.preventDefault()
-        return
-      }
-      const first = items[0]
-      const last = items[items.length - 1]
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault()
-        last.focus()
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault()
-        first.focus()
-      }
-    }
-
-    node.addEventListener('keydown', onKey)
-    return () => {
-      node.removeEventListener('keydown', onKey)
-      if (previous instanceof HTMLElement) previous.focus()
-    }
-  }, [open])
-
-  return ref
 }
 
 export function Modal({ title, children, onClose }) {
