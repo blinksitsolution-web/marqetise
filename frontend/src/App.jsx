@@ -32,10 +32,21 @@ const PermissionsPage = lazy(() => import('./pages/admin/AccessPages').then((mod
 const SettingsPage = lazy(() => import('./pages/admin/AccessPages').then((module) => ({ default: module.SettingsPage })))
 
 function RequireAuth({ children, permission }) {
-  const { user, loading } = useAuth()
+  const { user, loading, sessionUnconfirmed } = useAuth()
 
   if (loading) {
     return <div className="grid min-h-screen place-items-center"><Spinner label="Checking your session" /></div>
+  }
+
+  if (!user && sessionUnconfirmed) {
+    return (
+      <div className="grid min-h-screen place-items-center px-4 text-center">
+        <div>
+          <h1 className="text-2xl font-semibold">We could not confirm your session</h1>
+          <p className="mt-2 text-sm text-muted">Refresh the page to try again. Your session was not ended.</p>
+        </div>
+      </div>
+    )
   }
 
   if (!user) {

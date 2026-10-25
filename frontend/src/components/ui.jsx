@@ -17,7 +17,7 @@ export function Field({ label, error, hint, children }) {
 
 export function Button({ children, variant = 'primary', className = '', ...props }) {
   const styles = {
-    primary: 'bg-brand text-white hover:bg-brand-700',
+    primary: 'bg-brand text-ink hover:bg-brand-hover',
     blue: 'bg-blue text-white hover:bg-blue-700',
     ghost: 'border border-white/20 bg-white/5 text-white hover:bg-white/10',
     outline: 'border border-line bg-white text-ink hover:bg-surface',
@@ -38,7 +38,7 @@ export function Badge({ children, tone = 'neutral' }) {
   const tones = {
     neutral: 'bg-surface text-ink',
     green: 'bg-emerald-50 text-emerald-800',
-    orange: 'bg-orange-50 text-brand-700',
+    orange: 'bg-orange-50 text-brand-text',
     red: 'bg-red-50 text-red-700',
     blue: 'bg-blue-50 text-blue',
   }

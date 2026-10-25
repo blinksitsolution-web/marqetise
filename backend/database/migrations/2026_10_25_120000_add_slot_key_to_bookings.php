@@ -9,10 +9,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('bookings', function (Blueprint $table) {
-            $table->string('slot_key')->nullable()->unique();
-        });
-
         $duplicates = DB::table('bookings')
             ->select('preferred_date', 'preferred_time')
             ->whereIn('status', ['pending', 'confirmed'])
@@ -22,6 +18,14 @@ return new class extends Migration
 
         if ($duplicates->isNotEmpty()) {
             throw new \RuntimeException('Cannot add booking slot uniqueness: duplicate pending or confirmed slots exist. Resolve them before migrating.');
+        }
+
+        // MySQL commits DDL immediately, so the duplicate check has to run first.
+        // A previous attempt may already have added the column before that check existed.
+        if (! Schema::hasColumn('bookings', 'slot_key')) {
+            Schema::table('bookings', function (Blueprint $table) {
+                $table->string('slot_key')->nullable()->unique();
+            });
         }
 
         DB::table('bookings')
