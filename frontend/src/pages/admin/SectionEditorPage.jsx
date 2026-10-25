@@ -205,9 +205,9 @@ export function SectionEditorPage({
       </div>
       {message ? <Notice tone="success">{message}</Notice> : null}
       {error ? <div className="mt-3"><Notice tone="error">{error}</Notice></div> : null}
-      <div className="mt-4 grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <nav className="lg:sticky lg:top-24 lg:self-start" aria-label={navLabel}>
-          <ol className="flex gap-2 overflow-auto lg:block lg:space-y-1">
+      <div className="mt-4 grid min-w-0 gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+        <nav className="min-w-0 lg:sticky lg:top-24 lg:self-start" aria-label={navLabel}>
+          <ol className="flex gap-2 overflow-x-auto lg:block lg:space-y-1">
             {pageSlug ? <li><a className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm hover:bg-white" href={`#editor-${pageSlug}`}>Page text</a></li> : null}
             {sections.map((section) => (
               <li key={section.key}>
@@ -216,7 +216,7 @@ export function SectionEditorPage({
             ))}
           </ol>
         </nav>
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           {pageSlug ? (
             <form id={`editor-${pageSlug}`} className="space-y-3 rounded-2xl bg-white p-4 sm:p-6" onSubmit={savePage}>
               <h2 className="text-xl font-semibold">Page text</h2>

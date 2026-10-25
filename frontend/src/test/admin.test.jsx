@@ -167,6 +167,30 @@ describe('admin remediation', () => {
     expect(api.put).not.toHaveBeenCalled()
   })
 
+  it('groups settings and shows unsaved changes', async () => {
+    const user = userEvent.setup()
+    api.get.mockResolvedValue({
+      data: {
+        data: { company_name: 'Marqetise', tagline: 'Beyond Marketing', email: '', logo_url: '' },
+        mail_can_deliver: false,
+      },
+    })
+
+    render(<MemoryRouter><SettingsPage /></MemoryRouter>)
+
+    expect(await screen.findByRole('heading', { name: 'General' })).toBeInTheDocument()
+    for (const name of ['Contact', 'Social', 'SEO', 'Email', 'Privacy']) {
+      expect(screen.getByRole('heading', { name })).toBeInTheDocument()
+    }
+    expect(screen.getByRole('navigation', { name: 'Settings sections' })).toBeInTheDocument()
+    expect(screen.getByText('All settings match the last save.')).toBeInTheDocument()
+    expect(screen.getByText('No logo uploaded')).toBeInTheDocument()
+    expect(screen.getByText('Email delivery is not configured. Reset and invitation emails are not being sent.')).toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Company name'), '!')
+    expect(screen.getByText('You have unsaved changes.')).toBeInTheDocument()
+  })
+
   it('links a booking search result to that booking', async () => {
     const user = userEvent.setup()
     api.get.mockResolvedValue({ data: { data: { bookings: [{ id: 9, reference: 'MQ-9' }] } } })
