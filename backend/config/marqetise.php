@@ -14,6 +14,13 @@ return [
     ), fn (string $proxy) => $proxy !== '' && $proxy !== '*')),
 
     /*
+    | Off until the operator turns it on. The scheduled command writes under
+    | storage/app/backups, which is not web-accessible. Copy those files off
+    | the server. Do not point this at a public directory.
+    */
+    'backup_enabled' => filter_var(env('BACKUP_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+
+    /*
     | Starter courses and illustrative catalog copy are optional.
     | They are taken from the approved interface mockups and are not
     | verified commercial results. Testimonials, statistics, team members,
@@ -46,6 +53,11 @@ return [
         'meta_title',
         'meta_description',
         'logo_url',
+    ],
+
+    'private_setting_keys' => [
+        'notification_email',
+        'ip_retention_days',
     ],
 
 ];

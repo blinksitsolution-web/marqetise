@@ -62,6 +62,14 @@ class LegalCopy
 
     public const BOOKING_FORM_PRESENT = 'The public booking page sends this request. Staff review it on the admin bookings screen.';
 
+    public const NEWSLETTER_BOX_PRESENT = 'The footer newsletter box asks for an email address and shows a privacy checkbox. It is not connected to the inquiry API. An address typed there is not stored and does not start a subscription.';
+
+    public const NEWSLETTER_BOX_ABSENT = 'The public pages do not include a newsletter form. This website does not keep a mailing list, and an email address is not collected for one.';
+
+    public const IP_RETENTION_UNSET = 'Inquiry IP addresses, audit-log IP addresses, and the enquiry, booking, student, and staff rows are not deleted on a schedule. The application does not enforce a retention period for them. The period we will apply is [IP ADDRESS RETENTION PERIOD]. Until that placeholder is replaced with a real period and a deletion process is added, those rows remain until a staff member deletes them or the operator removes them from the database.';
+
+    public const IP_RETENTION_CONFIGURABLE = 'Enquiry rows, booking rows, student rows, and staff rows are not deleted on a schedule. Inquiry IP addresses and audit-log IP addresses are cleared only after the number of days a staff member saves in admin settings. This repository does not choose that number. The period we will publish here is [IP ADDRESS RETENTION PERIOD]. Until that setting is saved, those IP addresses remain until a staff member deletes the row or the operator removes them from the database.';
+
     public static function notePublicBookingForm(?string $body): ?string
     {
         if ($body === null || ! str_contains($body, self::BOOKING_FORM_ABSENT)) {
@@ -69,6 +77,20 @@ class LegalCopy
         }
 
         return str_replace(self::BOOKING_FORM_ABSENT, self::BOOKING_FORM_PRESENT, $body);
+    }
+
+    public static function noteCurrentPublicCopy(?string $body): ?string
+    {
+        $body = self::notePublicBookingForm($body);
+        if ($body === null) {
+            return null;
+        }
+
+        return str_replace(
+            [self::NEWSLETTER_BOX_PRESENT, self::IP_RETENTION_UNSET],
+            [self::NEWSLETTER_BOX_ABSENT, self::IP_RETENTION_CONFIGURABLE],
+            $body,
+        );
     }
 
     public static function isReplaceable(?object $page): bool
@@ -134,7 +156,7 @@ Email. When a mail transport is configured, the application sends the enquiry or
 
 Uploads. A staff member can upload a JPEG, PNG, or WebP image up to 5 MB. The file, original file name, type, size, and uploading account are stored.
 
-The footer newsletter box asks for an email address and shows a privacy checkbox. It is not connected to the inquiry API. An address typed there is not stored and does not start a subscription.
+The public pages do not include a newsletter form. This website does not keep a mailing list, and an email address is not collected for one.
 
 # Why we use the data
 
@@ -158,7 +180,7 @@ Section 24 of Act 843 says a controller must not keep personal data longer than 
 
 Session rows follow the session lifetime described above. The remember-me cookie lasts 14 days. Sign-in limiter entries last 15 minutes. Refused-sign-in log lines go to the application log. The application does not delete those log lines on a schedule.
 
-Inquiry IP addresses, audit-log IP addresses, and the enquiry, booking, student, and staff rows are not deleted on a schedule. The application does not enforce a retention period for them. The period we will apply is [IP ADDRESS RETENTION PERIOD]. Until that placeholder is replaced with a real period and a deletion process is added, those rows remain until a staff member deletes them or the operator removes them from the database.
+Enquiry rows, booking rows, student rows, and staff rows are not deleted on a schedule. Inquiry IP addresses and audit-log IP addresses are cleared only after the number of days a staff member saves in admin settings. This repository does not choose that number. The period we will publish here is [IP ADDRESS RETENTION PERIOD]. Until that setting is saved, those IP addresses remain until a staff member deletes the row or the operator removes them from the database.
 
 # Your rights
 

@@ -316,6 +316,7 @@ var THEMEMASCOT = {};
 		});
 	};
 
+	if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
 	// smooth scroll Js
 	gsap.registerPlugin(ScrollTrigger, ScrollSmoother, ScrollToPlugin);
 	if ($('#smooth-wrapper').length && $('#smooth-content').length) {
@@ -735,13 +736,17 @@ var THEMEMASCOT = {};
     }
 	}
 
+	}
+
 	/* ==========================================================================
    When document is Scrollig, do
    ========================================================================== */
 
 	$(window).on("scroll", function () {
 		headerStyle();
-		TM_activateMenuItemOnReach();
+		if (typeof TM_activateMenuItemOnReach === "function") {
+			TM_activateMenuItemOnReach();
+		}
 	});
 
 })(window.jQuery);

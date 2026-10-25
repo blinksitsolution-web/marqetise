@@ -25,6 +25,13 @@ class StudentResource extends JsonResource
                 'title' => $this->course->title,
                 'slug' => $this->course->slug,
             ] : null,
+            'other_courses' => $this->whenLoaded('enrolments', fn () => $this->enrolments
+                ->map(fn ($enrolment) => $enrolment->course ? [
+                    'id' => $enrolment->course->id,
+                    'title' => $enrolment->course->title,
+                ] : null)
+                ->filter()
+                ->values()),
             'created_at' => $this->created_at,
         ];
     }

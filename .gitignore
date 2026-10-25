@@ -3,6 +3,7 @@
 /backend/.env
 /backend/storage/*.key
 /backend/storage/logs
+/backend/storage/app/backups
 /backend/public/storage
 /backend/public/hot
 /frontend/node_modules

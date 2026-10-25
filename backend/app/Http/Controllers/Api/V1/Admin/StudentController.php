@@ -36,20 +36,27 @@ class StudentController extends Controller
         $student = Student::query()->create($request->validated());
         $audit->log('student.created', $student);
 
-        return new StudentResource($student->load('course'));
+        return new StudentResource($student->load(['course', 'enrolments.course']));
     }
 
     public function show(Student $student): StudentResource
     {
-        return new StudentResource($student->load('course'));
+        return new StudentResource($student->load(['course', 'enrolments.course']));
     }
 
     public function update(SaveStudentRequest $request, Student $student, AuditLogger $audit): StudentResource
     {
+        $previousCourse = $student->course_id;
         $student->update($request->validated());
+        if ($previousCourse && (int) $previousCourse !== (int) $student->course_id) {
+            $student->enrolments()->firstOrCreate(
+                ['course_id' => $previousCourse],
+                ['status' => $student->status, 'enrolled_on' => $student->enrolled_on],
+            );
+        }
         $audit->log('student.updated', $student, ['status' => $student->status]);
 
-        return new StudentResource($student->load('course'));
+        return new StudentResource($student->load(['course', 'enrolments.course']));
     }
 
     public function destroy(Student $student, AuditLogger $audit): Response
