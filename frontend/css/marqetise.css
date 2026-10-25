@@ -1206,6 +1206,21 @@ h2.ks-footer-widget-title {
   font-size: 1.25rem;
 }
 
+#page-sections:empty,
+#faq-list:empty,
+#faq-list[hidden],
+#contact-intro[hidden] {
+  display: none;
+}
+
+.mq-page-block {
+  padding: 4.5rem 0;
+}
+
+.mq-page-block .mq-home-card p {
+  margin: 0.5rem 0 0;
+}
+
 .mq-home-page-title {
   max-width: 1180px;
   margin: 6.5rem auto 0;

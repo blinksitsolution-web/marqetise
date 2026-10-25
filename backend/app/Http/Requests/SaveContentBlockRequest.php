@@ -33,7 +33,7 @@ class SaveContentBlockRequest extends FormRequest
                 'required', 'string', 'max:80', 'regex:/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/',
                 Rule::unique('content_blocks', 'key')->ignore($this->route('block')),
             ],
-            'group' => ['required', Rule::in(['home', 'about', 'courses', 'contact', 'global'])],
+            'group' => ['required', Rule::in(['home', 'about', 'courses', 'contact', 'global', 'services', 'faq', 'book', 'packages'])],
             'label' => ['required', 'string', 'max:160'],
             'payload' => ['required', 'array'],
             'is_visible' => ['required', 'boolean'],

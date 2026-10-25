@@ -67,14 +67,14 @@ export const homeSections = [
     label: 'Projects',
     help: 'Case studies. Hidden while the list is empty.',
     title: true,
-    items: [['title', 'Title'], ['summary', 'Summary'], ['href', 'Link'], ['image', 'Image'], ['image_alt', 'Image description']],
+    items: [['title', 'Title'], ['slug', 'Page address'], ['summary', 'Summary'], ['href', 'Link'], ['image', 'Image'], ['image_alt', 'Image description']],
   },
   {
     key: 'home.team',
     label: 'Team',
     help: 'People. Hidden while the list is empty.',
     title: true,
-    items: [['name', 'Name'], ['role', 'Role'], ['bio', 'Short bio'], ['image', 'Photo'], ['image_alt', 'Photo description']],
+    items: [['name', 'Name'], ['slug', 'Page address'], ['role', 'Role'], ['bio', 'Short bio', 'textarea'], ['image', 'Photo'], ['image_alt', 'Photo description']],
   },
   {
     key: 'home.testimonials',
@@ -95,7 +95,7 @@ export const homeSections = [
     label: 'News',
     help: 'Posts. Hidden while the list is empty.',
     title: true,
-    items: [['title', 'Title'], ['summary', 'Summary'], ['date', 'Date'], ['href', 'Link'], ['image', 'Image'], ['image_alt', 'Image description']],
+    items: [['title', 'Title'], ['slug', 'Page address'], ['summary', 'Summary'], ['date', 'Date'], ['href', 'Link'], ['image', 'Image'], ['image_alt', 'Image description']],
   },
   {
     key: 'home.cta',
@@ -113,26 +113,46 @@ export const homeSections = [
   },
 ]
 
+function blankRow(fields) {
+  return Object.fromEntries(fields.map(([key]) => [key, '']))
+}
+
 export function blankPayload(section) {
   const payload = {}
   if (section.title) payload.title = ''
   for (const [key] of section.fields || []) payload[key] = ''
-  if (section.items) payload.items = []
+  if (section.items) payload[section.itemsKey || 'items'] = []
+  for (const list of section.lists || []) payload[list.key] = []
   return payload
+}
+
+function rowsFor(raw, key, fields, mapRow) {
+  const rows = Array.isArray(raw?.[key]) ? raw[key] : []
+  return rows.map((item) => {
+    const next = Object.fromEntries(fields.map(([field]) => [field, item?.[field] || '']))
+    return mapRow ? mapRow(next, item) : next
+  })
 }
 
 export function sectionPayload(section, raw) {
   const payload = { ...blankPayload(section), ...(raw || {}) }
-  if (!section.items) return payload
-  const rows = Array.isArray(raw?.items) ? raw.items : []
-  payload.items = rows.map((item) => {
-    const next = Object.fromEntries(section.items.map(([key]) => [key, item?.[key] || '']))
-    if (section.key === 'home.testimonials') {
-      next.quote = item?.quote || item?.body || ''
-      next.name = item?.name || item?.title || ''
-      next.role = item?.role || ''
-    }
-    return next
-  })
+  if (section.items) {
+    const key = section.itemsKey || 'items'
+    payload[key] = rowsFor(raw, key, section.items, section.key === 'home.testimonials'
+      ? (next, item) => ({
+        ...next,
+        quote: item?.quote || item?.body || '',
+        name: item?.name || item?.title || '',
+        role: item?.role || '',
+      })
+      : null)
+  }
+  for (const list of section.lists || []) {
+    payload[list.key] = rowsFor(raw, list.key, list.fields)
+  }
   return payload
+}
+
+export function emptyItem(fields) {
+  return blankRow(fields)
 }

@@ -65,6 +65,18 @@ export function CmsListPage() {
         {manageable && tab === 'pages' ? (
           <div className="flex flex-wrap gap-2">
             <Link to="/admin/cms/home" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit home page</Link>
+            <Link to="/admin/cms/chrome" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit header and footer</Link>
+            <Link to="/admin/cms/about" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit about page</Link>
+            <Link to="/admin/cms/services" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit services page</Link>
+            <Link to="/admin/cms/courses" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit courses page</Link>
+            <Link to="/admin/cms/contact" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit contact page</Link>
+            <Link to="/admin/cms/book" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit booking page</Link>
+            <Link to="/admin/cms/faq" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit FAQ page</Link>
+            <Link to="/admin/cms/projects" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit projects</Link>
+            <Link to="/admin/cms/team" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit team</Link>
+            <Link to="/admin/cms/news" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit news</Link>
+            <Link to="/admin/cms/testimonials" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit testimonials</Link>
+            <Link to="/admin/cms/packages" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold">Edit packages</Link>
             <Link to="/admin/cms/pages/new" className="rounded-full bg-blue px-4 py-2 text-sm font-semibold text-white">Create page</Link>
           </div>
         ) : null}

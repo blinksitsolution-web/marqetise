@@ -37,7 +37,7 @@
           <!--Nav Box-->
           <div class="nav-outer">
             <nav class="nav main-menu">
-              <ul class="navigation ms-auto">
+              <ul class="navigation ms-auto" data-chrome="nav">
                 <li><a href="index.html">Home</a></li>
                 <!--
                 <li><a href="index-2.html">Home page 02</a></li>
@@ -85,7 +85,7 @@
         <div class="col-xl-4 col-lg-4 col-md-9 col-6 col-sm-7">
           <div class="outer-box d-flex align-items-center justify-content-end">
             <div class="info-box">
-              <a class="ks-btn-black blue-bg" href="page-contact.html">
+              <a class="ks-btn-black blue-bg" data-chrome="cta" href="/contact">
                 <span>
                   <span class="text-1">Get In Touch</span>
                   <span class="text-2">Get In Touch</span>
@@ -124,9 +124,9 @@
           <ul class="navigation clearfix d-block d-xl-none">
             <!--Keep This Empty / Menu will come through Javascript-->
           </ul>
-          <div class="content-box d-none d-lg-block">
-            <h4 class="title">About Us</h4>
-            <p class="text">Consultez is the go-to hub for early adopters and innovation enthusiasts, offering cutting technology widely.</p>
+          <div class="content-box d-none d-lg-block" data-chrome="panel" hidden>
+            <h4 class="title" data-chrome="panel-title"></h4>
+            <p class="text" data-chrome="panel-body"></p>
           </div>
           <ul class="contact-list-one">
             <li data-site-block="phone" hidden>
@@ -166,7 +166,7 @@
         <div class="search-inner">
           <form method="post" action="index.html">
             <div class="form-group">
-              <input type="search" name="search-field" value="" placeholder="Search..." required="" aria-label="Search">
+              <input type="search" name="search-field" data-chrome="search" value="" placeholder="Search..." required="" aria-label="Search">
               <button type="submit" aria-label="Submit search"><i class="fa fa-search"></i></button>
             </div>
           </form>
@@ -206,149 +206,25 @@
   </header>
   <!--End Main Header -->
 
-  <!-- Start main-content -->
-  <section class="page-title" style="background-image: url(images/background/page-title-bg.jpg);">
-    <div class="auto-container">
-      <div class="title-outer">
-        <ul class="page-breadcrumb">
-          <li><a href="index.html">Home</a></li>
-          <li>Team Details</li>
-        </ul>
-        <h1 class="title" data-cms="title">Team Details</h1>
-<p class="mq-cms-lead" data-cms="excerpt"></p>
-      </div>
-    </div>
-  </section>
-  <!-- end main-content -->
-<div class="mq-cms-body" data-cms="body"></div>
-
-  <!--Team Details Start-->
-  <section class="team-details">
-    <div class="container">
-      <div class="team-details__top pb-70">
-        <div class="row">
-          <div class="col-xl-6 col-lg-6">
-            <div class="team-details__top-left">
-              <div class="team-details__top-img">
-                <img class="w-100" src="images/resource/team-details.jpg" alt="">
-                <div class="team-details__big-text"></div>
-              </div>
-            </div>
-          </div>
-          <div class="col-xl-6 col-lg-6">
-            <div class="team-details__top-right pt-50">
-              <div class="team-details__top-content">
-                <h3 class="team-details__top-name">Alen Hispro</h3>
-                <p class="team-details__top-title">Chief Attorney</p>
-                <p class="team-details__top-text-1">I help my clients stand out and they help me grow.</p>
-                
-                </div>
-                
-              </div>
-            </div>
-          </div>
+<main>
+    <section class="page-title">
+      <div class="auto-container">
+        <div class="title-outer">
+          <ul class="page-breadcrumb">
+            <li><a href="/">Home</a></li>
+            <li data-cms="title">Team</li>
+          </ul>
+          <h1 class="title" data-cms="title">Team</h1>
+          <p class="mq-cms-lead" data-cms="excerpt"></p>
         </div>
       </div>
-      <div class="team-details__bottom pt-100">
-        <div class="row">
-          <div class="col-xl-6 col-lg-6">
-            <div class="team-details__bottom-left">
-              <h4 class="team-details__bottom-left-title">Personal Experience</h4>
-              <p class="team-details__bottom-left-text">More detail will be added here.</p>
-            </div>
-          </div>
-          <div class="col-xl-6 col-lg-6">
-            <div class="team-details__bottom-right">
-              <div class="team-details__progress">
-                <div class="team-details__progress-single">
-                  <h4 class="team-details__progress-title">Latest Boat Experience</h4>
-                  <div class="bar">
-                    <div class="bar-inner count-bar" data-percent="90%">
-                      <div class="count-text">90%</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="team-details__progress-single">
-                  <h4 class="team-details__progress-title">Sailing Boat Experience</h4>
-                  <div class="bar">
-                    <div class="bar-inner count-bar" data-percent="80%">
-                      <div class="count-text">80%</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="team-details__progress-single">
-                  <h4 class="team-details__progress-title">Power Boat Experience</h4>
-                  <div class="bar marb-0">
-                    <div class="bar-inner count-bar" data-percent="75%">
-                      <div class="count-text">75%</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <!--Team Details End--> 
+    </section>
+    <div class="mq-cms-body" data-cms="body"></div>
+    <div id="page-sections" data-page="team-member"></div>
+    
+  </main>
 
-  <!--Contact Details Start-->
-  <section class="team-contact-form">
-    <div class="container">
-      <div class="sec-title mb-5 text-center">
-        <span class="sub-title">Contact With Us Now</span>
-        <h2 class="section-title__title">Feel Free to Write Our <br> Alen Hispro</h2>
-      </div>
-      <div class="row justify-content-center">
-        <div class="col-lg-8">
-          <!-- Contact Form -->
-          <form id="contact_form" name="contact_form" class="" action="#" method="post">
-            <div class="row">
-              <div class="col-sm-6">
-                <div class="mb-3">
-                  <input name="form_name" class="form-control" type="text" placeholder="Enter Name" aria-label="Enter Name">
-                </div>
-              </div>
-              <div class="col-sm-6">
-                <div class="mb-3">
-                  <input name="form_email" class="form-control required email" type="email" placeholder="Enter Email" aria-label="Enter Email">
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col-sm-6">
-                <div class="mb-3">
-                  <input name="form_subject" class="form-control required" type="text" placeholder="Enter Subject" aria-label="Enter Subject">
-                </div>
-              </div>
-              <div class="col-sm-6">
-                <div class="mb-3">
-                  <input name="form_phone" class="form-control" type="text" placeholder="Enter Phone" aria-label="Enter Phone">
-                </div>
-              </div>
-            </div>
-            <div class="mb-3">
-              <textarea name="form_message" class="form-control required" rows="5" placeholder="Enter Message" aria-label="Enter Message"></textarea>
-            </div>
-            <div class="mb-3 text-center">
-              <div class="mb-3">
-<label><input name="consent" type="checkbox" value="1"> We may contact you about this message. Read the <a href="page-privacy.html">Privacy Policy</a> and <a href="page-terms.html">Terms of Service</a>.</label>
-</div>
-<input name="form_botcheck" class="form-control" type="hidden" value="" />
-
-              <button type="submit" class="ks-btn-black blue-bg me-2 text-white" data-wow-delay="200ms" data-wow-duration="1500ms" data-loading-text="Please wait...">Send message</button>
-              <button type="reset" class="ks-btn-black blue-bg text-white" data-wow-delay="200ms" data-wow-duration="1500ms" data-loading-text="Please wait...">Reset</button>
-            </div>
-          </form>
-          <!-- Contact Form Validation-->
-        </div>
-      </div>
-    </div>
-  </section>
-  <!--Contact Details End-->
-
-  <!-- Main Footer -->
+<!-- Main Footer -->
   <footer>
     <div class="ks-footer-area black-bg pt-115 pb-30 ks-mlr">
       <div class="container">
@@ -360,9 +236,9 @@
           </div>
           <div class="col-xl-5 col-lg-4 col-md-5 col-sm-5 ks_fade_anim" data-delay=".5">
             <div class="ks-footer-widget ks-footer-col-1-2 mb-60">
-              <h4 class="ks-footer-widget-title">Explore</h4>
+              <h2 class="ks-footer-widget-title" data-chrome="footer-explore-title">Explore</h2>
               <div class="ks-footer-widget-menu">
-                <ul>
+                <ul data-chrome="footer-links">
                   <li><a class="border-line-yellow" href="page-about.html">About</a></li>
                   <li><a class="border-line-yellow" href="page-team.html">Our Team</a></li>
                   <li><a class="border-line-yellow" href="page-services.html">Our Services</a></li>
@@ -375,7 +251,7 @@
           </div>
           <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 ks_fade_anim" data-delay=".7">
             <div class="ks-footer-widget ks-footer-col-1-3 mb-60">
-              <h4 class="ks-footer-widget-title">Contact</h4>
+              <h2 class="ks-footer-widget-title" data-chrome="footer-contact-title">Contact</h2>
               <div class="ks-footer-widget-contact mb-25" data-site-group hidden>
                   <div class="ks-contact-info mb-20" data-site-block="address" hidden>
                     <span data-site="address" class="mb-20"></span>
@@ -423,7 +299,7 @@
             </div>
             <div class="col-xl-6 col-lg-5">
               <div class="ks-copyright-navbar text-center text-lg-end">
-                <ul>
+                  <ul data-chrome="legal-links">
                   <li><a class="border-line" href="page-terms.html">Terms of Service</a></li>
                   <li><a class="border-line" href="page-privacy.html">Privacy Policy</a></li>
                 </ul>
@@ -458,6 +334,7 @@
 <script src="js/jquery.form.min.js"></script>
 <script src="js/contact-custom.js"></script>
 
+<script src="js/page-sections.js"></script>
 <script src="js/marqetise.js"></script>
 </body>
 

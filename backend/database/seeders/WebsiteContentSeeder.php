@@ -8,6 +8,7 @@ use App\Models\Page;
 use App\Models\Service;
 use App\Support\HomeSectionDefaults;
 use App\Support\LegalCopy;
+use App\Support\PublicContentDefaults;
 use Illuminate\Database\Seeder;
 
 class WebsiteContentSeeder extends Seeder
@@ -36,6 +37,16 @@ class WebsiteContentSeeder extends Seeder
                 'published_at' => now(),
                 'meta_title' => $page['title'].' · Marqetise',
                 'meta_description' => $page['excerpt'],
+            ]);
+        }
+
+        foreach (PublicContentDefaults::pages() as $page) {
+            Page::query()->firstOrCreate(['slug' => $page['slug']], [
+                ...$page,
+                'status' => 'published',
+                'published_at' => now(),
+                'meta_title' => $page['title'].' · Marqetise',
+                'meta_description' => '',
             ]);
         }
 
@@ -139,7 +150,7 @@ class WebsiteContentSeeder extends Seeder
             ]],
         ];
 
-        foreach (array_merge($blocks, HomeSectionDefaults::blocks()) as $block) {
+        foreach (array_merge($blocks, HomeSectionDefaults::blocks(), PublicContentDefaults::blocks()) as $block) {
             ContentBlock::query()->firstOrCreate(['key' => $block['key']], $block);
         }
     }

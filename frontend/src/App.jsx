@@ -12,6 +12,18 @@ const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
 const CmsListPage = lazy(() => import('./pages/admin/CmsListPage').then((module) => ({ default: module.CmsListPage })))
 const PageEditorPage = lazy(() => import('./pages/admin/PageEditorPage').then((module) => ({ default: module.PageEditorPage })))
 const HomeEditorPage = lazy(() => import('./pages/admin/HomeEditorPage').then((module) => ({ default: module.HomeEditorPage })))
+const AboutEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.AboutEditorPage })))
+const CoursesPageEditor = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.CoursesPageEditor })))
+const ServicesPageEditor = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.ServicesPageEditor })))
+const ContactEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.ContactEditorPage })))
+const BookEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.BookEditorPage })))
+const FaqEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.FaqEditorPage })))
+const ProjectsEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.ProjectsEditorPage })))
+const TeamEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.TeamEditorPage })))
+const NewsEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.NewsEditorPage })))
+const TestimonialsEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.TestimonialsEditorPage })))
+const PackagesEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.PackagesEditorPage })))
+const ChromeEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.ChromeEditorPage })))
 const CourseAdminListPage = lazy(() => import('./pages/admin/CourseAdminPages').then((module) => ({ default: module.CourseAdminListPage })))
 const CourseEditorPage = lazy(() => import('./pages/admin/CourseAdminPages').then((module) => ({ default: module.CourseEditorPage })))
 const InquiriesPage = lazy(() => import('./pages/admin/InquiriesPage').then((module) => ({ default: module.InquiriesPage })))
@@ -71,6 +83,18 @@ export default function App() {
           <Route index element={<RequireAuth permission="dashboard.view"><DashboardPage /></RequireAuth>} />
           <Route path="cms" element={<RequireAuth permission="content.view"><CmsListPage /></RequireAuth>} />
           <Route path="cms/home" element={<RequireAuth permission="content.manage"><HomeEditorPage /></RequireAuth>} />
+          <Route path="cms/about" element={<RequireAuth permission="content.manage"><AboutEditorPage /></RequireAuth>} />
+          <Route path="cms/courses" element={<RequireAuth permission="content.manage"><CoursesPageEditor /></RequireAuth>} />
+          <Route path="cms/services" element={<RequireAuth permission="content.manage"><ServicesPageEditor /></RequireAuth>} />
+          <Route path="cms/contact" element={<RequireAuth permission="content.manage"><ContactEditorPage /></RequireAuth>} />
+          <Route path="cms/book" element={<RequireAuth permission="content.manage"><BookEditorPage /></RequireAuth>} />
+          <Route path="cms/faq" element={<RequireAuth permission="content.manage"><FaqEditorPage /></RequireAuth>} />
+          <Route path="cms/projects" element={<RequireAuth permission="content.manage"><ProjectsEditorPage /></RequireAuth>} />
+          <Route path="cms/team" element={<RequireAuth permission="content.manage"><TeamEditorPage /></RequireAuth>} />
+          <Route path="cms/news" element={<RequireAuth permission="content.manage"><NewsEditorPage /></RequireAuth>} />
+          <Route path="cms/testimonials" element={<RequireAuth permission="content.manage"><TestimonialsEditorPage /></RequireAuth>} />
+          <Route path="cms/packages" element={<RequireAuth permission="content.manage"><PackagesEditorPage /></RequireAuth>} />
+          <Route path="cms/chrome" element={<RequireAuth permission="content.manage"><ChromeEditorPage /></RequireAuth>} />
           <Route path="cms/pages/new" element={<RequireAuth permission="content.manage"><PageEditorPage /></RequireAuth>} />
           <Route path="cms/pages/:id" element={<RequireAuth permission="content.manage"><PageEditorPage /></RequireAuth>} />
           <Route path="courses" element={<RequireAuth permission="courses.view"><CourseAdminListPage /></RequireAuth>} />
