@@ -21,8 +21,13 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     refresh()
     const onUnauthorized = () => setUser(null)
+    const onForbidden = () => { refresh() }
     window.addEventListener('marqetise:unauthorized', onUnauthorized)
-    return () => window.removeEventListener('marqetise:unauthorized', onUnauthorized)
+    window.addEventListener('marqetise:forbidden', onForbidden)
+    return () => {
+      window.removeEventListener('marqetise:unauthorized', onUnauthorized)
+      window.removeEventListener('marqetise:forbidden', onForbidden)
+    }
   }, [])
 
   async function login(payload) {

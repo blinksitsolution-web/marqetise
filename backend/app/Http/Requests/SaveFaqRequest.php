@@ -24,7 +24,10 @@ class SaveFaqRequest extends FormRequest
     {
         return [
             'context' => ['required', Rule::in(['home', 'about', 'courses', 'contact'])],
-            'question' => ['required', 'string', 'max:200'],
+            'question' => [
+                'required', 'string', 'max:200',
+                Rule::unique('faqs')->where(fn ($query) => $query->where('context', $this->input('context')))->ignore($this->route('faq')),
+            ],
             'answer' => ['required', 'string', 'max:2000'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'is_published' => ['required', 'boolean'],

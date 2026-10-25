@@ -56,6 +56,12 @@ class CourseController extends Controller
 
     public function destroy(Course $course, AuditLogger $audit): Response
     {
+        abort_if(
+            $course->students()->exists(),
+            409,
+            'This course still has students. Move or remove them before deleting the course.',
+        );
+
         $audit->log('course.deleted', $course, ['slug' => $course->slug]);
         $course->delete();
 
