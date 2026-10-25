@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Sanctum\Sanctum;
@@ -28,6 +29,10 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(User::class, UserPolicy::class);
         app(ProductionConfiguration::class)->assertSafe();
+
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
 
         $proxies = config('marqetise.trusted_proxies', []);
         if (is_array($proxies) && $proxies !== []) {

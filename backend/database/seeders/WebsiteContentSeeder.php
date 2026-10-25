@@ -23,7 +23,8 @@ class WebsiteContentSeeder extends Seeder
     {
         $pages = [
             ['title' => 'Home', 'slug' => 'home', 'excerpt' => 'Marketing services and practical training.', 'body' => 'Marqetise helps businesses improve their marketing and helps people build practical digital marketing skills.'],
-            ['title' => 'About Us', 'slug' => 'about', 'excerpt' => 'An agency and a training practice.', 'body' => 'Marqetise combines client work with training. The public pages describe the offer; replace any section from the content manager when the final company story is ready.'],
+            ['title' => 'About Us', 'slug' => 'about', 'excerpt' => '', 'body' => ''],
+            ['title' => 'Courses', 'slug' => 'courses', 'excerpt' => '', 'body' => ''],
             ['title' => 'Contact', 'slug' => 'contact', 'excerpt' => 'Send an inquiry to the team.', 'body' => 'Use the contact form to request a conversation. Submissions are stored for the team to review.'],
         ];
 
@@ -128,8 +129,8 @@ class WebsiteContentSeeder extends Seeder
                 ],
             ]],
             ['key' => 'courses.hero', 'group' => 'courses', 'label' => 'Courses hero', 'sort_order' => 1, 'is_visible' => true, 'payload' => [
-                'headline' => 'Learn digital marketing that you can use',
-                'subcopy' => 'Courses for working marketers, operators, and teams. Enrolment is a request to the team, not an online payment.',
+                'headline' => 'Training courses',
+                'subcopy' => '',
             ]],
             ['key' => 'contact.hero', 'group' => 'contact', 'label' => 'Contact hero', 'sort_order' => 1, 'is_visible' => true, 'payload' => [
                 'headline' => 'Tell us what you want to grow',

@@ -1,14 +1,43 @@
 # Deployment
 
-Production hosting was not provided, so this document describes a same-origin deployment that matches the local design. Confirm the domain, web server, database user, TLS certificate, and mail service before using it.
+This document describes a same-origin deployment that matches the local design. Confirm the domain, web server, database user, TLS certificate, and mail service before using it.
+
+## Render (auto-deploy from GitHub)
+
+The repo includes a Docker image and a [Render Blueprint](https://render.com/docs/infrastructure-as-code) (`render.yaml`). Every push to `main` rebuilds and deploys the web service when the Blueprint is connected.
+
+### One-time setup
+
+1. Push this repository to GitHub (already used by the Blueprint: `main` branch).
+2. Open [New Blueprint Instance](https://dashboard.render.com/select-repo?type=blueprint) (or [New Web Service](https://dashboard.render.com/web/new?onboarding=active) and choose **Blueprint**).
+3. Connect the `blinksitsolution-web/marqetise` repo and apply `render.yaml`.
+4. Render creates a free Postgres database and a Docker web service.
+5. In the web service **Environment** tab, set the `sync: false` values from the Blueprint:
+
+| Variable | Value |
+| --- | --- |
+| `APP_KEY` | Output of `php artisan key:generate --show` (keep `base64:…`) |
+| `APP_URL` | `https://<your-service>.onrender.com` |
+| `FRONTEND_URL` | Same as `APP_URL` |
+| `SANCTUM_STATEFUL_DOMAINS` | Hostname only, e.g. `<your-service>.onrender.com` (no `https://`) |
+| `MAIL_HOST` / `MAIL_USERNAME` / `MAIL_PASSWORD` / `MAIL_FROM_ADDRESS` | Real SMTP mailbox (production refuses `log` / `array` mailers) |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | First Super Admin (password ≥ 12 chars, mixed case, number, symbol; not a common default). Clear `ADMIN_PASSWORD` after the first successful boot |
+| `RUN_DB_SEED` | `true` for the first deploy only (loads CMS pages/blocks). Set to `false` afterward so redeploys do not overwrite CMS edits |
+
+6. Leave `SESSION_DOMAIN` empty so the cookie is host-only.
+7. Deploy. Health check is `GET /up`. Public site is `/`, admin is `/admin`. Roles and default settings seed on every boot; CMS content only when `RUN_DB_SEED=true`.
+
+Custom domain: add it in Render, then update `APP_URL`, `FRONTEND_URL`, and `SANCTUM_STATEFUL_DOMAINS` to that hostname.
+
+Uploads live on the container disk and are wiped on redeploy unless you later attach an S3-compatible disk (`FILESYSTEM_DISK` / AWS env). Logo and media uploads should be re-uploaded after a fresh deploy on the free plan.
 
 ## Assumptions
 
 - One public hostname serves both the React build and the Laravel API.
-- HTTPS is terminated by the web server.
-- MySQL 8 is the application database.
+- HTTPS is terminated by the web server (or by Render in front of the Docker service).
+- MySQL 8 is the application database for a self-hosted deploy. The Render Blueprint uses Postgres (`DB_CONNECTION=pgsql`).
 - PHP 8.3 or newer is available, matching Laravel 13.
-- Mail is configured separately. Until it is, inquiries are stored and the API reports that email was not sent.
+- Mail is configured separately. Until it is, inquiries are stored and the API reports that email was not sent. Production still requires `MAIL_MAILER` to be a real transport (`smtp`, etc.), not `log` or `array`.
 
 ## Build
 

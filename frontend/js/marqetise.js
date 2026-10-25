@@ -459,7 +459,10 @@
   if (bookingForm) bindBookingForm(bookingForm);
 
   Array.prototype.forEach.call(document.querySelectorAll('[data-cms="body"]'), function (node) {
-    if (node.childElementCount === 0 && node.textContent.trim()) renderPlain(node, node.textContent);
+    if (node.childElementCount === 0 && node.textContent.trim()) {
+      renderPlain(node, node.textContent);
+      if (node.hasAttribute('data-legal-toc')) buildLegalToc(node);
+    }
   });
 
   function listOf(value) {
@@ -475,6 +478,13 @@
     });
   }
 
+  function slugify(text) {
+    return String(text || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'section';
+  }
+
   function renderPlain(node, text) {
     var blocks = String(text || '').replace(/\r\n/g, '\n').split(/\n{2,}/);
     node.replaceChildren();
@@ -486,6 +496,87 @@
       el.textContent = heading ? heading[2] : trimmed;
       node.appendChild(el);
     });
+  }
+
+  function setActiveLegalLink(link) {
+    Array.prototype.forEach.call(document.querySelectorAll('.mq-legal-toc a'), function (item) {
+      item.classList.toggle('is-active', item === link);
+      if (item === link) item.setAttribute('aria-current', 'true');
+      else item.removeAttribute('aria-current');
+    });
+  }
+
+  function buildLegalToc(body) {
+    var toc = document.getElementById('legal-toc');
+    if (!body || !toc) return;
+
+    var headings = Array.prototype.slice.call(body.querySelectorAll('h2'));
+    if (!headings.length) {
+      toc.replaceChildren();
+      return;
+    }
+
+    var list = document.createElement('ul');
+    list.className = 'mq-legal-toc';
+    var used = {};
+
+    headings.forEach(function (heading, index) {
+      var base = slugify(heading.textContent);
+      var id = base;
+      var suffix = 2;
+      while (used[id] || document.getElementById(id)) {
+        id = base + '-' + suffix;
+        suffix += 1;
+      }
+      used[id] = true;
+      heading.id = id;
+
+      var item = document.createElement('li');
+      var link = document.createElement('a');
+      link.href = '#' + id;
+      link.textContent = heading.textContent;
+      if (index === 0) {
+        link.classList.add('is-active');
+        link.setAttribute('aria-current', 'true');
+      }
+      link.addEventListener('click', function (event) {
+        event.preventDefault();
+        heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.replaceState(null, '', '#' + id);
+        setActiveLegalLink(link);
+      });
+      item.appendChild(link);
+      list.appendChild(item);
+    });
+
+    toc.replaceChildren(list);
+
+    if (!('IntersectionObserver' in window)) return;
+
+    var observer = new IntersectionObserver(function (entries) {
+      var visible = entries
+        .filter(function (entry) { return entry.isIntersecting; })
+        .sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
+      if (!visible) return;
+      var active = toc.querySelector('a[href="#' + visible.target.id + '"]');
+      if (active) setActiveLegalLink(active);
+    }, {
+      rootMargin: '-20% 0px -65% 0px',
+      threshold: [0.1, 0.35, 0.6],
+    });
+
+    headings.forEach(function (heading) { observer.observe(heading); });
+
+    if (location.hash) {
+      var target = document.getElementById(location.hash.slice(1));
+      var hashLink = target && toc.querySelector('a[href="#' + target.id + '"]');
+      if (target && hashLink) {
+        setTimeout(function () {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setActiveLegalLink(hashLink);
+        }, 80);
+      }
+    }
   }
 
   function applyPage(root, page) {
@@ -505,6 +596,7 @@
     });
     inPage(root, '[data-cms="body"]').forEach(function (node) {
       renderPlain(node, page.body || '');
+      if (node.hasAttribute('data-legal-toc')) buildLegalToc(node);
     });
     if (root === document.body && page.meta_title) document.title = page.meta_title;
   }
@@ -608,10 +700,13 @@
       }
 
       if (settings.logo_url) {
-        Array.prototype.forEach.call(document.querySelectorAll('.logo img, .nav-logo img'), function (img) {
-          img.src = settings.logo_url;
-          img.alt = settings.company_name || 'Marqetise';
-        });
+        Array.prototype.forEach.call(
+          document.querySelectorAll('.logo img, .nav-logo img, .ks-footer-widget-logo img, .sticky-header .logo img'),
+          function (img) {
+            img.src = settings.logo_url;
+            img.alt = settings.company_name || 'Marqetise';
+          }
+        );
       }
       var phone = typeof settings.phone === 'string' ? settings.phone.trim() : '';
       var email = typeof settings.email === 'string' ? settings.email.trim() : '';
