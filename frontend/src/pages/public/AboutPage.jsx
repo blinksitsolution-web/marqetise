@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import Seo from '../../components/Seo'
+import { Spinner } from '../../components/ui'
 import { useSite } from '../../context/useSite'
 
 export default function AboutPage() {
@@ -7,6 +8,10 @@ export default function AboutPage() {
   const identity = site?.blocks?.['about.identity']?.payload
   const approach = site?.blocks?.['about.approach']?.payload
   const page = (site?.pages || []).find((item) => item.slug === 'about')
+
+  if (!site && !error) {
+    return <div className="px-4 py-20"><Spinner label="Loading the page" /></div>
+  }
 
   return (
     <>
