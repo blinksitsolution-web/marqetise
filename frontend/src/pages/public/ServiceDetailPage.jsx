@@ -41,7 +41,7 @@ export default function ServiceDetailPage() {
     <>
       <Seo title={service.name} description={service.summary} path={`/services/${service.slug}`} />
       <article className="mx-auto max-w-3xl px-4 py-16">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">Service</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-text">Service</p>
         <h1 className="mt-3 text-4xl font-semibold">{service.name}</h1>
         {service.summary ? <p className="mt-4 text-lg text-muted">{service.summary}</p> : null}
         {service.description ? <p className="mt-6 whitespace-pre-line text-sm leading-7">{service.description}</p> : null}
