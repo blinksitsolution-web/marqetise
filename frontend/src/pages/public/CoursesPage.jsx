@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { EmptyState, Spinner } from '../../components/ui'
+import { EmptyState, Pager, Spinner } from '../../components/ui'
 import { useSite } from '../../context/useSite'
 import { api } from '../../services/api'
 import { formatPrice } from '../../utils/format'
@@ -11,6 +11,7 @@ export default function CoursesPage() {
   const [params, setParams] = useSearchParams()
   const [payload, setPayload] = useState(null)
   const [error, setError] = useState('')
+  const [search, setSearch] = useState(params.get('search') || '')
   const hero = site?.blocks?.['courses.hero']?.payload
   const faqs = site?.faqs?.courses || []
 
@@ -21,10 +22,26 @@ export default function CoursesPage() {
       .catch(() => setError('Courses could not be loaded.'))
   }, [params])
 
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setParams((current) => {
+        const next = new URLSearchParams(current)
+        if (search) next.set('search', search)
+        else next.delete('search')
+        if ((current.get('search') || '') === search) return current
+        next.delete('page')
+        return next
+      })
+    }, 300)
+
+    return () => clearTimeout(handle)
+  }, [search, setParams])
+
   function update(key, value) {
     const next = new URLSearchParams(params)
     if (value) next.set(key, value)
     else next.delete(key)
+    if (key !== 'page') next.delete('page')
     setParams(next)
   }
 
@@ -42,7 +59,7 @@ export default function CoursesPage() {
       <section className="mx-auto max-w-6xl px-4 py-10">
         <form className="grid gap-3 rounded-3xl border border-line p-4 md:grid-cols-4" onSubmit={(event) => event.preventDefault()}>
           <label className="text-sm">Search
-            <input className="mt-1 w-full rounded-xl border border-line px-3 py-2" value={params.get('search') || ''} onChange={(event) => update('search', event.target.value)} />
+            <input className="mt-1 w-full rounded-xl border border-line px-3 py-2" value={search} onChange={(event) => setSearch(event.target.value)} />
           </label>
           <label className="text-sm">Level
             <select className="mt-1 w-full rounded-xl border border-line px-3 py-2" value={params.get('level') || ''} onChange={(event) => update('level', event.target.value)}>
@@ -59,7 +76,7 @@ export default function CoursesPage() {
               <option value="price">Price</option>
             </select>
           </label>
-          <button type="button" className="self-end rounded-full border border-line px-4 py-2 text-sm" onClick={() => setParams(new URLSearchParams())}>Clear</button>
+          <button type="button" className="self-end rounded-full border border-line px-4 py-2 text-sm" onClick={() => { setSearch(''); setParams(new URLSearchParams()) }}>Clear</button>
         </form>
 
         {error ? <p className="mt-6 text-red-700" role="alert">{error}</p> : null}
@@ -83,6 +100,7 @@ export default function CoursesPage() {
             </article>
           ))}
         </div>
+        <Pager meta={payload?.meta} onPage={(nextPage) => update('page', nextPage <= 1 ? '' : String(nextPage))} />
       </section>
       {faqs.length ? (
         <section className="bg-surface">
