@@ -10,7 +10,9 @@ use App\Http\Resources\StudentResource;
 use App\Models\Inquiry;
 use App\Models\Student;
 use App\Services\AuditLogger;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class InquiryController extends Controller
@@ -71,16 +73,26 @@ class InquiryController extends Controller
         $student = Student::query()->where('inquiry_id', $inquiry->id)->first();
 
         if ($student === null) {
-            $student = Student::query()->create([
-                'name' => $inquiry->name,
-                'email' => $inquiry->email,
-                'phone' => $inquiry->phone,
-                'status' => 'waitlist',
-                'course_id' => $inquiry->course_id,
-                'inquiry_id' => $inquiry->id,
-                'notes' => 'Created from inquiry #'.$inquiry->id,
-            ]);
-            $audit->log('student.created_from_inquiry', $student, ['inquiry_id' => $inquiry->id]);
+            try {
+                $student = Student::query()->create([
+                    'name' => $inquiry->name,
+                    'email' => $inquiry->email,
+                    'phone' => $inquiry->phone,
+                    'status' => 'waitlist',
+                    'course_id' => $inquiry->course_id,
+                    'inquiry_id' => $inquiry->id,
+                    'notes' => 'Created from inquiry #'.$inquiry->id,
+                ]);
+                $audit->log('student.created_from_inquiry', $student, ['inquiry_id' => $inquiry->id]);
+            } catch (UniqueConstraintViolationException) {
+                $student = Student::query()->where('inquiry_id', $inquiry->id)->first();
+
+                if ($student === null) {
+                    throw ValidationException::withMessages([
+                        'email' => 'A student with this email already exists. A second course needs an enrolment record, which is not available yet.',
+                    ]);
+                }
+            }
         }
 
         return (new StudentResource($student->load('course')))->additional([

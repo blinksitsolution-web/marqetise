@@ -42,7 +42,7 @@ class PublicSiteController extends Controller
                 'blocks' => $blocks,
                 'services' => ServiceResource::collection(Service::query()->published()->orderBy('sort_order')->get()),
                 'featured_courses' => CourseResource::collection(
-                    Course::query()->published()->where('featured', true)->with('modules')->orderBy('sort_order')->limit(6)->get()
+                    Course::query()->published()->where('featured', true)->orderBy('sort_order')->limit(6)->get()
                 ),
                 'faqs' => $faqs,
             ],

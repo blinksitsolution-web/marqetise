@@ -25,7 +25,10 @@ class SaveStudentRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:120'],
-            'email' => ['required', 'email', 'max:255'],
+            'email' => [
+                'required', 'email', 'max:255',
+                Rule::unique('students', 'email')->ignore($this->route('student')),
+            ],
             'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+().\\-\\s]{6,30}$/'],
             'status' => ['required', Rule::in(['active', 'completed', 'waitlist', 'withdrawn'])],
             'course_id' => ['nullable', 'integer', 'exists:courses,id'],

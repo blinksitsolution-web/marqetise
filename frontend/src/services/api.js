@@ -9,16 +9,21 @@ export const api = axios.create({
   },
 })
 
+export function handleApiError(error) {
+  const url = error.config?.url || ''
+  const isSessionProbe = url.includes('/auth/login') || url.includes('/auth/user') || url.includes('/sanctum/csrf-cookie')
+  if (error.response?.status === 401 && !isSessionProbe) {
+    window.dispatchEvent(new Event('marqetise:unauthorized'))
+  }
+  if (error.response?.status === 403 && !isSessionProbe) {
+    window.dispatchEvent(new Event('marqetise:forbidden'))
+  }
+  return Promise.reject(error)
+}
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const url = error.config?.url || ''
-    const isSessionProbe = url.includes('/auth/login') || url.includes('/auth/user') || url.includes('/sanctum/csrf-cookie')
-    if (error.response?.status === 401 && !isSessionProbe) {
-      window.dispatchEvent(new Event('marqetise:unauthorized'))
-    }
-    return Promise.reject(error)
-  },
+  handleApiError,
 )
 
 export async function ensureCsrf() {
