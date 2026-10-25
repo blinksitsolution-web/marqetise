@@ -24,24 +24,27 @@ Route::get('/', function () {
 });
 
 Route::get('/sitemap.xml', function () {
-    $base = config('marqetise.frontend_url');
-    $urls = [
-        $base.'/',
-        $base.'/about',
-        $base.'/services',
-        $base.'/courses',
-        $base.'/contact',
-        $base.'/book',
-    ];
+    $base = rtrim((string) config('marqetise.frontend_url'), '/');
+    $urls = array_map(
+        fn (string $path) => $base.$path,
+        ['/', '/about', '/services', '/courses', '/contact', '/book'],
+    );
 
+    $frontend = dirname(base_path()).DIRECTORY_SEPARATOR.'frontend'.DIRECTORY_SEPARATOR;
     foreach (Page::query()->published()->pluck('slug') as $slug) {
-        if (! in_array($slug, ['home', 'about', 'contact'], true)) {
-            $urls[] = $base.'/'.$slug;
+        if (! is_string($slug) || ! preg_match('/^[a-z0-9-]+$/', $slug)) {
+            continue;
         }
+        if (! is_file($frontend.'page-'.$slug.'.html')) {
+            continue;
+        }
+        $urls[] = $base.'/'.$slug;
     }
 
     foreach (Course::query()->published()->pluck('slug') as $slug) {
-        $urls[] = $base.'/courses/'.$slug;
+        if (is_string($slug) && preg_match('/^[a-z0-9-]+$/', $slug)) {
+            $urls[] = $base.'/courses/'.$slug;
+        }
     }
 
     $body = collect(array_unique($urls))

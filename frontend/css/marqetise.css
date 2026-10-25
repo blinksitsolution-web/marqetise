@@ -543,6 +543,22 @@ label a:focus-visible,
   display: none !important;
 }
 
+.booking-form label,
+#booking_form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+[data-booking-status] {
+  min-height: 1.5em;
+  margin: 12px 0;
+}
+
+[data-booking-status][data-state="error"] {
+  color: #9f1239;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .preloader,
   .preloader .loader,

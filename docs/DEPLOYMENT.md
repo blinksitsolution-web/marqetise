@@ -18,13 +18,13 @@ npm ci
 npm run build
 ```
 
-Copy `frontend/dist` to the directory your web server uses for the public site, or let Laravel serve `index.html` for non-API routes if you choose a single document root. Do not commit `frontend/dist`. Do not publish `frontend/dist` source maps. The Vite build sets `sourcemap: false`.
+The public site is the static HTML in `frontend/` (`index.html` and `page-*.html`). `npm run build` writes the admin SPA to `frontend/dist`. Copy `frontend/dist/assets` next to `admin.html` when the same host serves the admin. Do not commit `frontend/dist`. Do not publish `frontend/dist` source maps. The Vite build sets `sourcemap: false`.
 
 ## Security headers
 
 Laravel sends these headers on API and web responses: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`, `Content-Security-Policy: frame-ancestors 'none'`, and `Permissions-Policy: camera=(), microphone=(), geolocation=()`. `Strict-Transport-Security` is added only when `APP_ENV=production`.
 
-The static host that serves the React build must send its own headers, because those HTML and asset responses do not pass through Laravel. A copyable nginx example is `docs/deploy/spa.conf.example`. It sends a report-only content security policy, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and HSTS, and it falls back to `index.html` for client routes. Start with report-only, watch the browser console for violations, then rename that header to `Content-Security-Policy`. Do not treat the Vite dev server as production.
+The static host that serves the public HTML must send its own headers, because those HTML and asset responses do not pass through Laravel. A copyable nginx example is `docs/deploy/spa.conf.example`. It sends a report-only content security policy, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, and HSTS. Pretty paths such as `/about` and `/book` are rewritten to the matching `page-*.html` file, and `/courses/{slug}` is rewritten to `page-course-details.html`. Unknown paths return 404. Start with report-only, watch the browser console for violations, then rename that header to `Content-Security-Policy`. Do not treat the Vite dev server as production.
 
 ```
 Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
@@ -84,7 +84,7 @@ Route these paths to Laravel:
 - `/robots.txt`
 - `/up`
 
-Serve the React `index.html` for every other path, including `/admin`, so the client router can load. Do not add a static `public/robots.txt`. That file would be served before the Laravel route. `GET /robots.txt` must be the route, which disallows `/admin` and `/api`.
+Serve `index.html` for `/`, `page-about.html` for `/about`, `page-services.html` for `/services`, `page-courses.html` for `/courses`, `page-contact.html` for `/contact`, `page-book.html` for `/book`, `page-privacy.html` for `/privacy`, `page-terms.html` for `/terms`, and `page-course-details.html` for `/courses/{slug}`. Serve `admin.html` for `/admin`. Do not add a static `public/robots.txt`. That file would be served before the Laravel route. `GET /robots.txt` must be the route, which disallows `/admin` and `/api`.
 
 Take a database backup before every migration and keep the dump off the server. Do not put the database password on the command line:
 

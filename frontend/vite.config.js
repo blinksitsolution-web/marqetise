@@ -35,6 +35,28 @@ function isViteInternal(urlPath) {
   )
 }
 
+const prettyPages = {
+  '/about': '/page-about.html',
+  '/services': '/page-services.html',
+  '/courses': '/page-courses.html',
+  '/contact': '/page-contact.html',
+  '/book': '/page-book.html',
+  '/privacy': '/page-privacy.html',
+  '/terms': '/page-terms.html',
+}
+
+function publicHtml(urlPath) {
+  if (prettyPages[urlPath]) return prettyPages[urlPath]
+  if (/^\/courses\/[A-Za-z0-9_-]+$/.test(urlPath)) return '/page-course-details.html'
+  const page = /^\/([a-z0-9-]+)$/.exec(urlPath)
+  if (page) {
+    const candidate = `/page-${page[1]}.html`
+    const file = path.normalize(path.join(rootDir, candidate))
+    if (file.startsWith(rootDir) && fs.existsSync(file)) return candidate
+  }
+  return urlPath === '/' ? '/index.html' : urlPath
+}
+
 function serveBixomAndAdmin() {
   return {
     name: 'serve-bixom-and-admin',
@@ -62,8 +84,7 @@ function serveBixomAndAdmin() {
           return
         }
 
-        const legal = { '/privacy': '/page-privacy.html', '/terms': '/page-terms.html' }
-        const relative = legal[urlPath] || (urlPath === '/' ? '/index.html' : urlPath)
+        const relative = publicHtml(urlPath)
         const file = path.normalize(path.join(rootDir, relative))
         if (!file.startsWith(rootDir) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
           next()
