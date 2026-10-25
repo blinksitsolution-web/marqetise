@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { Spinner } from './components/ui'
-import { useAuth } from './context/AuthContext'
+import { useAuth } from './context/useAuth'
 import AdminLayout from './layouts/AdminLayout'
 import { can } from './services/api'
 
@@ -9,24 +9,36 @@ const LoginPage = lazy(() => import('./pages/admin/AuthPages').then((module) => 
 const ForgotPasswordPage = lazy(() => import('./pages/admin/AuthPages').then((module) => ({ default: module.ForgotPasswordPage })))
 const ResetPasswordPage = lazy(() => import('./pages/admin/AuthPages').then((module) => ({ default: module.ResetPasswordPage })))
 const DashboardPage = lazy(() => import('./pages/admin/DashboardPage'))
-const CmsListPage = lazy(() => import('./pages/admin/CmsPages').then((module) => ({ default: module.CmsListPage })))
-const PageEditorPage = lazy(() => import('./pages/admin/CmsPages').then((module) => ({ default: module.PageEditorPage })))
+const CmsListPage = lazy(() => import('./pages/admin/CmsListPage').then((module) => ({ default: module.CmsListPage })))
+const PageEditorPage = lazy(() => import('./pages/admin/PageEditorPage').then((module) => ({ default: module.PageEditorPage })))
 const CourseAdminListPage = lazy(() => import('./pages/admin/CourseAdminPages').then((module) => ({ default: module.CourseAdminListPage })))
 const CourseEditorPage = lazy(() => import('./pages/admin/CourseAdminPages').then((module) => ({ default: module.CourseEditorPage })))
-const InquiriesPage = lazy(() => import('./pages/admin/RecordPages').then((module) => ({ default: module.InquiriesPage })))
-const InquiryDetailPage = lazy(() => import('./pages/admin/RecordPages').then((module) => ({ default: module.InquiryDetailPage })))
-const BookingsPage = lazy(() => import('./pages/admin/RecordPages').then((module) => ({ default: module.BookingsPage })))
-const StudentsPage = lazy(() => import('./pages/admin/RecordPages').then((module) => ({ default: module.StudentsPage })))
-const StudentProfilePage = lazy(() => import('./pages/admin/RecordPages').then((module) => ({ default: module.StudentProfilePage })))
-const UsersPage = lazy(() => import('./pages/admin/AccessPages').then((module) => ({ default: module.UsersPage })))
-const PermissionsPage = lazy(() => import('./pages/admin/AccessPages').then((module) => ({ default: module.PermissionsPage })))
-const SettingsPage = lazy(() => import('./pages/admin/AccessPages').then((module) => ({ default: module.SettingsPage })))
+const InquiriesPage = lazy(() => import('./pages/admin/InquiriesPage').then((module) => ({ default: module.InquiriesPage })))
+const InquiryDetailPage = lazy(() => import('./pages/admin/InquiriesPage').then((module) => ({ default: module.InquiryDetailPage })))
+const BookingsPage = lazy(() => import('./pages/admin/BookingsPage').then((module) => ({ default: module.BookingsPage })))
+const StudentsPage = lazy(() => import('./pages/admin/StudentsPage').then((module) => ({ default: module.StudentsPage })))
+const StudentProfilePage = lazy(() => import('./pages/admin/StudentsPage').then((module) => ({ default: module.StudentProfilePage })))
+const UsersPage = lazy(() => import('./pages/admin/UsersPage').then((module) => ({ default: module.UsersPage })))
+const PermissionsPage = lazy(() => import('./pages/admin/PermissionsPage').then((module) => ({ default: module.PermissionsPage })))
+const SettingsPage = lazy(() => import('./pages/admin/SettingsPage').then((module) => ({ default: module.SettingsPage })))
+const AccountPage = lazy(() => import('./pages/admin/AccountPage'))
 
 function RequireAuth({ children, permission }) {
-  const { user, loading } = useAuth()
+  const { user, loading, sessionUnconfirmed } = useAuth()
 
   if (loading) {
     return <div className="grid min-h-screen place-items-center"><Spinner label="Checking your session" /></div>
+  }
+
+  if (!user && sessionUnconfirmed) {
+    return (
+      <div className="grid min-h-screen place-items-center px-4 text-center">
+        <div>
+          <h1 className="text-2xl font-semibold">We could not confirm your session</h1>
+          <p className="mt-2 text-sm text-muted">Refresh the page to try again. Your session was not ended.</p>
+        </div>
+      </div>
+    )
   }
 
   if (!user) {
@@ -65,6 +77,8 @@ export default function App() {
           <Route path="inquiries" element={<RequireAuth permission="inquiries.view"><InquiriesPage /></RequireAuth>} />
           <Route path="inquiries/:id" element={<RequireAuth permission="inquiries.view"><InquiryDetailPage /></RequireAuth>} />
           <Route path="bookings" element={<RequireAuth permission="bookings.view"><BookingsPage /></RequireAuth>} />
+          <Route path="bookings/:id" element={<RequireAuth permission="bookings.view"><BookingsPage /></RequireAuth>} />
+          <Route path="account" element={<AccountPage />} />
           <Route path="students" element={<RequireAuth permission="students.view"><StudentsPage /></RequireAuth>} />
           <Route path="students/:id" element={<RequireAuth permission="students.view"><StudentProfilePage /></RequireAuth>} />
           <Route path="users" element={<RequireAuth permission="users.view"><UsersPage /></RequireAuth>} />

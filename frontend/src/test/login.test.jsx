@@ -6,7 +6,7 @@ import { LoginPage } from '../pages/admin/AuthPages.jsx'
 
 const login = vi.fn().mockRejectedValue({ response: { data: { message: 'Incorrect email or password.' } } })
 
-vi.mock('../context/AuthContext', () => ({
+vi.mock('../context/useAuth', () => ({
   useAuth: () => ({ login }),
 }))
 
