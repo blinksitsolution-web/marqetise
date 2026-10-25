@@ -10,6 +10,7 @@ use Illuminate\Auth\SessionGuard;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Middleware\TrustProxies;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -30,9 +31,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(User::class, UserPolicy::class);
         app(ProductionConfiguration::class)->assertSafe();
 
-        if ($this->app->environment('production')) {
-            URL::forceScheme('https');
-        }
+        self::forceHttpsWhenProductionAppUrlIsHttps();
 
         $proxies = config('marqetise.trusted_proxies', []);
         if (is_array($proxies) && $proxies !== []) {
@@ -81,5 +80,26 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('inquiries', function (Request $request) {
             return Limit::perMinute(5)->by($request->ip());
         });
+    }
+
+    /**
+     * Pagination and other generated links use the incoming request, which is
+     * plain HTTP behind Render. Force the configured https root instead of
+     * trusting every proxy.
+     */
+    public static function forceHttpsWhenProductionAppUrlIsHttps(): void
+    {
+        if (! app()->environment('production')) {
+            return;
+        }
+
+        $appUrl = rtrim((string) config('app.url'), '/');
+        if (! str_starts_with($appUrl, 'https://')) {
+            return;
+        }
+
+        URL::forceScheme('https');
+        URL::forceRootUrl($appUrl);
+        Paginator::currentPathResolver(static fn () => url()->current());
     }
 }

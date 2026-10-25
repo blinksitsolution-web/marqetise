@@ -57,6 +57,35 @@ class PublicRoutesTest extends TestCase
         $this->assertStringNotContainsString('not-a-real-page', $xml);
     }
 
+    public function test_an_unknown_course_slug_is_a_real_404_and_a_published_slug_is_the_detail_page(): void
+    {
+        Course::query()->create([
+            'title' => 'Search',
+            'slug' => 'search-basics',
+            'summary' => 'A published course summary.',
+            'category' => 'Digital Marketing',
+            'level' => 'Beginner',
+            'format' => 'Online',
+            'certificate_included' => false,
+            'featured' => false,
+            'status' => 'published',
+        ]);
+
+        $this->get('/courses/not-a-real-course')
+            ->assertNotFound()
+            ->assertHeader('Content-Type', 'text/html; charset=utf-8')
+            ->assertSee('Page not found', false);
+
+        $this->get('/courses/search-basics')
+            ->assertOk()
+            ->assertSee('id="course-detail"', false);
+
+        $nginx = (string) file_get_contents(dirname(base_path()).'/docker/nginx/default.conf');
+        $this->assertStringContainsString('fastcgi_hide_header Referrer-Policy', $nginx);
+        $this->assertStringContainsString('fastcgi_hide_header X-Frame-Options', $nginx);
+        $this->assertStringNotContainsString('rewrite ^ /page-course-details.html last', $nginx);
+    }
+
     public function test_the_public_site_payload_includes_booking_times(): void
     {
         $times = $this->getJson('/api/v1/site')->assertOk()->json('data.booking_times');

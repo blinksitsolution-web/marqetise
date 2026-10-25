@@ -29,6 +29,8 @@ The repo includes a Docker image and a [Render Blueprint](https://render.com/doc
 
 Custom domain: add it in Render, then update `APP_URL`, `FRONTEND_URL`, and `SANCTUM_STATEFUL_DOMAINS` to that hostname.
 
+When `APP_ENV=production` and `APP_URL` starts with `https://`, generated links (including pagination) use that https root. Leave `TRUSTED_PROXIES` empty or set it to the TLS terminator only. Do not set it to `*`. `/courses/{slug}` is served by Laravel: a published course returns the detail page, and an unknown slug returns `page-404.html` with HTTP 404. Nginx hides the Laravel copies of `Referrer-Policy` and `X-Frame-Options` so those headers are sent once.
+
 Uploads live on the container disk and are wiped on redeploy unless you later attach an S3-compatible disk (`FILESYSTEM_DISK` / AWS env). Logo and media uploads should be re-uploaded after a fresh deploy on the free plan.
 
 ## Assumptions
@@ -113,7 +115,7 @@ Route these paths to Laravel:
 - `/robots.txt`
 - `/up`
 
-Serve `index.html` for `/`, `page-about.html` for `/about`, `page-services.html` for `/services`, `page-courses.html` for `/courses`, `page-contact.html` for `/contact`, `page-book.html` for `/book`, `page-privacy.html` for `/privacy`, `page-terms.html` for `/terms`, and `page-course-details.html` for `/courses/{slug}`. Serve `admin.html` for `/admin`. Do not add a static `public/robots.txt`. That file would be served before the Laravel route. `GET /robots.txt` must be the route, which disallows `/admin` and `/api`.
+Serve `index.html` for `/`, `page-about.html` for `/about`, `page-services.html` for `/services`, `page-courses.html` for `/courses`, `page-contact.html` for `/contact`, `page-book.html` for `/book`, `page-privacy.html` for `/privacy`, and `page-terms.html` for `/terms`. Send `/courses/{slug}` to Laravel, which serves `page-course-details.html` for a published course and a 404 page otherwise. Serve `admin.html` for `/admin`. Do not add a static `public/robots.txt`. That file would be served before the Laravel route. `GET /robots.txt` must be the route, which disallows `/admin` and `/api`.
 
 The static file server in `frontend/scripts/static-server.cjs` sends `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Content-Security-Policy: frame-ancestors 'none'`, a report-only content security policy, and `Permissions-Policy`. It does not send HSTS, because that header belongs on the TLS host in `docs/deploy/spa.conf.example`.
 

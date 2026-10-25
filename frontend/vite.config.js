@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import http from 'node:http'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
@@ -43,6 +44,27 @@ const prettyPages = {
   '/book': '/page-book.html',
   '/privacy': '/page-privacy.html',
   '/terms': '/page-terms.html',
+}
+
+function courseIsPublished(slug) {
+  return new Promise((resolve) => {
+    const req = http.request({
+      hostname: '127.0.0.1',
+      port: 8000,
+      path: `/api/v1/courses/${encodeURIComponent(slug)}`,
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    }, (upstream) => {
+      upstream.resume()
+      upstream.on('end', () => resolve(upstream.statusCode === 200))
+    })
+    req.on('error', () => resolve(null))
+    req.setTimeout(1500, () => {
+      req.destroy()
+      resolve(null)
+    })
+    req.end()
+  })
 }
 
 function publicHtml(urlPath) {
@@ -91,6 +113,22 @@ function serveBixomAndAdmin() {
         if (urlPath === '/admin' || urlPath.startsWith('/admin/')) {
           req.url = `/admin.html${query}`
           next()
+          return
+        }
+
+        const courseSlug = /^\/courses\/([A-Za-z0-9_-]+)$/.exec(urlPath)
+        if (courseSlug) {
+          courseIsPublished(courseSlug[1]).then((published) => {
+            if (res.writableEnded) return
+            const missing = published === false
+            const relative = missing ? '/page-404.html' : '/page-course-details.html'
+            const file = path.join(rootDir, relative)
+            res.statusCode = missing ? 404 : 200
+            res.setHeader('Content-Type', 'text/html; charset=utf-8')
+            fs.createReadStream(file).pipe(res)
+          }).catch(() => {
+            if (!res.writableEnded) next()
+          })
           return
         }
 

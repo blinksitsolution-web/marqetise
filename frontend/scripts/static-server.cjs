@@ -69,10 +69,52 @@ http.createServer((req, res) => {
     '/privacy': '/page-privacy.html',
     '/terms': '/page-terms.html',
   };
+  const courseSlug = pathname.match(/^\/courses\/([A-Za-z0-9_-]+)$/);
+  if (courseSlug) {
+    let settled = false;
+    const finish = (status) => {
+      if (settled) return;
+      settled = true;
+      sendFile(status);
+    };
+    const probe = http.request({
+      hostname: '127.0.0.1',
+      port: 8000,
+      path: '/api/v1/courses/' + encodeURIComponent(courseSlug[1]),
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+    }, (upstream) => {
+      upstream.resume();
+      upstream.on('end', () => finish(upstream.statusCode === 404 ? 404 : 200));
+    });
+    probe.on('error', () => finish(200));
+    probe.setTimeout(1500, () => {
+      probe.destroy();
+      finish(200);
+    });
+    probe.end();
+    return;
+  }
+
+  function sendFile(status) {
+    const name = status === 404 ? '/page-404.html' : '/page-course-details.html';
+    const courseFile = path.normalize(path.join(root, name));
+    fs.readFile(courseFile, (error, data) => {
+      if (error) {
+        res.writeHead(404, { ...securityHeaders, 'Content-Type': 'text/plain' });
+        res.end('Not found');
+        return;
+      }
+      res.writeHead(status, {
+        ...securityHeaders,
+        'Content-Type': 'text/html; charset=utf-8',
+      });
+      res.end(data);
+    });
+  }
+
   if (pretty[pathname]) {
     pathname = pretty[pathname];
-  } else if (/^\/courses\/[A-Za-z0-9_-]+$/.test(pathname)) {
-    pathname = '/page-course-details.html';
   } else {
     const page = pathname.match(/^\/([a-z0-9-]+)$/);
     if (page) {
