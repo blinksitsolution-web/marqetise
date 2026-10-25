@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import Brand from '../components/Brand'
-import { useSite } from '../context/SiteContext'
+import { useSite } from '../context/useSite'
 import { hasPublishedPage } from '../utils/pages'
 
 const links = [

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { useSite } from '../../context/SiteContext'
+import { useSite } from '../../context/useSite'
 
 export default function AboutPage() {
   const { site, error } = useSite()

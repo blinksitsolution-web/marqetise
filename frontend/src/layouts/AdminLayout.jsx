@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import Brand from '../components/Brand'
-import { useDialog } from '../components/ui'
-import { useAuth } from '../context/AuthContext'
+import { useDialog } from '../components/useDialog'
+import { useAuth } from '../context/useAuth'
 import { api, can } from '../services/api'
 
 const items = [

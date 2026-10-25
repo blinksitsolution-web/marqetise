@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { Badge, Button, EmptyState, Field, Notice, Spinner, inputClass, statusTone } from '../../components/ui'
-import { useAuth } from '../../context/AuthContext'
+import { Badge, Button, EmptyState, Field, Notice, Spinner, inputClass } from '../../components/ui'
+import { statusTone } from '../../components/statusTone'
+import { useAuth } from '../../context/useAuth'
 import { api, can, ensureCsrf, errorMessage } from '../../services/api'
 import { formatPrice } from '../../utils/format'
 

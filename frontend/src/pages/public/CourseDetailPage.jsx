@@ -1,31 +1,36 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Spinner } from '../../components/ui'
+import { useKeyedState } from '../../hooks/useKeyedState'
 import { api } from '../../services/api'
 import { formatDate, formatPrice } from '../../utils/format'
 
 export default function CourseDetailPage() {
   const { slug } = useParams()
-  const [course, setCourse] = useState(null)
-  const [related, setRelated] = useState([])
-  const [missing, setMissing] = useState(false)
-  const [loadError, setLoadError] = useState('')
+  const [state, setState] = useKeyedState(slug, () => ({ course: null, related: [], missing: false, loadError: '' }))
+  const { course, related, missing, loadError } = state
 
   useEffect(() => {
-    setCourse(null)
-    setMissing(false)
-    setLoadError('')
+    let active = true
     api.get(`/api/v1/courses/${slug}`)
       .then((response) => {
-        setCourse(response.data.data)
-        setRelated(response.data.related?.data || response.data.related || [])
+        if (!active) return
+        setState((current) => ({
+          ...current,
+          course: response.data.data,
+          related: response.data.related?.data || response.data.related || [],
+        }))
       })
       .catch((error) => {
-        if (error?.response?.status === 404) setMissing(true)
-        else setLoadError('The course could not be loaded.')
+        if (!active) return
+        if (error?.response?.status === 404) setState((current) => ({ ...current, missing: true }))
+        else setState((current) => ({ ...current, loadError: 'The course could not be loaded.' }))
       })
-  }, [slug])
+    return () => {
+      active = false
+    }
+  }, [slug, setState])
 
   if (loadError) {
     return <div className="mx-auto max-w-3xl px-4 py-20 text-center"><p className="text-red-700" role="alert">{loadError}</p></div>

@@ -1,11 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
 import { bookingSchema } from '../../schemas/forms'
-import { useSite } from '../../context/SiteContext'
+import { useSite } from '../../context/useSite'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 import { BOOKING_TIMES, toIsoDate, weekdaySlots } from '../../utils/format'
 import { hasPublishedPage } from '../../utils/pages'
@@ -26,6 +26,9 @@ export default function BookPage() {
       goals: '', format: 'video', preferred_date: '', preferred_time: '', consent: false, hp_field: '',
     },
   })
+  const { setValue } = form
+  const serviceId = useWatch({ control: form.control, name: 'service_id' })
+  const preferredDate = useWatch({ control: form.control, name: 'preferred_date' })
 
   useEffect(() => {
     let active = true
@@ -34,18 +37,21 @@ export default function BookPage() {
       const rows = response.data.data || []
       setServices(rows)
       const match = rows.find((service) => service.slug === slug)
-      if (match) form.setValue('service_id', String(match.id))
+      if (match) setValue('service_id', String(match.id))
     }).catch(() => {
       if (active) setServiceError('Services could not be loaded.')
     })
     return () => {
       active = false
     }
-  }, [slug, form.setValue])
+  }, [slug, setValue])
 
   const days = useMemo(() => weekdaySlots(month), [month])
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  const [today] = useState(() => {
+    const date = new Date()
+    date.setHours(0, 0, 0, 0)
+    return date
+  })
 
   async function onSubmit(values) {
     setStatus(null)
@@ -83,7 +89,7 @@ export default function BookPage() {
             {serviceError ? <p className="mt-2 text-sm text-red-700" role="alert">{serviceError}</p> : null}
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {services.map((service) => (
-                <label key={service.id} className={`rounded-2xl border p-4 ${form.watch('service_id') === String(service.id) ? 'border-brand' : 'border-line'}`}>
+                <label key={service.id} className={`rounded-2xl border p-4 ${serviceId === String(service.id) ? 'border-brand' : 'border-line'}`}>
                   <input type="radio" className="sr-only" value={service.id} {...form.register('service_id')} />
                   <span className="font-semibold">{service.name}</span>
                   <span className="mt-1 block text-sm text-muted">{service.summary}</span>
@@ -107,7 +113,7 @@ export default function BookPage() {
               {days.map((date) => {
                 const iso = toIsoDate(date)
                 const disabled = date < today || date.getDay() === 0 || date.getDay() === 6 || date.getMonth() !== month.getMonth()
-                const selected = form.watch('preferred_date') === iso
+                const selected = preferredDate === iso
                 return (
                   <button
                     key={iso + date.getMonth()}

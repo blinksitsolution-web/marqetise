@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Spinner } from '../../components/ui'
-import { useSite } from '../../context/SiteContext'
+import { useSite } from '../../context/useSite'
 import { formatPrice } from '../../utils/format'
 
 function items(block) {

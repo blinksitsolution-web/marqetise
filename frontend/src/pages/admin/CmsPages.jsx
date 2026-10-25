@@ -1,29 +1,41 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { Badge, Button, EmptyState, Field, Modal, Notice, Skeleton, Spinner, inputClass, statusTone } from '../../components/ui'
-import { useAuth } from '../../context/AuthContext'
+import { Badge, Button, EmptyState, Field, Modal, Notice, Skeleton, Spinner, inputClass } from '../../components/ui'
+import { statusTone } from '../../components/statusTone'
+import { useAuth } from '../../context/useAuth'
 import { api, can, ensureCsrf, errorMessage } from '../../services/api'
 
 export function CmsListPage() {
   const { user } = useAuth()
   const [tab, setTab] = useState('pages')
-  const [rows, setRows] = useState(null)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
   const [message, setMessage] = useState('')
-  const [loadError, setLoadError] = useState('')
   const [editing, setEditing] = useState(null)
   const manageable = can(user, 'content.manage')
+  const requestKey = `${tab}\0${search}\0${status}\0${message}`
+  const [request, setRequest] = useState(() => ({ key: requestKey, rows: null, error: '' }))
+  if (request.key !== requestKey) {
+    setRequest({ key: requestKey, rows: null, error: '' })
+  }
+  const rows = request.rows
+  const loadError = request.error
 
   useEffect(() => {
+    let active = true
     const path = tab === 'pages'
       ? `/api/v1/admin/pages?search=${encodeURIComponent(search)}&status=${status}`
       : tab === 'blocks' ? '/api/v1/admin/blocks' : tab === 'faqs' ? '/api/v1/admin/faqs' : '/api/v1/admin/services'
-    setRows(null)
-    setLoadError('')
-    api.get(path).then((response) => setRows(response.data.data)).catch(() => setLoadError('Content could not be loaded.'))
-  }, [tab, search, status, message])
+    api.get(path).then((response) => {
+      if (active) setRequest({ key: requestKey, rows: response.data.data, error: '' })
+    }).catch(() => {
+      if (active) setRequest({ key: requestKey, rows: null, error: 'Content could not be loaded.' })
+    })
+    return () => {
+      active = false
+    }
+  }, [requestKey, tab, search, status])
 
   async function remove(path) {
     if (!window.confirm('Delete this item? This cannot be undone.')) return
@@ -32,7 +44,7 @@ export function CmsListPage() {
       await api.delete(path)
       setMessage('Deleted.')
     } catch (deleteError) {
-      setLoadError(errorMessage(deleteError, 'The item was not deleted.'))
+      setRequest((current) => ({ ...current, error: errorMessage(deleteError, 'The item was not deleted.') }))
     }
   }
 
@@ -97,27 +109,36 @@ function blankForm() {
   return { question: '', answer: '', context: 'contact', is_published: false, name: '', slug: '', summary: '', description: '', icon: 'spark', duration_label: '', starting_price: '', status: 'draft', key: '', label: '', group: 'home', is_visible: false, payload: '{"title":"","items":[]}' }
 }
 
+function recordForm(record) {
+  return {
+    ...blankForm(),
+    ...record,
+    description: record.description || '',
+    duration_label: record.duration_label || '',
+    starting_price: record.starting_price ?? '',
+    is_published: Boolean(record.is_published),
+    is_visible: Boolean(record.is_visible),
+    payload: JSON.stringify(record.payload || { title: '', items: [] }, null, 2),
+  }
+}
+
 function BlockEditor({ tab, record, onSaved, onClose }) {
+  const recordId = record?.id ?? null
   const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState(blankForm)
+  const [appliedId, setAppliedId] = useState(null)
   const editing = Boolean(record?.id)
 
-  useEffect(() => {
-    if (!record) return
+  if (record && appliedId !== recordId) {
+    setAppliedId(recordId)
     setError('')
-    setForm({
-      ...blankForm(),
-      ...record,
-      description: record.description || '',
-      duration_label: record.duration_label || '',
-      starting_price: record.starting_price ?? '',
-      is_published: Boolean(record.is_published),
-      is_visible: Boolean(record.is_visible),
-      payload: JSON.stringify(record.payload || { title: '', items: [] }, null, 2),
-    })
+    setForm(recordForm(record))
     setOpen(true)
-  }, [record])
+  }
+  if (!record && appliedId !== null) {
+    setAppliedId(null)
+  }
 
   function close() {
     setOpen(false)

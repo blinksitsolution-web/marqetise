@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { EmptyState, Spinner } from '../../components/ui'
-import { useSite } from '../../context/SiteContext'
+import { useSite } from '../../context/useSite'
 import { api } from '../../services/api'
 import { formatPrice } from '../../utils/format'
 

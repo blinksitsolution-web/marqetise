@@ -27,7 +27,7 @@ vi.mock('../services/api', async () => {
   }
 })
 
-vi.mock('../context/SiteContext', () => ({
+vi.mock('../context/useSite', () => ({
   useSite: () => ({
     site: siteState.site,
     error: '',
