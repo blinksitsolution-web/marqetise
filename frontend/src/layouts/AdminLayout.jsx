@@ -81,9 +81,9 @@ export default function AdminLayout() {
             <Link to="/admin/account" className="inline-flex min-h-11 shrink-0 items-center text-sm font-semibold sm:hidden">Account</Link>
             <button type="button" className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-line px-3 text-sm sm:px-4" onClick={signOut}>Sign out</button>
           </header>
-          <div className="p-4 sm:p-6">
+          <main className="p-4 sm:p-6">
             <Outlet />
-          </div>
+          </main>
         </div>
       </div>
       {open ? (

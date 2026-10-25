@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'title', 'slug', 'summary', 'description', 'category', 'level', 'format',
     'duration_label', 'price', 'price_label', 'certificate_included',
     'next_start_date', 'featured', 'status', 'outcomes', 'instructor_name',
-    'instructor_title', 'instructor_bio', 'sort_order',
+    'instructor_title', 'instructor_bio', 'image_path', 'sort_order',
 ])]
 class Course extends Model
 {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
+import { MediaImageField } from '../../components/MediaImageField'
 import { Badge, Button, EmptyState, Field, Notice, Pager, Spinner, inputClass } from '../../components/ui'
 import { statusTone } from '../../components/statusTone'
 import { useAuth } from '../../context/useAuth'
@@ -10,7 +11,7 @@ import { formatPrice } from '../../utils/format'
 const blank = {
   title: '', slug: '', summary: '', description: '', category: 'Digital Marketing', level: 'Beginner', format: 'Online',
   duration_label: '', price: '', price_label: '', certificate_included: false, featured: false, status: 'draft',
-  outcomes: '', instructor_name: '', instructor_title: '', instructor_bio: '', modules: [{ title: '', lessons: '' }],
+  outcomes: '', instructor_name: '', instructor_title: '', instructor_bio: '', image_path: '', modules: [{ title: '', lessons: '' }],
 }
 
 export function CourseAdminListPage() {
@@ -79,6 +80,7 @@ export function CourseEditorPage() {
         instructor_name: course.instructor_name || '',
         instructor_title: course.instructor_title || '',
         instructor_bio: course.instructor_bio || '',
+        image_path: course.image_path || '',
         next_start_date: course.next_start_date ? String(course.next_start_date).slice(0, 10) : '',
         modules: (course.modules || [{ title: '', lessons: [] }]).map((module) => ({ title: module.title, lessons: (module.lessons || []).join('\n') })),
       }
@@ -113,6 +115,7 @@ export function CourseEditorPage() {
       instructor_name: form.instructor_name || null,
       instructor_title: form.instructor_title || null,
       instructor_bio: form.instructor_bio || null,
+      image_path: form.image_path || null,
       next_start_date: form.next_start_date || null,
       modules: form.modules.filter((module) => module.title).map((module) => ({
         title: module.title,
@@ -151,6 +154,7 @@ export function CourseEditorPage() {
       <Field label="Title"><input className={inputClass} value={form.title} onChange={(event) => update('title', event.target.value)} /></Field>
       <Field label="Slug"><input className={inputClass} value={form.slug} onChange={(event) => update('slug', event.target.value)} /></Field>
       <Field label="Summary"><textarea className={inputClass} value={form.summary} onChange={(event) => update('summary', event.target.value)} /></Field>
+      <MediaImageField label="Course image" value={form.image_path || ''} onChange={(url) => update('image_path', url)} onError={setError} />
       <Field label="Description"><textarea className={`${inputClass} min-h-32`} value={form.description || ''} onChange={(event) => update('description', event.target.value)} /></Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Category"><input className={inputClass} value={form.category} onChange={(event) => update('category', event.target.value)} /></Field>
