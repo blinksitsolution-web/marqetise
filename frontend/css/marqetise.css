@@ -120,6 +120,20 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
+.mobile-menu,
+.mobile-menu .menu-backdrop,
+.mobile-menu .menu-box,
+.mobile-menu .close-btn {
+  pointer-events: none;
+}
+
+.mobile-menu-visible .mobile-menu,
+.mobile-menu-visible .mobile-menu .menu-backdrop,
+.mobile-menu-visible .mobile-menu .menu-box,
+.mobile-menu-visible .mobile-menu .close-btn {
+  pointer-events: auto;
+}
+
 .mobile-menu button.close-btn {
   border: 0;
   padding: 0;
@@ -583,6 +597,26 @@ label a:focus-visible,
 
 [data-booking-status][data-state="error"] {
   color: #9f1239;
+}
+
+.blog-details__meta li a,
+.blog-details__meta li a i,
+.sidebar__category-list li a,
+.sidebar__comments .sidebar__comments-text-box h5,
+.project-details__client,
+.project-list-item .text {
+  color: #243044;
+}
+
+/* style.css sets this meta color with !important, so the override has to match. */
+.sidebar__post .sidebar__post-list .sidebar__post-content-meta,
+.sidebar__post .sidebar__post-list .sidebar__post-content-meta i {
+  color: #243044 !important;
+}
+
+button.ks-btn-black.blue-bg,
+a.ks-btn-black.blue-bg {
+  color: #fff;
 }
 
 @media (prefers-reduced-motion: reduce) {
