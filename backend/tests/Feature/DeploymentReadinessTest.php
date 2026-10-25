@@ -63,6 +63,24 @@ class DeploymentReadinessTest extends TestCase
         $this->assertStringNotContainsString('secret-value', $root['output']);
     }
 
+    public function test_uniqueness_migrations_refuse_duplicates_before_they_change_the_schema(): void
+    {
+        $checks = [
+            '2026_10_25_120000_add_slot_key_to_bookings.php' => 'duplicate pending or confirmed slots exist',
+            '2026_10_25_130000_unique_student_email.php' => 'duplicate emails exist',
+            '2026_10_25_130100_unique_faq_context_question.php' => 'duplicates exist',
+        ];
+
+        foreach ($checks as $file => $message) {
+            $source = file_get_contents(database_path('migrations/'.$file));
+            $refusal = strpos($source, $message);
+            $alter = strpos($source, 'Schema::table');
+            $this->assertNotFalse($refusal, $file);
+            $this->assertNotFalse($alter, $file);
+            $this->assertLessThan($alter, $refusal, $file);
+        }
+    }
+
     /**
      * @param  array<string, string>  $env
      * @return array{code: int, output: string}
