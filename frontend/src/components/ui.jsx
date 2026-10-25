@@ -70,9 +70,10 @@ export function Pager({ meta, onPage }) {
 
 export function Spinner({ label = 'Loading' }) {
   return (
-    <div className="flex items-center gap-3 text-sm text-muted" role="status">
-      <span className="h-4 w-4 animate-spin rounded-full border-2 border-line border-t-brand" />
-      {label}
+    <div className="preloader is-pending" role="status" aria-label={label}>
+      <span className="sr-only">{label}</span>
+      <img className="preloader-logo" src="/images/loader-logo.png" alt="" width="132" height="42" decoding="sync" />
+      <div className="loader" />
     </div>
   )
 }
