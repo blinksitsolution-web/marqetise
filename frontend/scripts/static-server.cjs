@@ -68,6 +68,11 @@ http.createServer((req, res) => {
     '/book': '/page-book.html',
     '/privacy': '/page-privacy.html',
     '/terms': '/page-terms.html',
+    '/news': '/news-grid.html',
+    '/news-details': '/news-details.html',
+    '/project-details': '/page-project-details.html',
+    '/team-details': '/page-team-details.html',
+    '/service-details': '/page-service-details.html',
   };
   const courseSlug = pathname.match(/^\/courses\/([A-Za-z0-9_-]+)$/);
   if (courseSlug) {

@@ -4,15 +4,6 @@
     corporate: 'corporate_training',
   };
 
-  var COURSE_IMAGES = [
-    'images/resource/service4-1.jpg',
-    'images/resource/service4-2.jpg',
-    'images/resource/service4-3.jpg',
-    'images/resource/service4-4.jpg',
-    'images/resource/service3-1.jpg',
-    'images/resource/service3-2.jpg',
-  ];
-
   function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
@@ -192,13 +183,18 @@
       .join(' · ');
   }
 
-  function courseCard(course, index) {
-    var image = COURSE_IMAGES[index % COURSE_IMAGES.length];
+  function safeMediaPath(value) {
+    if (typeof value !== 'string' || !/^\/(?!\/)[^:\s\\]*$/.test(value)) return '';
+    return value;
+  }
+
+  function courseCard(course) {
+    var image = safeMediaPath(course.image_path);
     var href = '/courses/' + encodeURIComponent(course.slug);
     return ''
       + '<article class="mq-course-card col-lg-4 col-md-6">'
       + '<a class="mq-course-link" href="' + href + '">'
-      + '<div class="mq-course-media"><img src="' + image + '" alt=""></div>'
+      + (image ? '<div class="mq-course-media"><img src="' + esc(image) + '" alt=""></div>' : '')
       + '<div class="mq-course-body">'
       + '<p class="mq-kicker">' + esc(course.category || course.level || 'Course') + '</p>'
       + '<h3>' + esc(course.title) + '</h3>'
@@ -639,6 +635,21 @@
         if (faq && faq.question) items.push(faq);
       });
     });
+    var mount = document.getElementById('faq-list');
+    if (mount) {
+      if (!items.length) {
+        mount.hidden = true;
+        mount.innerHTML = '';
+        return;
+      }
+      mount.hidden = false;
+      mount.innerHTML = '<section class="mq-home mq-page-block"><div class="container"><div class="mq-home-grid">'
+        + items.map(function (faq) {
+          return '<article class="mq-home-card"><h2>' + esc(faq.question) + '</h2><p>' + esc(faq.answer || '') + '</p></article>';
+        }).join('')
+        + '</div></div></section>';
+      return;
+    }
     if (!items.length) return;
     Array.prototype.forEach.call(document.querySelectorAll('[data-cms-faqs]'), function (list) {
       var template = list.querySelector('li');
@@ -701,7 +712,7 @@
 
       if (settings.logo_url) {
         Array.prototype.forEach.call(
-          document.querySelectorAll('.logo img, .nav-logo img, .ks-footer-widget-logo img, .sticky-header .logo img'),
+          document.querySelectorAll('.logo img, .nav-logo img, .ks-footer-widget-logo img, .sticky-header .logo img, .preloader-logo'),
           function (img) {
             img.src = settings.logo_url;
             img.alt = settings.company_name || 'Marqetise';
@@ -751,6 +762,12 @@
       fillServices(services);
       fillServiceDetail(services);
       fillFaqs(payload.faqs || {});
+      if (window.renderPageSections) window.renderPageSections(payload);
+      if (settings.logo_url && /^\/(?!\/)[^:\s\\]*$/.test(settings.logo_url)) {
+        Array.prototype.forEach.call(document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]'), function (icon) {
+          icon.setAttribute('href', settings.logo_url);
+        });
+      }
     })
     .catch(function () {});
 })();

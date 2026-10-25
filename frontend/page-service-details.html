@@ -37,7 +37,7 @@
           <!--Nav Box-->
           <div class="nav-outer">
             <nav class="nav main-menu">
-              <ul class="navigation ms-auto">
+              <ul class="navigation ms-auto" data-chrome="nav">
                 <li><a href="index.html">Home</a></li>
                 <!--
                 <li><a href="index-2.html">Home page 02</a></li>
@@ -85,7 +85,7 @@
         <div class="col-xl-4 col-lg-4 col-md-9 col-6 col-sm-7">
           <div class="outer-box d-flex align-items-center justify-content-end">
             <div class="info-box">
-              <a class="ks-btn-black blue-bg" href="page-contact.html">
+              <a class="ks-btn-black blue-bg" data-chrome="cta" href="/contact">
                 <span>
                   <span class="text-1">Get In Touch</span>
                   <span class="text-2">Get In Touch</span>
@@ -124,9 +124,9 @@
           <ul class="navigation clearfix d-block d-xl-none">
             <!--Keep This Empty / Menu will come through Javascript-->
           </ul>
-          <div class="content-box d-none d-lg-block">
-            <h4 class="title">About Us</h4>
-            <p class="text">Consultez is the go-to hub for early adopters and innovation enthusiasts, offering cutting technology widely.</p>
+          <div class="content-box d-none d-lg-block" data-chrome="panel" hidden>
+            <h4 class="title" data-chrome="panel-title"></h4>
+            <p class="text" data-chrome="panel-body"></p>
           </div>
           <ul class="contact-list-one">
             <li data-site-block="phone" hidden>
@@ -166,7 +166,7 @@
         <div class="search-inner">
           <form method="post" action="index.html">
             <div class="form-group">
-              <input type="search" name="search-field" value="" placeholder="Search..." required="" aria-label="Search">
+              <input type="search" name="search-field" data-chrome="search" value="" placeholder="Search..." required="" aria-label="Search">
               <button type="submit" aria-label="Submit search"><i class="fa fa-search"></i></button>
             </div>
           </form>
@@ -206,224 +206,25 @@
   </header>
   <!--End Main Header -->
 
-	<!-- Start main-content -->
-	<section class="page-title" style="background-image: url(images/background/page-title-bg.jpg);">
-		<div class="auto-container">
-			<div class="title-outer">
-				<h1 class="title" data-cms="title">Service Details</h1>
-<p class="mq-cms-lead" data-cms="excerpt"></p>
-				<ul class="page-breadcrumb">
-					<li><a href="index.html">Home</a></li>
-					<li>Service Details</li>
-				</ul>
-			</div>
-		</div>
-	</section>
-	<!-- end main-content -->
-<div class="mq-cms-body" data-cms="body"></div>
-
-  <!--Start Services Details-->
-  <section class="services-details">
-  	<div class="container">
-      <div class="row align-items-lg-center">
-        <div class="col-lg-6">
-          <div class="sec-title mb-40">
-            <h6 class="sub-title wow fadeInUp bg-transparent ps-0" data-wow-delay="00ms" data-wow-duration="1500ms">Service Details</h6>
-            <h2 class="title mb-30 wow splt-txt" data-splitting>Product Devlopment <br class="d-none d-lg-block"> For Butter Business</h2>
-          </div>
-        </div>
-        <div class="col-lg-6">
-          <div class="project-details__top mt-lg-5">
-            <div class="text mb-40">Rorem ipsum dolor sit ametconsectetur adipiscing elit,tempor Rorem ipsum dolor sit ametconsectetur adipiscing elit, sed do eiusmod temporRorem ipsum dolor</div>
-          </div>
+<main>
+    <section class="page-title">
+      <div class="auto-container">
+        <div class="title-outer">
+          <ul class="page-breadcrumb">
+            <li><a href="/">Home</a></li>
+            <li data-cms="title">Service</li>
+          </ul>
+          <h1 class="title" data-cms="title">Service</h1>
+          <p class="mq-cms-lead" data-cms="excerpt"></p>
         </div>
       </div>
-  		<div class="row">
-        <div class="col-lg-6">
-          <div class="section-title"></div>
-        </div>
-        <div class="col-lg-6">
-          <div class="section-title"></div>
-        </div>
-        <div class="col-lg-12">
-          <div class="services-details__content position-relative my-5">
-            <img src="images/resource/service-details.jpg" alt="" />
-            <div class="btn-wrp d-flex align-items-center">
-              <a aria-label="Play video" class="video-btn p-relative popup-video playbtnanim wow fadeInLeft" data-wow-delay="700ms" data-wow-duration="1500ms" href="https://www.youtube.com/watch?v=Lplq8RjQ0zU" data-fancybox="gallery" data-caption=""><i class="fa-sharp fa-solid fa-play"></i></a>
-            </div>
-          </div>
-        </div>
-  			<!--Start Services Details Content-->
-  			<div class="col-xl-8 col-lg-8">
-  				<div class="services-details__content">
-  					<h3>Description</h3>
-  					<p class="mb-30" data-cms-service-body>UX design refers to the term “user experience design”, while UI stands for “user interface design”. Both elements are crucial to a product and work closely together. But despite their professional relationship, the roles themselves are quite different, referring to very different aspects of the product development process and the design discipline.</p>
-  					<p class="mb-30">In relation to websites and apps, UI design considers the look, feel, and interactivity of the product. It’s all about making sure that the user interface of a product is as intuitive as possible, and that means carefully considering each and every visual, interactive element the user might encounter.</p>
-            <div class="service-nr-list">
-              <h3 class="mb-5">Service Process</h3>
-              <div class="row">
-                <div class="col-lg-6">
-                  <div class="nr-list mb-5">
-                    <h4 class="title d-flex align-items-center mb-4"><span>01</span> Creative Analysis</h4>
-                    <p>Creative analysis is important. It is common for marketers to measure campaign performance at a superficial level. But to fully understand it</p>
-                  </div>
-                </div>
-                <div class="col-lg-6">
-                  <div class="nr-list mb-5">
-                    <h4 class="title d-flex align-items-center mb-4"><span>02</span> Design & Scatches</h4>
-                    <p>A design sketch is a graphical sketched representation of a design plan. A design sketch, see example figure, is a visualization</p>
-                  </div>
-                </div>
-                <div class="col-lg-6">
-                  <div class="nr-list mb-5">
-                    <h4 class="title d-flex align-items-center mb-4"><span>03</span> Prototype & Wireframing</h4>
-                    <p>A prototype is a barebones, relatively simple working model of an app or webpage. They are typically the next step in the product design.</p>
-                  </div>
-                </div>
-                <div class="col-lg-6">
-                  <div class="nr-list mb-5">
-                    <h4 class="title d-flex align-items-center mb-4"><span>04</span> Delivery & Deploy</h4>
-                    <p>Continuous delivery is an extension of continuous integration since it automatically deploys all to a testing and/or production</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-  					<div class="content mt-40">
-  						<div class="text">More detail will be added here.</div>
-  						<div class="feature-list my-5">
-  							<div class="row clearfix">
-  								<div class="col-md-6 column">
-  									<img class="mb-3" src="images/resource/service-details-2.jpg" alt="images" />
-  								</div>
-  								<div class="col-md-6 column">
-  									<img class="mb-3" src="images/resource/service-details-3.jpg" alt="images" />
-  								</div>
-  							</div>
-  						</div>
-  					</div>
-  					<div class="innerpage">
-  						<ul class="accordion-box wow fadeInRight">
-  							<!--Block-->
-  							<li class="accordion block">
-  								<div class="acc-btn">1. Do you offer marketing contracts or relationships?
-  									<div class="icon fa fa-plus"></div>
-  								</div>
-  								<div class="acc-content">
-  									<div class="content">
-                      <div class="text">Ne summo dictas pertinacia nam. Illum cetero vocent ei vim, case regione signiferumque vim te. Ex mea quem munere lobortis. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.</div>
-  									</div>
-  								</div>
-  							</li>
-  							<!--Block-->
-  							<li class="accordion block active-block">
-  								<div class="acc-btn active">2. What kind of marketing efforts do you specialize ?
-  									<div class="icon fa fa-plus"></div>
-  								</div>
-  								<div class="acc-content current">
-  									<div class="content">
-                      <div class="text">Ne summo dictas pertinacia nam. Illum cetero vocent ei vim, case regione signiferumque vim te. Ex mea quem munere lobortis. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.</div>
-  									</div>
-  								</div>
-  							</li>
-  							<!--Block-->
-  							<li class="accordion block">
-  								<div class="acc-btn">3. Can I use the demos made by Ewebot?
-  									<div class="icon fa fa-plus"></div>
-  								</div>
-  								<div class="acc-content">
-  									<div class="content">
-                      <div class="text">Ne summo dictas pertinacia nam. Illum cetero vocent ei vim, case regione signiferumque vim te. Ex mea quem munere lobortis. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.</div>
-  									</div>
-  								</div>
-  							</li>
-  							<!--Block-->
-  							<li class="accordion block">
-  								<div class="acc-btn">4. What everybody ought to know about digital marketing?
-  									<div class="icon fa fa-plus"></div>
-  								</div>
-  								<div class="acc-content">
-  									<div class="content">
-  										<div class="text">Ne summo dictas pertinacia nam. Illum cetero vocent ei vim, case regione signiferumque vim te. Ex mea quem munere lobortis. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum.</div>
-  									</div>
-  								</div>
-  							</li>
-  						</ul>
-  					</div>
-  				</div>
-  			</div>
-  			<!--End Services Details Content-->
+    </section>
+    <div class="mq-cms-body" data-cms="body"></div>
+    <div id="page-sections" data-page="service"></div>
+    
+  </main>
 
-        <!--Start Services Details Sidebar-->
-        <div class="col-lg-4">
-          <div class="service-sidebar mt-5 mt-lg-0">
-            <!--Start Services Details Sidebar Single-->
-            <div class="sidebar-widget service-sidebar-single mb-0">
-              <div class="sidebar-service-list mb-30">
-                <h4 class="title">More Services</h4>
-                <ul>
-                  <li><a href="page-service-details.html" class="current"><i class="far fa-arrow-right"></i><span>Web Development</span></a></li>
-                  <li class="current"><a href="page-service-details.html"><i class="far fa-arrow-right"></i><span>UI/UX Design</span></a></li>
-                  <li><a href="page-service-details.html"><i class="far fa-arrow-right"></i><span>Digital Marketing</span></a></li>
-                  <li><a href="page-service-details.html"><i class="far fa-arrow-right"></i><span>Product Design</span></a></li>
-                  <li><a href="page-service-details.html"><i class="far fa-arrow-right"></i><span>Branding & Illustration</span></a></li>
-                  <li><a href="page-service-details.html"><i class="far fa-arrow-right"></i><span>Mobile Solutions</span></a></li>
-                  <li><a href="page-service-details.html"><i class="far fa-arrow-right"></i><span>App Development</span></a></li>
-                </ul>
-              </div>
-              <div class="sidebar-service-list contact-widget mb-30">
-                <h4 class="title">Contact With us</h4>
-                <ul class="address">
-                  <li data-site-block="address" hidden><span data-site="address"></span></li>
-                  <li data-site-block="email" hidden><a data-site="email" href="mailto:"></a></li>
-                  <li data-site-block="phone" hidden><a data-site="phone" hidden href="tel:"></a></li>
-                </ul>
-              </div>
-              <div class="sidebar-service-list more-serive mb-0">
-                <h4 class="title">More Services</h4>
-                <form action="#0">
-                  <div class="row">
-                    <div class="col-sm-12">
-                      <div class="mb-20">
-                        <input class="form-control bg-white" type="text" placeholder="Your Name" aria-label="Your Name">
-                      </div>
-                    </div>
-                    <div class="col-sm-12">
-                      <div class="mb-20">
-                        <input class="form-control bg-white" type="email" placeholder="Email Address" aria-label="Email Address">
-                      </div>
-                    </div>
-                    <div class="col-sm-12">
-                      <div class="mb-0">
-                        <textarea class="form-control bg-white" name="masage" id="masage" rows="5" placeholder="Write a Message" aria-label="Write a Message"></textarea>
-                        <button type="submit" class="ks-btn-black blue-bg mt-3" data-loading-text="Please wait...">
-                          <span>
-                            <span class="text-1">Send Message Us</span>
-                            <span class="text-2">Send Message Us</span>
-                          </span>
-                          <i>
-                            <svg width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M10.0035 3.90804L1.41153 12.5L0 11.0885L8.59097 2.49651H1.01922V0.5H12V11.4808H10.0035V3.90804Z" fill="white"></path>
-                            </svg>
-                            <svg width="12" height="13" viewBox="0 0 12 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M10.0035 3.90804L1.41153 12.5L0 11.0885L8.59097 2.49651H1.01922V0.5H12V11.4808H10.0035V3.90804Z" fill="white"></path>
-                            </svg>
-                          </i>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-            <!--End Services Details Sidebar-->
-          </div>
-        </div>
-  		</div>
-  	</div>
-  </section>
-  <!--End Services Details-->
-
-  <!-- Main Footer -->
+<!-- Main Footer -->
   <footer>
     <div class="ks-footer-area black-bg pt-115 pb-30 ks-mlr">
       <div class="container">
@@ -435,9 +236,9 @@
           </div>
           <div class="col-xl-5 col-lg-4 col-md-5 col-sm-5 ks_fade_anim" data-delay=".5">
             <div class="ks-footer-widget ks-footer-col-1-2 mb-60">
-              <h4 class="ks-footer-widget-title">Explore</h4>
+              <h2 class="ks-footer-widget-title" data-chrome="footer-explore-title">Explore</h2>
               <div class="ks-footer-widget-menu">
-                <ul>
+                <ul data-chrome="footer-links">
                   <li><a class="border-line-yellow" href="page-about.html">About</a></li>
                   <li><a class="border-line-yellow" href="page-team.html">Our Team</a></li>
                   <li><a class="border-line-yellow" href="page-services.html">Our Services</a></li>
@@ -450,7 +251,7 @@
           </div>
           <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 ks_fade_anim" data-delay=".7">
             <div class="ks-footer-widget ks-footer-col-1-3 mb-60">
-              <h4 class="ks-footer-widget-title">Contact</h4>
+              <h2 class="ks-footer-widget-title" data-chrome="footer-contact-title">Contact</h2>
               <div class="ks-footer-widget-contact mb-25" data-site-group hidden>
                   <div class="ks-contact-info mb-20" data-site-block="address" hidden>
                     <span data-site="address" class="mb-20"></span>
@@ -498,7 +299,7 @@
             </div>
             <div class="col-xl-6 col-lg-5">
               <div class="ks-copyright-navbar text-center text-lg-end">
-                <ul>
+                  <ul data-chrome="legal-links">
                   <li><a class="border-line" href="page-terms.html">Terms of Service</a></li>
                   <li><a class="border-line" href="page-privacy.html">Privacy Policy</a></li>
                 </ul>
@@ -530,6 +331,7 @@
 <script src="js/slider-int.js"></script>
 <script src="js/script.js"></script>
 
+<script src="js/page-sections.js"></script>
 <script src="js/marqetise.js"></script>
 </body>
 
