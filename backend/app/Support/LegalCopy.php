@@ -58,6 +58,19 @@ class LegalCopy
         ];
     }
 
+    public const BOOKING_FORM_ABSENT = 'The current public HTML pages do not include a booking form. The API and the admin bookings screen still exist.';
+
+    public const BOOKING_FORM_PRESENT = 'The public booking page sends this request. Staff review it on the admin bookings screen.';
+
+    public static function notePublicBookingForm(?string $body): ?string
+    {
+        if ($body === null || ! str_contains($body, self::BOOKING_FORM_ABSENT)) {
+            return $body;
+        }
+
+        return str_replace(self::BOOKING_FORM_ABSENT, self::BOOKING_FORM_PRESENT, $body);
+    }
+
     public static function isReplaceable(?object $page): bool
     {
         if ($page === null) {
@@ -109,7 +122,7 @@ Contact and course enquiries. The home enquiry form and the contact form post to
 
 Other pages that reuse the enquiry form, including a team contact form and a comment form, post to the same API. A row is stored only when the required fields pass validation. Subject and message are required. The message must be at least 20 characters. Where the form has a consent checkbox, it must be ticked.
 
-Consultation requests. The booking API stores a reference, the service name, name, email, phone, company, website, budget, the goals text, the format (video call, phone, or office), the preferred date and time, a consent flag, and the status. It does not store an IP address. The request stays pending until a staff member confirms it. It does not confirm the appointment by itself. The current public HTML pages do not include a booking form. The API and the admin bookings screen still exist.
+Consultation requests. The booking API stores a reference, the service name, name, email, phone, company, website, budget, the goals text, the format (video call, phone, or office), the preferred date and time, a consent flag, and the status. It does not store an IP address. The request stays pending until a staff member confirms it. It does not confirm the appointment by itself. The public booking page sends this request. Staff review it on the admin bookings screen.
 
 Student records. Staff store a name, email, phone, status (waitlist, active, completed, or withdrawn), course, enrolment date, notes, and, when the record came from an enquiry, the enquiry link. There is no payment checkout and no separate online enrolment.
 

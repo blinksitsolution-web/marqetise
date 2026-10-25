@@ -38,15 +38,41 @@ function proxy(req, res) {
 }
 
 http.createServer((req, res) => {
-  if (req.url.startsWith('/api') || req.url.startsWith('/sanctum') || req.url.startsWith('/storage')) {
+  const requestPath = req.url.split('?')[0];
+  if (
+    requestPath.startsWith('/api')
+    || requestPath.startsWith('/sanctum')
+    || requestPath.startsWith('/storage')
+    || requestPath === '/sitemap.xml'
+    || requestPath === '/robots.txt'
+  ) {
     proxy(req, res);
     return;
   }
   const url = new URL(req.url, 'http://127.0.0.1');
   let pathname = decodeURIComponent(url.pathname);
-  if (pathname === '/') pathname = '/index.html';
-  if (pathname === '/privacy') pathname = '/page-privacy.html';
-  if (pathname === '/terms') pathname = '/page-terms.html';
+  const pretty = {
+    '/': '/index.html',
+    '/about': '/page-about.html',
+    '/services': '/page-services.html',
+    '/courses': '/page-courses.html',
+    '/contact': '/page-contact.html',
+    '/book': '/page-book.html',
+    '/privacy': '/page-privacy.html',
+    '/terms': '/page-terms.html',
+  };
+  if (pretty[pathname]) {
+    pathname = pretty[pathname];
+  } else if (/^\/courses\/[A-Za-z0-9_-]+$/.test(pathname)) {
+    pathname = '/page-course-details.html';
+  } else {
+    const page = pathname.match(/^\/([a-z0-9-]+)$/);
+    if (page) {
+      const candidate = '/page-' + page[1] + '.html';
+      const candidateFile = path.normalize(path.join(root, candidate));
+      if (candidateFile.startsWith(root) && fs.existsSync(candidateFile)) pathname = candidate;
+    }
+  }
   const file = path.normalize(path.join(root, pathname));
   if (!file.startsWith(root)) {
     res.writeHead(403);

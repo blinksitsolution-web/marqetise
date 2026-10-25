@@ -194,7 +194,7 @@
 
   function courseCard(course, index) {
     var image = COURSE_IMAGES[index % COURSE_IMAGES.length];
-    var href = 'page-course-details.html?slug=' + encodeURIComponent(course.slug);
+    var href = '/courses/' + encodeURIComponent(course.slug);
     return ''
       + '<article class="mq-course-card col-lg-4 col-md-6">'
       + '<a class="mq-course-link" href="' + href + '">'
@@ -247,7 +247,9 @@
 
   var detail = document.getElementById('course-detail');
   if (detail) {
-    var slug = new URLSearchParams(window.location.search).get('slug');
+    var querySlug = new URLSearchParams(window.location.search).get('slug');
+    var pathSlug = /\/courses\/([A-Za-z0-9_-]+)\/?$/.exec(window.location.pathname);
+    var slug = querySlug || (pathSlug ? decodeURIComponent(pathSlug[1]) : '');
     if (!slug) {
       detail.innerHTML = '<p>This course is not published.</p>';
     } else {
@@ -288,11 +290,11 @@
             + '</li>';
         }).join('');
 
-        var enquire = 'page-contact.html?enquiry=course&course=' + encodeURIComponent(course.slug)
+        var enquire = '/contact?enquiry=course&course=' + encodeURIComponent(course.slug)
           + '&subject=' + encodeURIComponent('Course enquiry: ' + (course.title || course.slug));
 
         var related = ((body.related && body.related.data) || []).map(function (item) {
-          return '<li><a href="page-course-details.html?slug=' + encodeURIComponent(item.slug) + '">' + esc(item.title) + '</a></li>';
+          return '<li><a href="/courses/' + encodeURIComponent(item.slug) + '">' + esc(item.title) + '</a></li>';
         }).join('');
 
         detail.innerHTML = ''
@@ -320,7 +322,141 @@
     }
   }
 
+  function setBookingStatus(form, message, isError) {
+    var status = form.querySelector('[data-booking-status]');
+    if (!status) return;
+    status.textContent = message;
+    status.setAttribute('role', isError ? 'alert' : 'status');
+    if (isError) status.setAttribute('data-state', 'error');
+    else status.removeAttribute('data-state');
+  }
+
+  function bookingDateError(value) {
+    var parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || '');
+    if (!parts) return 'Choose a weekday that is today or later.';
+    var date = new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3]));
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date < today || date.getDay() === 0 || date.getDay() === 6) {
+      return 'Choose a weekday that is today or later.';
+    }
+    return '';
+  }
+
+  function bookingClientError(form) {
+    if (form.elements.consent && !form.elements.consent.checked) {
+      return 'Please confirm that we may contact you about this request.';
+    }
+    if (!fieldValue(form, ['service_id'])) return 'Select a published service.';
+    if (!fieldValue(form, ['name'])) return 'Enter your name.';
+    if (!fieldValue(form, ['email'])) return 'Enter your email address.';
+    var phone = fieldValue(form, ['phone']);
+    if (phone && !/^[0-9+().\-\s]{6,30}$/.test(phone)) {
+      return 'Enter a phone number using digits, spaces, and + ( ) . - only.';
+    }
+    var website = fieldValue(form, ['website']);
+    if (website && !/^https?:\/\/\S+$/i.test(website)) {
+      return 'Enter a website that starts with http:// or https://.';
+    }
+    if (!fieldValue(form, ['format'])) return 'Select a format.';
+    var dateError = bookingDateError(fieldValue(form, ['preferred_date']));
+    if (dateError) return dateError;
+    if (!fieldValue(form, ['preferred_time'])) return 'Select a time.';
+    if (fieldValue(form, ['goals']).length < 20) {
+      return 'Describe what you want to cover in at least 20 characters.';
+    }
+    return '';
+  }
+
+  function fillBookingForm(payload) {
+    var form = document.getElementById('booking_form');
+    if (!form) return;
+    var services = listOf(payload.services);
+    var select = form.elements.service_id;
+    if (select) {
+      var wanted = new URLSearchParams(window.location.search).get('service');
+      var options = '<option value="">Select a published service</option>';
+      services.forEach(function (service) {
+        options += '<option value="' + esc(String(service.id)) + '">' + esc(service.name) + '</option>';
+      });
+      select.innerHTML = options;
+      var match = services.filter(function (service) { return service.slug === wanted; })[0];
+      if (match) select.value = String(match.id);
+    }
+    var time = form.elements.preferred_time;
+    if (time) {
+      var slots = Array.isArray(payload.booking_times) ? payload.booking_times : [];
+      time.innerHTML = '<option value="">Select a time</option>' + slots.map(function (slot) {
+        return '<option value="' + esc(slot) + '">' + esc(slot) + '</option>';
+      }).join('');
+    }
+    var button = form.querySelector('[type="submit"]');
+    if (!services.length && button) {
+      button.disabled = true;
+      setBookingStatus(form, 'No services are published yet, so a request cannot be sent.', true);
+    }
+  }
+
+  function bindBookingForm(form) {
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      var problem = bookingClientError(form);
+      if (problem) {
+        setBookingStatus(form, problem, true);
+        return;
+      }
+      var payload = {
+        service_id: Number(fieldValue(form, ['service_id'])),
+        name: fieldValue(form, ['name']),
+        email: fieldValue(form, ['email']),
+        phone: fieldValue(form, ['phone']) || null,
+        company: fieldValue(form, ['company']) || null,
+        website: fieldValue(form, ['website']) || null,
+        budget: fieldValue(form, ['budget']) || null,
+        goals: fieldValue(form, ['goals']),
+        format: fieldValue(form, ['format']),
+        preferred_date: fieldValue(form, ['preferred_date']),
+        preferred_time: fieldValue(form, ['preferred_time']),
+        consent: true,
+        hp_field: fieldValue(form, ['hp_field']),
+      };
+      var button = form.querySelector('[type="submit"]');
+      if (button) button.disabled = true;
+      setBookingStatus(form, 'Sending your request…', false);
+      ensureCsrf().then(function (token) {
+        return fetch('/api/v1/bookings', {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-XSRF-TOKEN': token,
+          },
+          body: JSON.stringify(payload),
+        }).then(readJson);
+      }).then(function (result) {
+        if (button) button.disabled = false;
+        if (!result.ok) {
+          setBookingStatus(form, errorText(result), true);
+          return;
+        }
+        var data = (result.body && result.body.data) || {};
+        var message = (result.body && result.body.message) || 'Your booking request has been received and is pending confirmation.';
+        if (data.reference) message += ' Reference ' + data.reference + '.';
+        setBookingStatus(form, message, false);
+        form.reset();
+      }).catch(function () {
+        if (button) button.disabled = false;
+        setBookingStatus(form, 'The request could not be sent. Please try again.', true);
+      });
+    }, true);
+  }
+
   Array.prototype.forEach.call(document.querySelectorAll('#contact_form, #home_contact_form'), bindEnquiryForm);
+  var bookingForm = document.getElementById('booking_form');
+  if (bookingForm) bindBookingForm(bookingForm);
 
   Array.prototype.forEach.call(document.querySelectorAll('[data-cms="body"]'), function (node) {
     if (node.childElementCount === 0 && node.textContent.trim()) renderPlain(node, node.textContent);
@@ -510,6 +646,7 @@
         applyPage(root, pages[root.getAttribute('data-cms-page')]);
       });
       var services = listOf(payload.services);
+      fillBookingForm(payload);
       fillServices(services);
       fillServiceDetail(services);
       fillFaqs(payload.faqs || {});

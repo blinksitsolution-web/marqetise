@@ -45,6 +45,7 @@ class PublicSiteController extends Controller
                     Course::query()->published()->where('featured', true)->orderBy('sort_order')->limit(6)->get()
                 ),
                 'faqs' => $faqs,
+                'booking_times' => config('marqetise.booking_times'),
             ],
         ]);
     }
