@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
-import { useAuth } from '../../context/AuthContext'
+import { useAuth } from '../../context/useAuth'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 
 export default function AccountPage() {

@@ -11,11 +11,11 @@ import { api } from '../services/api'
 
 const refresh = vi.hoisted(() => vi.fn())
 
-vi.mock('../context/SiteContext', () => ({
+vi.mock('../context/useSite', () => ({
   useSite: () => ({ site: { settings: {} }, error: '' }),
 }))
 
-vi.mock('../context/AuthContext', () => ({
+vi.mock('../context/useAuth', () => ({
   useAuth: () => ({
     user: {
       id: 1,
