@@ -25,6 +25,7 @@ class PublicInquiryController extends Controller
             'course_id' => $courseId,
             'status' => 'new',
             'consent' => true,
+            // Stored for abuse review. A retention period is an owner decision and is not guessed here.
             'ip_address' => $request->ip(),
         ]);
 

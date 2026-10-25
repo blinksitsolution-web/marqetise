@@ -63,6 +63,18 @@ export function EmptyState({ title, body, action }) {
   )
 }
 
+export function Pager({ meta, onPage }) {
+  if (!meta || meta.last_page <= 1) return null
+
+  return (
+    <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+      <button type="button" className="inline-flex min-h-11 items-center rounded-full border border-line px-4 disabled:opacity-50" disabled={meta.current_page <= 1} onClick={() => onPage(meta.current_page - 1)}>Previous</button>
+      <span>Page {meta.current_page} of {meta.last_page}</span>
+      <button type="button" className="inline-flex min-h-11 items-center rounded-full border border-line px-4 disabled:opacity-50" disabled={meta.current_page >= meta.last_page} onClick={() => onPage(meta.current_page + 1)}>Next</button>
+    </div>
+  )
+}
+
 export function Spinner({ label = 'Loading' }) {
   return (
     <div className="flex items-center gap-3 text-sm text-muted" role="status">

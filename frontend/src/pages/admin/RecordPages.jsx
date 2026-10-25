@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { Badge, Button, EmptyState, Field, Modal, Notice, Skeleton, Spinner, inputClass, statusTone } from '../../components/ui'
+import { Badge, Button, EmptyState, Field, Modal, Notice, Pager, Skeleton, Spinner, inputClass, statusTone } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
 import { api, can, ensureCsrf, errorMessage } from '../../services/api'
 import { formatDate } from '../../utils/format'
@@ -151,9 +151,25 @@ export function InquiryDetailPage() {
 
 export function BookingsPage() {
   const [status, setStatus] = useState('')
-  const { rows, error, reload } = useRows(`/api/v1/admin/bookings?status=${status}`)
+  const [search, setSearch] = useState('')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const [page, setPage] = useState(1)
+  const params = new URLSearchParams({ page: String(page) })
+  if (status) params.set('status', status)
+  if (search.trim()) params.set('search', search.trim())
+  if (from) params.set('from', from)
+  if (to) params.set('to', to)
+  const { rows, error, reload } = useRows(`/api/v1/admin/bookings?${params.toString()}`)
   const [selected, setSelected] = useState(null)
   const data = rows?.data || []
+
+  function changeFilter(setter) {
+    return (event) => {
+      setter(event.target.value)
+      setPage(1)
+    }
+  }
 
   const { user } = useAuth()
   const [saveError, setSaveError] = useState('')
@@ -180,13 +196,18 @@ export function BookingsPage() {
       <Seo title="Bookings" path="/admin/bookings" robots="noindex,nofollow" />
       <h1 className="text-2xl font-semibold">Bookings</h1>
       <p className="text-sm text-muted">Requests stay pending until a staff member confirms them.</p>
-      <select className={`${inputClass} mt-4 max-w-xs`} aria-label="Booking status" value={status} onChange={(event) => setStatus(event.target.value)}>
-        <option value="">All</option>
-        <option value="pending">Pending</option>
-        <option value="confirmed">Confirmed</option>
-        <option value="completed">Completed</option>
-        <option value="cancelled">Cancelled</option>
-      </select>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <input className={inputClass} aria-label="Search bookings" value={search} onChange={changeFilter(setSearch)} placeholder="Name, email, or reference" />
+        <select className={inputClass} aria-label="Booking status" value={status} onChange={changeFilter(setStatus)}>
+          <option value="">All</option>
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <input className={inputClass} aria-label="From date" type="date" value={from} onChange={changeFilter(setFrom)} />
+        <input className={inputClass} aria-label="To date" type="date" value={to} onChange={changeFilter(setTo)} />
+      </div>
       {error ? <p className="mt-4 text-red-700">{error}</p> : null}
       {!rows ? (error ? null : <Skeleton label="Loading records" />) : data.length === 0 ? <div className="mt-6"><EmptyState title="No bookings" body="Service requests from the public form will appear here." /></div> : (
         <div className="mt-4 overflow-x-auto rounded-2xl bg-white">
@@ -206,6 +227,7 @@ export function BookingsPage() {
           </table>
         </div>
       )}
+      <Pager meta={rows?.meta} onPage={setPage} />
       {selected ? (
         <Modal title={selected.reference} onClose={() => setSelected(null)}>
           <form className="space-y-3" onSubmit={save}>

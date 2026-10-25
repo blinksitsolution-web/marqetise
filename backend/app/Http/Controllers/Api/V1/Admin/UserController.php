@@ -15,8 +15,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -48,20 +50,36 @@ class UserController extends Controller
         $guard->assertCanAssign($request->user(), $role);
 
         $suspended = $request->string('status')->value() === 'suspended';
-        $user = User::query()->create([
-            'name' => $request->validated('name'),
-            'email' => $request->validated('email'),
-            'phone' => $request->validated('phone'),
-            'password' => Str::password(40),
-            'status' => $suspended ? 'suspended' : 'invited',
-            'role_id' => $role->id,
-        ]);
 
-        $delivered = false;
-        if (! $suspended && $request->boolean('send_invite', true) && $mail->canDeliver()) {
-            Password::broker()->sendResetLink(['email' => $user->email]);
-            $delivered = true;
+        if (! $suspended && ! $request->boolean('send_invite', true)) {
+            throw ValidationException::withMessages([
+                'send_invite' => 'An invitation email is required so the person can set a password.',
+            ]);
         }
+
+        if (! $suspended && ! $mail->canDeliver()) {
+            throw ValidationException::withMessages([
+                'email' => 'Email delivery is not configured, so an invitation cannot be sent.',
+            ]);
+        }
+
+        $delivered = ! $suspended;
+        $user = DB::transaction(function () use ($request, $role, $suspended) {
+            $user = User::query()->create([
+                'name' => $request->validated('name'),
+                'email' => $request->validated('email'),
+                'phone' => $request->validated('phone'),
+                'password' => Str::password(40),
+                'status' => $suspended ? 'suspended' : 'invited',
+                'role_id' => $role->id,
+            ]);
+
+            if (! $suspended) {
+                $this->sendInvite($user);
+            }
+
+            return $user;
+        });
 
         $audit->log('user.created', $user, ['role' => $role->slug, 'email_delivered' => $delivered]);
 
@@ -73,6 +91,31 @@ class UserController extends Controller
                     : 'The account was created. Email delivery is not configured, so an invitation email was not sent.'),
             'email_delivered' => $delivered,
         ])->response()->setStatusCode(201);
+    }
+
+    public function invite(Request $request, User $user, MailStatus $mail, AuditLogger $audit): JsonResponse
+    {
+        $this->authorize('update', $user);
+
+        if ($user->status === 'suspended') {
+            throw ValidationException::withMessages([
+                'email' => 'A suspended account cannot be invited.',
+            ]);
+        }
+
+        if (! $mail->canDeliver()) {
+            throw ValidationException::withMessages([
+                'email' => 'Email delivery is not configured, so an invitation cannot be sent.',
+            ]);
+        }
+
+        $this->sendInvite($user);
+        $audit->log('user.invited', $user, ['email_delivered' => true]);
+
+        return response()->json([
+            'message' => 'An invitation email was sent.',
+            'email_delivered' => true,
+        ]);
     }
 
     public function show(User $user): UserResource
@@ -117,5 +160,22 @@ class UserController extends Controller
         $user->delete();
 
         return response()->noContent();
+    }
+
+    private function sendInvite(User $user): void
+    {
+        $status = Password::broker()->sendResetLink(['email' => $user->email]);
+
+        if ($status === Password::RESET_THROTTLED) {
+            throw ValidationException::withMessages([
+                'email' => 'An invitation was sent recently. Wait a minute and try again.',
+            ]);
+        }
+
+        if ($status !== Password::RESET_LINK_SENT) {
+            throw ValidationException::withMessages([
+                'email' => 'The invitation could not be sent.',
+            ]);
+        }
     }
 }

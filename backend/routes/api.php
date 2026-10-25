@@ -113,6 +113,7 @@ Route::prefix('v1')->group(function () {
 
         Route::middleware('permission:users.manage')->group(function () {
             Route::post('admin/users', [UserController::class, 'store']);
+            Route::post('admin/users/{user}/invite', [UserController::class, 'invite']);
             Route::put('admin/users/{user}', [UserController::class, 'update']);
             Route::delete('admin/users/{user}', [UserController::class, 'destroy']);
         });

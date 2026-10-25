@@ -44,10 +44,13 @@ php artisan storage:link
 php artisan config:cache
 php artisan route:cache
 php artisan marqetise:create-admin --name="..." --email="..." --password="..."
-php artisan queue:work
 ```
 
-Inquiry receipts, booking receipts, and the matching staff notices are queued. Keep `php artisan queue:work` running in production, or the messages stay in the `jobs` table. `QUEUE_CONNECTION=sync` sends them during the request and does not need a worker.
+Inquiry receipts, booking receipts, and the matching staff notices are sent during the request. They do not use the queue. A missing `queue:work` process cannot turn a queued job into a “receipt has been sent” message, because those four messages are not queued. Password-reset and invitation mail use Laravel’s notification and are also sent during the request.
+
+`APP_ENV` must be set to `production` in the environment before the application boots in production. A checkout with no `APP_ENV` is treated as unconfigured so `composer install` can finish. After `php artisan config:cache`, the production safety checks still run from the cached config. Do not deploy a production host that has neither `APP_ENV=production` nor a config cache built from that value.
+
+Nothing in the application currently implements a queued job. If you later queue work, run a worker. An example supervisor program is in `docs/deploy/queue-worker.conf.example`. `QUEUE_CONNECTION=sync` runs jobs during the request and does not need that worker. The example default remains `database` so a forgotten worker fails closed for any future queued job instead of silently pretending to send mail. These four messages no longer depend on that choice.
 
 `SEED_SAMPLE_CONTENT` defaults to false. When it is true, the starter courses are saved as drafts. Privacy and terms stay draft until the finished text is published. Public uploads are served only through the `public/storage` link created by `storage:link`. Do not expose `backend/storage` as a web root. GIF uploads are rejected. Review every published page in the CMS before launch.
 
@@ -80,7 +83,9 @@ Route these paths to Laravel:
 - `/robots.txt`
 - `/up`
 
-Serve the React `index.html` for every other path, including `/admin`, so the client router can load. `robots.txt` disallows `/admin` and `/api`.
+Serve the React `index.html` for every other path, including `/admin`, so the client router can load. Do not add a static `public/robots.txt`. That file would be served before the Laravel route. `GET /robots.txt` must be the route, which disallows `/admin` and `/api`.
+
+Take a database backup before migrating. The booking slot migration stops if two pending or confirmed rows already share a date and time. It does not delete those rows.
 
 Point the document root at files that are meant to be public. Do not expose `backend/.env` or `backend/storage`.
 

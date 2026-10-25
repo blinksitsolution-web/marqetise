@@ -8,6 +8,7 @@ use App\Http\Resources\BookingResource;
 use App\Models\Booking;
 use App\Services\AuditLogger;
 use App\Services\BookingSlot;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +41,16 @@ class BookingController extends Controller
             $query->whereDate('preferred_date', '<=', $request->date('to'));
         }
 
-        return BookingResource::collection($query->orderBy('preferred_date')->paginate(15));
+        if (! $request->filled('status')) {
+            $query->orderByRaw(
+                "CASE WHEN status IN ('pending', 'confirmed') AND preferred_date >= ? THEN 0 ELSE 1 END",
+                [now()->toDateString()],
+            );
+        }
+
+        return BookingResource::collection(
+            $query->orderBy('preferred_date')->orderBy('preferred_time')->paginate(15)
+        );
     }
 
     public function show(Booking $booking): BookingResource
@@ -52,20 +62,24 @@ class BookingController extends Controller
     {
         $from = $booking->status;
 
-        DB::transaction(function () use ($request, $booking, $slots): void {
-            $changes = $request->validated();
+        try {
+            DB::transaction(function () use ($request, $booking, $slots): void {
+                $changes = $request->validated();
 
-            if (in_array($changes['status'], ['pending', 'confirmed'], true)) {
-                $slots->assertAvailable(
-                    $booking->preferred_date->toDateString(),
-                    (string) $booking->preferred_time,
-                    $booking->id,
-                    'status',
-                );
-            }
+                if (in_array($changes['status'], ['pending', 'confirmed'], true)) {
+                    $slots->assertAvailable(
+                        $booking->preferred_date->toDateString(),
+                        (string) $booking->preferred_time,
+                        $booking->id,
+                        'status',
+                    );
+                }
 
-            $booking->update($changes);
-        });
+                $booking->update($changes);
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            $slots->denyIfSlotTaken($exception, 'status');
+        }
 
         $audit->log('booking.updated', $booking, ['from' => $from, 'to' => $booking->status]);
 

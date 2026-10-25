@@ -11,6 +11,7 @@ use App\Models\Service;
 use App\Models\Setting;
 use App\Services\BookingSlot;
 use App\Services\MailStatus;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -20,24 +21,28 @@ class PublicBookingController extends Controller
     {
         $service = Service::query()->published()->findOrFail($request->integer('service_id'));
 
-        $booking = DB::transaction(function () use ($request, $service, $slots) {
-            $slots->assertAvailable(
-                $request->date('preferred_date')->toDateString(),
-                $request->string('preferred_time')->value(),
-            );
+        try {
+            $booking = DB::transaction(function () use ($request, $service, $slots) {
+                $slots->assertAvailable(
+                    $request->date('preferred_date')->toDateString(),
+                    $request->string('preferred_time')->value(),
+                );
 
-            return Booking::query()->create([
-                ...$request->safe()->only([
-                    'name', 'email', 'phone', 'company', 'website', 'budget', 'goals',
-                    'format', 'preferred_date', 'preferred_time',
-                ]),
-                'service_id' => $service->id,
-                'service_name' => $service->name,
-                'reference' => $this->reference(),
-                'status' => 'pending',
-                'consent' => true,
-            ]);
-        });
+                return Booking::query()->create([
+                    ...$request->safe()->only([
+                        'name', 'email', 'phone', 'company', 'website', 'budget', 'goals',
+                        'format', 'preferred_date', 'preferred_time',
+                    ]),
+                    'service_id' => $service->id,
+                    'service_name' => $service->name,
+                    'reference' => $this->reference(),
+                    'status' => 'pending',
+                    'consent' => true,
+                ]);
+            });
+        } catch (UniqueConstraintViolationException $exception) {
+            $slots->denyIfSlotTaken($exception);
+        }
 
         $recipient = (string) Setting::getValue('notification_email', '');
         $staffNotified = $recipient !== '' && $mail->send($recipient, new BookingReceived($booking));

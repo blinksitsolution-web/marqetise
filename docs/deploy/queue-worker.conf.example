@@ -1,0 +1,15 @@
+; Optional. Inquiry and booking mail are sent during the request and do not need this program.
+; Use it only if you queue other work and QUEUE_CONNECTION is not sync.
+; Replace the paths and the user, then `supervisorctl reread && supervisorctl update`.
+
+[program:marqetise-queue]
+process_name=%(program_name)s
+command=php /var/www/marqetise/backend/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/log/marqetise-queue.log
+stopwaitsecs=3600

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import Brand from '../components/Brand'
 import { useSite } from '../context/SiteContext'
+import { hasPublishedPage } from '../utils/pages'
 
 const links = [
   { to: '/', label: 'Home', end: true },
@@ -88,8 +89,8 @@ export default function PublicLayout() {
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-4 text-xs text-white/50">
             <p>© {year} Marqetise</p>
             <div className="flex gap-4">
-              <Link to="/privacy">Privacy</Link>
-              <Link to="/terms">Terms</Link>
+              {hasPublishedPage(site, 'privacy') ? <Link to="/privacy">Privacy</Link> : null}
+              {hasPublishedPage(site, 'terms') ? <Link to="/terms">Terms</Link> : null}
             </div>
           </div>
         </div>

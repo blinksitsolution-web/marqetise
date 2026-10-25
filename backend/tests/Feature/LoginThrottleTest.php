@@ -67,6 +67,45 @@ class LoginThrottleTest extends TestCase
         ])->assertOk();
     }
 
+    public function test_failures_from_one_address_do_not_lock_a_different_address(): void
+    {
+        $user = User::factory()->create();
+
+        for ($attempt = 0; $attempt < 10; $attempt++) {
+            $this->clearLoginThrottle($user->email);
+
+            $this->postJson('/api/v1/auth/login', [
+                'email' => $user->email,
+                'password' => 'wrong-password',
+            ])->assertUnprocessable();
+        }
+
+        $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.10'])
+            ->postJson('/api/v1/auth/login', [
+                'email' => $user->email,
+                'password' => 'password',
+            ])->assertOk();
+    }
+
+    public function test_remember_me_expires_in_fourteen_days(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->postJson('/api/v1/auth/login', [
+            'email' => $user->email,
+            'password' => 'password',
+            'remember' => true,
+        ])->assertOk();
+
+        $remember = collect($response->headers->getCookies())
+            ->first(fn ($cookie) => str_starts_with($cookie->getName(), 'remember_'));
+
+        $this->assertNotNull($remember);
+        $seconds = $remember->getExpiresTime() - time();
+        $this->assertGreaterThan(60 * 60 * 24 * 13, $seconds);
+        $this->assertLessThan(60 * 60 * 24 * 15, $seconds);
+    }
+
     public function test_public_gets_and_authenticated_requests_use_the_api_limiter(): void
     {
         $this->getJson('/api/v1/site')->assertHeader('X-RateLimit-Limit', '120');

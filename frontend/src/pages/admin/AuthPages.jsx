@@ -37,7 +37,7 @@ export function LoginPage() {
           <input className={inputClass} type="password" autoComplete="current-password" {...form.register('password')} />
         </Field>
         <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center gap-2"><input type="checkbox" {...form.register('remember')} /> Remember me</label>
+          <label className="flex items-center gap-2"><input type="checkbox" {...form.register('remember')} /> Remember me for 14 days</label>
           <Link to="/admin/forgot-password" className="font-semibold text-blue">Forgot password?</Link>
         </div>
         <Button type="submit" variant="blue" className="w-full" disabled={form.formState.isSubmitting}>

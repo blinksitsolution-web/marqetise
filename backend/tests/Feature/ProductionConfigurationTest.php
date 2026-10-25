@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Providers\AppServiceProvider;
 use App\Support\FrontendOrigins;
+use App\Support\ProductionConfiguration;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use RuntimeException;
 use Tests\TestCase;
@@ -57,6 +58,15 @@ class ProductionConfigurationTest extends TestCase
         $this->expectExceptionMessage('localhost');
 
         $this->bootProduction(['sanctum.stateful' => ['localhost', 'app.example']]);
+    }
+
+    public function test_a_missing_app_env_does_not_trip_the_production_guard(): void
+    {
+        $this->assertTrue(ProductionConfiguration::isUnconfiguredCheckout(null, false));
+        $this->assertTrue(ProductionConfiguration::isUnconfiguredCheckout('', false));
+        $this->assertFalse(ProductionConfiguration::isUnconfiguredCheckout(null, true));
+        $this->assertFalse(ProductionConfiguration::isUnconfiguredCheckout('production', false));
+        $this->assertFalse(ProductionConfiguration::isUnconfiguredCheckout('testing', false));
     }
 
     public function test_env_example_documents_production_cookie_and_debug_defaults(): void
