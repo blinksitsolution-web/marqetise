@@ -40,8 +40,8 @@ class PublicContentTest extends TestCase
         }
 
         $packages = ContentBlock::query()->where('key', 'packages.plans')->firstOrFail();
-        $this->assertFalse($packages->is_visible);
-        $this->assertSame([], $packages->payload['items']);
+        $this->assertTrue($packages->is_visible);
+        $this->assertSame('Basic Plan', $packages->payload['items'][0]['name']);
     }
 
     public function test_the_public_payload_includes_chrome_and_omits_empty_packages(): void
@@ -52,7 +52,7 @@ class PublicContentTest extends TestCase
 
         $this->assertSame('Get In Touch', $site['blocks']['site.chrome']['payload']['cta_label']);
         $this->assertSame('/about', $site['blocks']['site.chrome']['payload']['nav'][1]['href']);
-        $this->assertArrayNotHasKey('packages.plans', $site['blocks']);
+        $this->assertSame('Basic Plan', $site['blocks']['packages.plans']['payload']['items'][0]['name']);
         $this->assertSame('Services', collect($site['pages'])->firstWhere('slug', 'services')['title']);
         $this->assertSame('', collect($site['pages'])->firstWhere('slug', 'team')['body']);
     }

@@ -5,10 +5,6 @@
     });
   }
 
-  function lines(value) {
-    return esc(value).replace(/\n/g, '<br>');
-  }
-
   function text(value) {
     return String(value == null ? '' : value).trim();
   }
@@ -25,6 +21,14 @@
     return value;
   }
 
+  function safeMedia(value) {
+    if (typeof value !== 'string') return '';
+    var path = value.trim();
+    if (/^(https?:|javascript:|data:)/i.test(path) || path.indexOf('..') !== -1 || /[\s\\]/.test(path)) return '';
+    if (path.charAt(0) === '/' || path.indexOf('images/') === 0) return path;
+    return '';
+  }
+
   function payloadOf(blocks, key) {
     var block = blocks && blocks[key];
     if (!block || !block.payload || typeof block.payload !== 'object') return null;
@@ -36,57 +40,51 @@
     return payload.items.filter(function (item) { return item && typeof item === 'object'; });
   }
 
-  function imageTag(src, alt) {
-    var path = safePath(src);
-    if (!path) return '';
-    return '<img src="' + esc(path) + '" alt="' + esc(alt || '') + '">';
+  function setRich(node, value) {
+    if (!node || !text(value)) return;
+    node.innerHTML = esc(value).replace(/\n/g, '<br>');
   }
 
-  function button(label, href, className) {
-    var path = safePath(href);
-    var name = text(label);
-    if (!path || !name) return '';
-    return '<a class="' + className + '" href="' + esc(path) + '">' + esc(name) + '</a>';
+  function setLabel(node, value) {
+    if (!node || !text(value)) return;
+    var faces = node.querySelectorAll('.text-1, .text-2');
+    if (faces.length) {
+      Array.prototype.forEach.call(faces, function (face) { face.textContent = text(value); });
+      return;
+    }
+    node.textContent = text(value);
   }
 
-  function section(className, title, intro, body) {
-    if (!body) return '';
-    return '<section class="mq-home ' + className + '"><div class="container">'
-      + (text(title) ? '<h2 class="ks-section-title">' + lines(title) + '</h2>' : '')
-      + (text(intro) ? '<p class="mq-home-intro">' + esc(intro) + '</p>' : '')
-      + body
-      + '</div></section>';
+  function listLabel(li, value) {
+    if (!li || !text(value)) return;
+    Array.prototype.slice.call(li.childNodes).forEach(function (node) {
+      if (node.nodeType === 3) li.removeChild(node);
+    });
+    li.appendChild(document.createTextNode(' ' + text(value)));
   }
 
-  function cards(rows, render) {
-    var html = rows.map(render).filter(Boolean).join('');
-    if (!html) return '';
-    return '<div class="mq-home-grid">' + html + '</div>';
+  function pair(nodes, rows, fill) {
+    var list = Array.prototype.slice.call(nodes || []);
+    if (!list.length || !rows.length) return;
+    var templates = list.slice();
+    var parent = list[0].parentElement;
+    rows.forEach(function (row, index) {
+      var node = list[index];
+      if (!node && parent) {
+        node = templates[index % templates.length].cloneNode(true);
+        parent.appendChild(node);
+        list.push(node);
+      }
+      if (node) fill(node, row, index);
+    });
+    list.slice(rows.length).forEach(function (node) { node.hidden = true; });
   }
 
-  function heroHtml(blocks, settings) {
-    var hero = payloadOf(blocks, 'home.hero');
-    if (!hero || !text(hero.headline)) return '';
-    var phone = text(settings && settings.phone);
-    var phoneHref = phone.replace(/[^\d+]/g, '');
-    var media = imageTag(hero.image, hero.image_alt || '');
-    var actions = button(hero.primary_label, hero.primary_href, 'ks-btn-black')
-      + button(hero.secondary_label, hero.secondary_href, 'mq-home-secondary');
-    return '<section class="mq-home mq-home-hero"><div class="container">'
-      + '<div>'
-      + (text(hero.eyebrow) ? '<p class="mq-kicker">' + esc(hero.eyebrow) + '</p>' : '')
-      + '<h1>' + lines(hero.headline) + '</h1>'
-      + (text(hero.subcopy) ? '<p class="mq-home-lead">' + esc(hero.subcopy) + '</p>' : '')
-      + (actions ? '<div class="mq-home-actions">' + actions + '</div>' : '')
-      + (text(hero.proof) ? '<p class="mq-home-proof">' + esc(hero.proof) + '</p>' : '')
-      + (phone ? '<p class="mq-home-phone"><a href="tel:' + esc(phoneHref) + '">' + esc(phone) + '</a></p>' : '')
-      + '</div>'
-      + (media ? '<div>' + media + '</div>' : '')
-      + '</div></section>';
-  }
-
-  function itemCards(payload, render) {
-    return cards(items(payload), render);
+  function paint(nodes, rows, fill) {
+    var list = Array.prototype.slice.call(nodes || []);
+    rows.forEach(function (row, index) {
+      if (list[index]) fill(list[index], row, index);
+    });
   }
 
   function fillPanel(blocks) {
@@ -97,148 +95,230 @@
     var body = about ? text(about.body) : '';
     var titleNode = panel.querySelector('[data-chrome="panel-title"]');
     var bodyNode = panel.querySelector('[data-chrome="panel-body"]');
-    if (titleNode) titleNode.textContent = title;
-    if (bodyNode) bodyNode.textContent = body;
-    panel.hidden = !(title || body);
+    if (title && titleNode) titleNode.textContent = title;
+    if (body && bodyNode) bodyNode.textContent = body;
+  }
+
+  function applyHero(hero) {
+    if (!hero) return;
+    if (text(hero.headline)) {
+      Array.prototype.forEach.call(document.querySelectorAll('.ks-slider-title'), function (node) {
+        setRich(node, hero.headline);
+      });
+    }
+    if (text(hero.eyebrow)) {
+      Array.prototype.forEach.call(document.querySelectorAll('.ks-slider-subtitle span'), function (node) {
+        node.textContent = text(hero.eyebrow);
+      });
+    }
+    if (text(hero.subcopy)) {
+      Array.prototype.forEach.call(document.querySelectorAll('[data-home="subcopy"], .ks-slider-desc > p'), function (node) {
+        node.textContent = text(hero.subcopy);
+      });
+    }
+    if (text(hero.proof)) {
+      Array.prototype.forEach.call(document.querySelectorAll('.ks-slider-desc > span span'), function (node) {
+        node.textContent = text(hero.proof);
+      });
+    }
+    var href = safePath(hero.primary_href);
+    var label = text(hero.primary_label);
+    Array.prototype.forEach.call(document.querySelectorAll('.ks-slider-link a'), function (link) {
+      if (href) link.setAttribute('href', href);
+      if (label) setLabel(link.querySelector('span') || link, label);
+    });
+    var image = safeMedia(hero.image);
+    if (image) {
+      Array.prototype.forEach.call(document.querySelectorAll('.ks-slider-thumb > img'), function (img) {
+        img.setAttribute('src', image);
+        if (text(hero.image_alt)) img.setAttribute('alt', text(hero.image_alt));
+      });
+    }
+  }
+
+  function applyServices(intro, services) {
+    var rows = listOf(services).filter(function (service) { return service && text(service.name); });
+    if (intro && text(intro.intro)) {
+      var copy = document.querySelector('.ks-service-top-text p');
+      if (copy) copy.textContent = text(intro.intro);
+    }
+    pair(document.querySelectorAll('.ks-service-area .row.gx-30 > [class*="col-"]'), rows, function (column, service, index) {
+      var card = column.querySelector('.ks-service-item') || column;
+      var number = card.querySelector('.ks-service-number');
+      if (number) number.textContent = String(index + 1).padStart(2, '0');
+      var href = 'page-service-details.html?slug=' + encodeURIComponent(service.slug || '');
+      var title = card.querySelector('.ks-service-title a');
+      if (title) {
+        title.textContent = service.name;
+        title.setAttribute('href', href);
+      }
+      var more = card.querySelector('a.ks-service-more');
+      if (more) more.setAttribute('href', href);
+      var list = card.querySelector('.ks-service-list-box ul');
+      var summary = text(service.summary);
+      if (list && summary) {
+        var first = list.querySelector('li');
+        if (first) first.textContent = summary;
+        Array.prototype.slice.call(list.querySelectorAll('li'), 1).forEach(function (item) { item.remove(); });
+      }
+    });
   }
 
   window.renderHomeSections = function (payload) {
     var data = payload || {};
     var blocks = data.blocks || {};
-    var heroRoot = document.getElementById('home-hero');
-    var sectionsRoot = document.getElementById('home-sections');
+    if (!document.querySelector('.ks-slider-area') && !document.getElementById('home-sections')) return;
+
     fillPanel(blocks);
-    if (!heroRoot && !sectionsRoot) return;
+    applyHero(payloadOf(blocks, 'home.hero'));
 
-    if (heroRoot) heroRoot.innerHTML = heroHtml(blocks, data.settings || {});
-
-    if (!sectionsRoot) return;
-
-    var servicesIntro = payloadOf(blocks, 'home.services');
-    var services = servicesIntro ? listOf(data.services) : [];
-    var serviceHtml = cards(services, function (service) {
-      if (!service || !text(service.name)) return '';
-      var href = 'page-service-details.html?slug=' + encodeURIComponent(service.slug || '');
-      return '<article class="mq-home-card">'
-        + imageTag(service.image_path, service.name)
-        + '<h3><a href="' + href + '">' + esc(service.name) + '</a></h3>'
-        + (text(service.summary) ? '<p>' + esc(service.summary) + '</p>' : '')
-        + '<a href="' + href + '">View service</a>'
-        + '</article>';
-    });
-
-    var why = payloadOf(blocks, 'home.why');
     var focus = payloadOf(blocks, 'home.focus');
-    var process = payloadOf(blocks, 'home.process');
-    var coursesIntro = payloadOf(blocks, 'home.courses');
-    var courses = coursesIntro ? listOf(data.featured_courses) : [];
-    var stats = payloadOf(blocks, 'home.stats');
-    var projects = payloadOf(blocks, 'home.projects');
-    var team = payloadOf(blocks, 'home.team');
-    var quotes = payloadOf(blocks, 'home.testimonials');
-    var partners = payloadOf(blocks, 'home.partners');
-    var news = payloadOf(blocks, 'home.news');
-    var cta = payloadOf(blocks, 'home.cta');
-
-    var html = '';
-
-    html += section('mq-home-focus', focus && focus.title, '', itemCards(focus, function (item) {
-      if (!text(item.title) && !text(item.body)) return '';
-      return '<article class="mq-home-card"><h3>' + esc(item.title || '') + '</h3>'
-        + (text(item.body) ? '<p>' + esc(item.body) + '</p>' : '') + '</article>';
-    }));
-
-    html += section('mq-home-services', servicesIntro && servicesIntro.title, servicesIntro && servicesIntro.intro, serviceHtml);
-
-    html += section('mq-home-why', why && why.title, '', itemCards(why, function (item) {
-      if (!text(item.title) && !text(item.body)) return '';
-      return '<article class="mq-home-card"><h3>' + esc(item.title || '') + '</h3>'
-        + (text(item.body) ? '<p>' + esc(item.body) + '</p>' : '') + '</article>';
-    }));
-
-    var steps = items(process).filter(function (item) { return text(item.title) || text(item.body); });
-    html += section('mq-home-process', process && process.title, '', steps.length ? '<ol class="mq-home-grid">' + steps.map(function (item, index) {
-      return '<li class="mq-home-card"><span>' + esc(String(index + 1).padStart(2, '0')) + '</span><h3>' + esc(item.title || '') + '</h3>'
-        + (text(item.body) ? '<p>' + esc(item.body) + '</p>' : '') + '</li>';
-    }).join('') + '</ol>' : '');
-
-    html += section('mq-home-courses', coursesIntro && coursesIntro.title, coursesIntro && coursesIntro.intro, cards(courses, function (course) {
-      if (!course || !text(course.title)) return '';
-      var href = '/courses/' + encodeURIComponent(course.slug || '');
-      return '<article class="mq-home-card">'
-        + imageTag(course.image_path, course.title)
-        + '<h3><a href="' + href + '">' + esc(course.title) + '</a></h3>'
-        + (text(course.summary) ? '<p>' + esc(course.summary) + '</p>' : '')
-        + '<a href="' + href + '">View course</a>'
-        + '</article>';
-    }));
-
-    html += section('mq-home-stats', stats && stats.title, '', itemCards(stats, function (item) {
-      if (!text(item.value)) return '';
-      return '<article class="mq-home-card"><p class="mq-home-stat">' + esc(item.value) + '</p><h3>' + esc(item.label || '') + '</h3></article>';
-    }));
-
-    html += section('mq-home-projects', projects && projects.title, '', itemCards(projects, function (item) {
-      if (!text(item.title)) return '';
-      var href = safePath(item.href);
-      var title = href ? '<a href="' + esc(href) + '">' + esc(item.title) + '</a>' : esc(item.title);
-      return '<article class="mq-home-card">' + imageTag(item.image, item.image_alt || item.title)
-        + '<h3>' + title + '</h3>' + (text(item.summary) ? '<p>' + esc(item.summary) + '</p>' : '') + '</article>';
-    }));
-
-    html += section('mq-home-team', team && team.title, '', itemCards(team, function (item) {
-      var name = text(item.name);
-      if (!name) return '';
-      return '<article class="mq-home-card">' + imageTag(item.image, item.image_alt || name)
-        + '<h3>' + esc(name) + '</h3>'
-        + (text(item.role) ? '<p>' + esc(item.role) + '</p>' : '')
-        + (text(item.bio) ? '<p>' + esc(item.bio) + '</p>' : '')
-        + '</article>';
-    }));
-
-    html += section('mq-home-quotes', quotes && quotes.title, '', itemCards(quotes, function (item) {
-      var quote = text(item.quote || item.body);
-      if (!quote) return '';
-      var name = text(item.name || item.title);
-      return '<blockquote class="mq-home-card"><p>' + esc(quote) + '</p>'
-        + (name ? '<footer>' + esc(name) + (text(item.role) ? ', ' + esc(item.role) : '') + '</footer>' : '')
-        + '</blockquote>';
-    }));
-
-    var logos = items(partners).map(function (item) {
-      var img = imageTag(item.image, item.image_alt || item.name || '');
-      var name = text(item.name);
-      if (!img && !name) return '';
-      var href = safePath(item.href);
-      var inner = img || esc(name);
-      var nameText = img && !text(item.image_alt) && name ? '<span class="sr-only">' + esc(name) + '</span>' : '';
-      return href ? '<a href="' + esc(href) + '">' + inner + nameText + '</a>' : '<span>' + inner + nameText + '</span>';
-    }).filter(Boolean).join('');
-    html += section('mq-home-partners', partners && partners.title, '', logos ? '<div class="mq-partner-row">' + logos + '</div>' : '');
-
-    html += section('mq-home-news', news && news.title, '', itemCards(news, function (item) {
-      if (!text(item.title)) return '';
-      var href = safePath(item.href);
-      var title = href ? '<a href="' + esc(href) + '">' + esc(item.title) + '</a>' : esc(item.title);
-      return '<article class="mq-home-card">' + imageTag(item.image, item.image_alt || item.title)
-        + (text(item.date) ? '<p>' + esc(item.date) + '</p>' : '')
-        + '<h3>' + title + '</h3>'
-        + (text(item.summary) ? '<p>' + esc(item.summary) + '</p>' : '')
-        + '</article>';
-    }));
-
-    if (cta && (text(cta.title) || text(cta.primary_label))) {
-      var ctaActions = button(cta.primary_label, cta.primary_href, 'ks-btn-black')
-        + button(cta.secondary_label, cta.secondary_href, 'mq-home-secondary');
-      html += '<section class="mq-home mq-home-cta"><div class="container">'
-        + (text(cta.title) ? '<h2 class="ks-section-title">' + lines(cta.title) + '</h2>' : '')
-        + (text(cta.body) ? '<p class="mq-home-intro">' + esc(cta.body) + '</p>' : '')
-        + (ctaActions ? '<div class="mq-home-actions">' + ctaActions + '</div>' : '')
-        + '</div></section>';
+    if (focus) {
+      setRich(document.querySelector('.ks-about-area .ks-section-title'), focus.title);
+      pair(document.querySelectorAll('.ks-about-list-box li'), items(focus), function (item, row) {
+        listLabel(item, row.title);
+      });
     }
 
-    sectionsRoot.innerHTML = html;
-    var formTitle = document.getElementById('home-enquiry-title');
-    if (formTitle && cta && text(cta.form_title)) formTitle.textContent = text(cta.form_title);
+    applyServices(payloadOf(blocks, 'home.services'), data.services);
+
+    var why = payloadOf(blocks, 'home.why');
+    if (why) {
+      setRich(document.querySelector('.ks-choose-area .ks-section-title'), why.title);
+      pair(document.querySelectorAll('.ks-choose-list-box li'), items(why), function (item, row) {
+        listLabel(item, row.title);
+      });
+    }
+
+    var process = payloadOf(blocks, 'home.process');
+    if (process) {
+      paint(document.querySelectorAll('.ks-choose-title'), items(process), function (node, row) {
+        if (text(row.title)) node.textContent = text(row.title);
+      });
+    }
+
+    var projects = payloadOf(blocks, 'home.projects');
+    if (projects) {
+      setRich(document.querySelector('.ks-project-area .ks-section-title'), projects.title);
+      pair(document.querySelectorAll('.ks-project-area .ks-project-item'), items(projects), function (card, row) {
+        var href = safePath(row.href) || 'page-project-details.html';
+        var title = card.querySelector('.ks-project-title a');
+        if (title) {
+          setRich(title, row.title);
+          title.setAttribute('href', href);
+        }
+        var arrow = card.querySelector('.ks-project-arrow a');
+        if (arrow) arrow.setAttribute('href', href);
+        var category = card.querySelector('.ks-project-content > span');
+        if (category && text(row.category)) category.textContent = text(row.category);
+        var summary = card.querySelector('.ks-project-content p');
+        if (summary && text(row.summary)) summary.textContent = text(row.summary);
+        var image = safeMedia(row.image);
+        if (image) {
+          card.setAttribute('data-background', image);
+          card.style.backgroundImage = 'url("' + image.replace(/"/g, '') + '")';
+        }
+      });
+    }
+
+    var team = payloadOf(blocks, 'home.team');
+    if (team) {
+      setRich(document.querySelector('.ks-team-area .ks-section-title'), team.title);
+      pair(Array.prototype.map.call(document.querySelectorAll('.ks-team-area .ks-team-item'), function (card) {
+        return card.parentElement;
+      }), items(team), function (column, row) {
+        var card = column.querySelector('.ks-team-item') || column;
+        var name = text(row.name);
+        var link = card.querySelector('.ks-team-title a');
+        var href = safePath(row.href) || (name ? 'page-team-details.html?slug=' + encodeURIComponent(text(row.slug) || name.toLowerCase().replace(/[^a-z0-9]+/g, '-')) : '');
+        if (link && name) {
+          link.textContent = name;
+          if (href) link.setAttribute('href', href);
+        }
+        var role = card.querySelector('.ks-team-content > span');
+        if (role && text(row.role)) role.textContent = text(row.role);
+        var image = safeMedia(row.image);
+        var photo = card.querySelector('.ks-team-thumb > img');
+        if (photo && image) {
+          photo.setAttribute('src', image);
+          if (text(row.image_alt) || name) photo.setAttribute('alt', text(row.image_alt) || name);
+        }
+      });
+    }
+
+    var stats = payloadOf(blocks, 'home.stats');
+    if (stats) {
+      setRich(document.querySelector('.ks-funfact-area .ks-section-title'), stats.title);
+      pair(document.querySelectorAll('.ks-funfact-wrap > .ks_fade_anim'), items(stats), function (wrap, row) {
+        var number = wrap.querySelector('.ks-funfact-number');
+        if (number && text(row.value)) number.textContent = text(row.value);
+        var label = wrap.querySelector('.ks-funfact-item > span');
+        if (label && text(row.label)) label.textContent = text(row.label);
+      });
+    }
+
+    var quotes = payloadOf(blocks, 'home.testimonials');
+    if (quotes) {
+      setRich(document.querySelector('.ks-testimonial-area .ks-section-title'), quotes.title);
+      paint(document.querySelectorAll('.ks-testimonial-content p'), items(quotes), function (node, row) {
+        if (text(row.quote || row.body)) node.textContent = text(row.quote || row.body);
+      });
+      paint(document.querySelectorAll('.ks-testimonial-user-info .title'), items(quotes), function (node, row) {
+        if (text(row.name)) node.textContent = text(row.name);
+      });
+      paint(document.querySelectorAll('.ks-testimonial-user-info span'), items(quotes), function (node, row) {
+        if (text(row.role)) node.textContent = text(row.role);
+      });
+    }
+
+    var partners = payloadOf(blocks, 'home.partners');
+    if (partners && text(partners.title)) {
+      var brand = document.querySelector('.ks-brand-text a');
+      if (brand) setRich(brand, partners.title);
+    }
+    paint(document.querySelectorAll('.ks-brand-item img'), items(partners), function (img, row) {
+      var image = safeMedia(row.image);
+      if (!image) return;
+      img.setAttribute('src', image);
+      if (text(row.image_alt) || text(row.name)) img.setAttribute('alt', text(row.image_alt) || text(row.name));
+    });
+
+    var news = payloadOf(blocks, 'home.news');
+    if (news) {
+      setRich(document.querySelector('.ks-blog-area .ks-section-title'), news.title);
+      pair(Array.prototype.map.call(document.querySelectorAll('.ks-blog-item'), function (card) {
+        return card.parentElement;
+      }), items(news), function (column, row) {
+        var card = column.querySelector('.ks-blog-item') || column;
+        var href = safePath(row.href) || 'news-details.html';
+        var title = card.querySelector('.ks-blog-title a');
+        if (title) {
+          title.textContent = text(row.title);
+          title.setAttribute('href', href);
+        }
+        var thumb = card.querySelector('.ks-blog-thumb a');
+        if (thumb) thumb.setAttribute('href', href);
+        var date = card.querySelector('.ks-blog-date span');
+        if (date && text(row.date)) date.textContent = text(row.date);
+        var image = safeMedia(row.image);
+        var photo = card.querySelector('.ks-blog-thumb img');
+        if (photo && image) {
+          photo.setAttribute('src', image);
+          if (text(row.image_alt)) photo.setAttribute('alt', text(row.image_alt));
+        }
+      });
+    }
+
+    var cta = payloadOf(blocks, 'home.cta');
+    if (cta) {
+      setRich(document.querySelector('.ks-cta-title'), cta.title);
+      setRich(document.querySelector('.ks-contact-area .ks-section-title'), cta.form_title);
+      var contactCopy = document.querySelector('.ks-contact-left .ks_fade_anim p');
+      if (contactCopy && text(cta.body)) contactCopy.textContent = text(cta.body);
+      var button = document.querySelector('.ks-cta-area .ks-btn-black');
+      var buttonHref = safePath(cta.primary_href);
+      if (button && buttonHref) button.setAttribute('href', buttonHref);
+      if (button && text(cta.primary_label)) setLabel(button, cta.primary_label);
+    }
   };
 })();

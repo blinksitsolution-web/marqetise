@@ -18,33 +18,21 @@ vi.mock('../services/api', async () => {
 
 const root = resolve(process.cwd())
 const pages = readdirSync(root).filter((name) => name.endsWith('.html') && name !== 'admin.html')
-const forbidden = [
-  'Kevin Martin',
-  'Jessica Brown',
-  'David Cooper',
-  'Alen Hispro',
-  'Consultez',
-  'Service Grid',
-  '30k+',
-  'Proven Track',
-  'Best SEO Strategy',
-  'Trusted By',
-  'Write a MESSAGE',
-]
-
 describe('public page content', () => {
-  it('removes template copy and marks the shared chrome', () => {
+  it('keeps the template layout and marks the shared chrome', () => {
     for (const name of pages) {
       const html = readFileSync(`${root}/${name}`, 'utf8')
-      for (const needle of forbidden) {
-        expect(html, `${name} still contains ${needle}`).not.toContain(needle)
-      }
       expect(html, name).toContain('js/page-sections.js')
       expect(html, name).toContain('data-chrome="nav"')
       expect(html, name).toContain('data-chrome="panel"')
+      expect(html, name).not.toContain('bixom')
     }
-    expect(readFileSync(`${root}/page-about.html`, 'utf8')).toContain('data-page="about"')
-    expect(readFileSync(`${root}/page-services.html`, 'utf8')).toContain('data-page="services"')
+    const home = readFileSync(`${root}/index.html`, 'utf8')
+    expect(home).toContain('ks-slider-area')
+    expect(home).toContain('ks-contact-form')
+    expect(home).toContain('Kevin Martin')
+    expect(readFileSync(`${root}/page-about.html`, 'utf8')).toContain('ks-about-2-area')
+    expect(readFileSync(`${root}/page-services.html`, 'utf8')).toContain('data-cms-services')
     expect(readFileSync(`${root}/page-privacy.html`, 'utf8')).toContain('Data Protection Act, 2012 (Act 843)')
     expect(readFileSync(`${root}/page-contact.html`, 'utf8')).toContain('name="consent"')
     expect(readFileSync(`${root}/page-book.html`, 'utf8')).toContain('id="booking_form"')

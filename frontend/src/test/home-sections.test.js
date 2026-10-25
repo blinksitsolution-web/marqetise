@@ -7,12 +7,27 @@ const script = readFileSync(`${root}/js/home-sections.js`, 'utf8')
 
 function render(payload) {
   document.body.innerHTML = `
-    <h1 data-home-fallback-title hidden>Home</h1>
-    <div id="home-hero"></div>
-    <div id="home-sections"></div>
-    <div data-chrome="panel" hidden>
-      <h4 data-chrome="panel-title"></h4>
-      <p data-chrome="panel-body"></p>
+    <div class="ks-slider-area">
+      <h2 class="ks-slider-title">Experts in SEO</h2>
+      <p data-home="subcopy">Demo sentence</p>
+      <span class="ks-slider-desc"><span><span>30k+ Active Customers</span></span></span>
+      <div class="ks-slider-link"><a href="page-contact.html"><span>apply now</span></a></div>
+      <div class="ks-slider-thumb"><img src="images/slider/slider-img-1.png" alt=""></div>
+    </div>
+    <div class="ks-service-area"><div class="row gx-30">
+      <div class="col-xl-4"><div class="ks-service-item">
+        <span class="ks-service-number">01</span>
+        <h4 class="ks-service-title"><a href="page-service-details.html">Digital & Web Marketing</a></h4>
+        <div class="ks-service-list-box"><ul><li>Keyword Research</li><li>Link Building</li></ul></div>
+        <a class="ks-service-more" href="page-service-details.html">More</a>
+      </div></div>
+    </div></div>
+    <form id="home_contact_form">
+      <div class="ks-contact-input-box"><input name="name" placeholder="Type  your name"></div>
+    </form>
+    <div data-chrome="panel">
+      <h4 data-chrome="panel-title">About Us</h4>
+      <p data-chrome="panel-body">Consultez is the go-to hub.</p>
     </div>
   `
   window.eval(script)
@@ -20,67 +35,55 @@ function render(payload) {
 }
 
 describe('home page sections', () => {
-  it('does not keep template claims in the home page html', () => {
+  it('keeps the template structure in the home page html', () => {
     const html = readFileSync(`${root}/index.html`, 'utf8')
     for (const needle of [
+      'ks-slider-area',
+      'ks-contact-input-box',
+      'ks-team-area',
+      'ks-funfact-area',
+      'ks-testimonial-area',
       'Kevin Martin',
-      'Jessica Brown',
-      'David Cooper',
-      '30k+',
-      'Consultez',
-      'Trusted By',
-      'Best Rated',
-      'Proven Track',
-      'Best SEO Strategy',
-      'Service Grid',
+      '30k+ Active Customers',
+      'name="consent"',
+      'js/home-sections.js',
     ]) {
-      expect(html).not.toContain(needle)
+      expect(html, needle).toContain(needle)
     }
-    expect(html).toContain('id="home-sections"')
-    expect(html).toContain('js/home-sections.js')
+    expect(html).not.toContain('id="home-sections"')
+    expect(html).not.toContain('<h2 class="ks-slider-title" data-cms="title">')
   })
 
-  it('renders published cms sections and skips empty ones', () => {
+  it('writes cms copy into the template slots and leaves the demo proof line', () => {
     render({
-      settings: { phone: '+233 24 000 0000' },
       blocks: {
-        'home.hero': { payload: { headline: 'Marketing that grows', subcopy: 'Real copy', primary_label: 'Book', primary_href: '/book', proof: '' } },
+        'home.hero': { payload: { headline: 'Marketing that grows', subcopy: 'Real copy', primary_label: 'Book', primary_href: '/book', image: 'javascript:alert(1)' } },
         'home.services': { payload: { title: 'Services', intro: '' } },
-        'home.why': { payload: { title: 'Why businesses choose Marqetise', items: [{ title: 'Clear priorities', body: 'Start with the outcome.' }] } },
-        'about.identity': { payload: { title: 'An agency', body: 'Marqetise helps businesses.' } },
+        'about.identity': { payload: { title: 'Beyond Marketing', body: 'Marqetise helps businesses.' } },
       },
-      services: [{ name: 'SEO', slug: 'seo', summary: 'Search work', image_path: '/storage/media/seo.png' }],
-      featured_courses: [],
+      services: [{ name: 'SEO', slug: 'seo', summary: 'Search work' }],
     })
 
-    expect(document.querySelector('#home-hero h1').textContent).toBe('Marketing that grows')
-    expect(document.body.textContent).toContain('SEO')
-    expect(document.body.textContent).toContain('Clear priorities')
-    expect(document.querySelector('.mq-home-stats')).toBeNull()
-    expect(document.querySelector('.mq-home-team')).toBeNull()
-    expect(document.querySelector('.mq-home-projects')).toBeNull()
-    expect(document.querySelector('[data-chrome="panel"]').hidden).toBe(false)
+    expect(document.querySelector('.ks-slider-title').textContent).toBe('Marketing that grows')
+    expect(document.querySelector('[data-home="subcopy"]').textContent).toBe('Real copy')
+    expect(document.querySelector('.ks-slider-link a').getAttribute('href')).toBe('/book')
+    expect(document.querySelector('.ks-slider-thumb img').getAttribute('src')).toBe('images/slider/slider-img-1.png')
+    expect(document.body.textContent).toContain('30k+ Active Customers')
+    expect(document.querySelector('.ks-service-title a').textContent).toBe('SEO')
+    expect(document.querySelector('.ks-service-list-box').textContent).toContain('Search work')
+    expect(document.querySelector('#home_contact_form input').getAttribute('placeholder')).toBe('Type  your name')
+    expect(document.querySelector('[data-chrome="panel-title"]').textContent).toBe('Beyond Marketing')
     expect(document.querySelector('[data-chrome="panel-body"]').textContent).toBe('Marqetise helps businesses.')
-    expect(document.querySelector('#home-hero a[href="/book"]').textContent).toBe('Book')
-    expect(document.querySelector('.mq-home-services img').getAttribute('src')).toBe('/storage/media/seo.png')
   })
 
-  it('ignores off-site links and scriptable image urls', () => {
+  it('ignores off-site hero links', () => {
     render({
       blocks: {
-        'home.hero': {
-          payload: {
-            headline: 'Hi',
-            primary_label: 'Go',
-            primary_href: 'https://evil.example',
-            image: 'javascript:alert(1)',
-          },
-        },
+        'home.hero': { payload: { headline: 'Hi', primary_label: 'Go', primary_href: 'https://evil.example' } },
       },
     })
 
-    expect(document.querySelector('#home-hero h1').textContent).toBe('Hi')
-    expect(document.querySelector('#home-hero a')).toBeNull()
-    expect(document.querySelector('#home-hero img')).toBeNull()
+    expect(document.querySelector('.ks-slider-link a').getAttribute('href')).toBe('page-contact.html')
+    expect(document.querySelector('.ks-slider-title').textContent).toBe('Hi')
   })
 })
