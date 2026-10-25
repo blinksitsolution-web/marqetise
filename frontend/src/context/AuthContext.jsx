@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api, ensureCsrf } from '../services/api'
-
-const AuthContext = createContext(null)
+import { AuthContext } from './useAuth'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -19,10 +18,23 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    refresh()
+    let active = true
+    api.get('/api/v1/auth/user')
+      .then((response) => {
+        if (active) setUser(response.data.data)
+      })
+      .catch(() => {
+        if (active) setUser(null)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
     const onUnauthorized = () => setUser(null)
     window.addEventListener('marqetise:unauthorized', onUnauthorized)
-    return () => window.removeEventListener('marqetise:unauthorized', onUnauthorized)
+    return () => {
+      active = false
+      window.removeEventListener('marqetise:unauthorized', onUnauthorized)
+    }
   }, [])
 
   async function login(payload) {
@@ -41,12 +53,4 @@ export function AuthProvider({ children }) {
   const value = useMemo(() => ({ user, loading, login, logout, refresh }), [user, loading])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider')
-  }
-  return context
 }

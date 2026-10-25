@@ -1,10 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
-import { useSite } from '../../context/SiteContext'
+import { useSite } from '../../context/useSite'
 import { enquiryTypes, inquirySchema } from '../../schemas/forms'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 import { hasPublishedPage } from '../../utils/pages'
@@ -39,6 +39,7 @@ export default function ContactPage() {
       hp_field: '',
     },
   })
+  const enquiryType = useWatch({ control: form.control, name: 'type' })
 
   useEffect(() => {
     api.get('/api/v1/courses?per_page=24').then((response) => setCourses(response.data.data || [])).catch(() => setCourseError('Courses could not be loaded.'))
@@ -90,7 +91,7 @@ export default function ContactPage() {
               </select>
             </Field>
           </div>
-          {form.watch('type') === 'course' ? (
+          {enquiryType === 'course' ? (
             <>
               {courseError ? <p className="text-sm text-red-700" role="alert">{courseError}</p> : null}
               <Field label="Course" error={form.formState.errors.course?.message}>

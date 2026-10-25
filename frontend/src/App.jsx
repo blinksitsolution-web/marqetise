@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { Spinner } from './components/ui'
-import { useAuth } from './context/AuthContext'
+import { useAuth } from './context/useAuth'
 import AdminLayout from './layouts/AdminLayout'
 import PublicLayout from './layouts/PublicLayout'
 import HomePage from './pages/public/HomePage'
