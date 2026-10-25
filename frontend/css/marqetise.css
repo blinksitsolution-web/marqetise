@@ -78,6 +78,13 @@ h1, h2, h3, h4, .ks-section-title, .page-title .title {
   object-position: left center;
 }
 
+@media (min-width: 1200px) {
+  .main-header .logo,
+  .sticky-header .logo {
+    transform: translateY(-12px);
+  }
+}
+
 .mobile-menu,
 .search-popup {
   z-index: var(--mq-z-drawer);
@@ -113,10 +120,27 @@ button,
 }
 
 .preloader:before {
-  color: #ffffff;
+  content: none;
+}
+
+.preloader-logo {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 132px;
+  height: 42px;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  object-position: center;
+  background: #ffffff;
+  border-radius: 8px;
 }
 
 .preloader .loader {
+  width: 190px;
+  height: 190px;
+  margin: -95px 0 0 -95px;
   border-top-color: #113da5;
 }
 
