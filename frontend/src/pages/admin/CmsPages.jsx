@@ -77,8 +77,8 @@ export function CmsListPage() {
               {rows.map((row) => (
                 <tr key={row.id} className="border-t border-line">
                   <td className="px-4 py-3" data-label="Title"><p className="font-medium">{row.title || row.label || row.name || row.question}</p><p className="text-xs text-muted">{row.slug || row.key || row.context}</p></td>
-                  <td><Badge tone={statusTone(row.status || (row.is_visible || row.is_published ? 'published' : 'draft'))}>{row.status || (row.is_visible || row.is_published ? 'visible' : 'hidden')}</Badge></td>
-                  <td className="px-4 py-3 text-right">
+                  <td data-label="Status"><Badge tone={statusTone(row.status || (row.is_visible || row.is_published ? 'published' : 'draft'))}>{row.status || (row.is_visible || row.is_published ? 'visible' : 'hidden')}</Badge></td>
+                  <td className="px-4 py-3 text-right" data-label="Action">
                     {tab === 'pages' && manageable ? (
                       <span className="inline-flex min-h-11 items-center gap-4">
                         <Link to={`/admin/cms/pages/${row.id}`} className="font-semibold text-blue">Edit</Link>

@@ -48,7 +48,7 @@ export function InquiriesPage() {
                   <td data-label="Subject">{inquiry.subject}</td>
                   <td data-label="Status"><Badge tone={statusTone(inquiry.status)}>{inquiry.status.replace('_', ' ')}</Badge></td>
                   <td data-label="Received">{formatDate(inquiry.created_at)}</td>
-                  <td className="px-4 text-right" data-label=""><Link className="inline-flex min-h-11 items-center font-semibold text-blue" to={`/admin/inquiries/${inquiry.id}`}>Open</Link></td>
+                  <td className="px-4 text-right" data-label="Action"><Link className="inline-flex min-h-11 items-center font-semibold text-blue" to={`/admin/inquiries/${inquiry.id}`}>Open</Link></td>
                 </tr>
               ))}
             </tbody>
@@ -244,7 +244,7 @@ export function BookingsPage() {
                   <td data-label="Client">{booking.name}</td>
                   <td data-label="When">{formatDate(booking.preferred_date)} {booking.preferred_time}</td>
                   <td data-label="Status"><Badge tone={statusTone(booking.status)}>{booking.status}</Badge></td>
-                  <td className="px-4 text-right" data-label=""><button type="button" className="inline-flex min-h-11 items-center font-semibold text-blue" onClick={() => setSelected(booking)}>Review</button></td>
+                  <td className="px-4 text-right" data-label="Action"><button type="button" className="inline-flex min-h-11 items-center font-semibold text-blue" onClick={() => setSelected(booking)}>Review</button></td>
                 </tr>
               ))}
             </tbody>
@@ -316,7 +316,7 @@ export function StudentsPage() {
                   <td className="px-4 py-3" data-label="Student"><p className="font-medium">{student.name}</p><p className="text-xs text-muted">{student.email}</p></td>
                   <td data-label="Course">{student.course?.title || '—'}</td>
                   <td data-label="Status"><Badge tone={statusTone(student.status)}>{student.status}</Badge></td>
-                  <td className="px-4 text-right" data-label=""><Link className="inline-flex min-h-11 items-center font-semibold text-blue" to={`/admin/students/${student.id}`}>Profile</Link></td>
+                  <td className="px-4 text-right" data-label="Action"><Link className="inline-flex min-h-11 items-center font-semibold text-blue" to={`/admin/students/${student.id}`}>Profile</Link></td>
                 </tr>
               ))}
             </tbody>

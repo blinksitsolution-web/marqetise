@@ -108,11 +108,14 @@ export default function BookPage() {
                 const iso = toIsoDate(date)
                 const disabled = date < today || date.getDay() === 0 || date.getDay() === 6 || date.getMonth() !== month.getMonth()
                 const selected = form.watch('preferred_date') === iso
+                const label = date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
                 return (
                   <button
                     key={iso + date.getMonth()}
                     type="button"
                     disabled={disabled}
+                    aria-label={label}
+                    aria-pressed={selected}
                     onClick={() => form.setValue('preferred_date', iso, { shouldValidate: true })}
                     className={`min-h-11 rounded-xl py-2 text-sm ${selected ? 'bg-blue text-white' : 'bg-surface'} disabled:opacity-30`}
                   >
