@@ -35,6 +35,9 @@ describe('public page content', () => {
     const banner = aboutHtml.slice(aboutHtml.indexOf('<!-- Start main-content -->'), aboutHtml.indexOf('<!-- end main-content -->'))
     expect(aboutHtml).toContain('ks-about-2-area')
     expect(banner).toContain('data-about="banner"')
+    expect(banner).toContain('data-about="heading"')
+    expect(banner).toContain('data-about="banner-image"')
+    expect(banner).toContain('ks-about-2-thumb')
     expect(banner).not.toContain('data-cms="excerpt"')
     expect(aboutHtml).not.toContain('storytelling-led digital solutions')
     expect(readFileSync(`${root}/page-services.html`, 'utf8')).toContain('data-cms-services')
@@ -47,7 +50,9 @@ describe('public page content', () => {
     document.body.innerHTML = `
       <ul class="navigation"><li><a href="index.html">Home</a></li></ul>
       <a data-chrome="cta" href="/contact"><span class="text-1">Get In Touch</span><span class="text-2">Get In Touch</span></a>
+      <h1 data-about="heading">About Us</h1>
       <p class="text" data-about="banner" hidden></p>
+      <img data-about="banner-image" src="images/about/about-1-1.jpg" alt="">
       <div id="page-sections" data-page="about"></div>
       <div id="page-sections" data-page="team"></div>
     `
@@ -55,7 +60,7 @@ describe('public page content', () => {
     window.renderPageSections({
       blocks: {
         'site.chrome': { payload: { cta_label: 'Talk to us', cta_href: '/contact', nav: [{ label: 'About', href: '/about' }, { label: 'Bad', href: 'javascript:alert(1)' }] } },
-        'about.banner': { payload: { text: 'A short banner line' } },
+        'about.banner': { payload: { heading: 'Our story', text: 'A short banner line', image: '/storage/media/about.jpg', image_alt: 'The studio' } },
         'about.identity': { payload: { title: 'An agency and a training practice', body: 'Marqetise helps businesses.', mission: 'Make progress visible.', values: [{ title: 'Clarity', body: 'Say what the work is.' }] } },
       },
       services: [],
@@ -67,8 +72,11 @@ describe('public page content', () => {
     expect(about).toHaveTextContent('An agency and a training practice')
     expect(about).toHaveTextContent('Clarity')
     expect(document.querySelector('[data-page="team"]')).toBeEmptyDOMElement()
+    expect(document.querySelector('[data-about="heading"]')).toHaveTextContent('Our story')
     expect(document.querySelector('[data-about="banner"]')).toHaveTextContent('A short banner line')
     expect(document.querySelector('[data-about="banner"]')).not.toHaveAttribute('hidden')
+    expect(document.querySelector('[data-about="banner-image"]')).toHaveAttribute('src', '/storage/media/about.jpg')
+    expect(document.querySelector('[data-about="banner-image"]')).toHaveAttribute('alt', 'The studio')
   })
 
   it('saves the header button from the chrome editor', async () => {

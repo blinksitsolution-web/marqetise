@@ -11,6 +11,7 @@ use App\Models\Faq;
 use App\Models\Page;
 use App\Models\Service;
 use App\Models\Setting;
+use App\Support\PublicLogo;
 use Illuminate\Http\JsonResponse;
 
 class PublicSiteController extends Controller
@@ -19,7 +20,9 @@ class PublicSiteController extends Controller
     {
         $settings = Setting::query()->where('is_public', true)->get()
             ->mapWithKeys(fn (Setting $setting) => [$setting->key => Setting::decodeStored($setting->value)])
-            ->only(config('marqetise.public_setting_keys'));
+            ->only(config('marqetise.public_setting_keys'))
+            ->all();
+        $settings['logo_url'] = PublicLogo::available($settings['logo_url'] ?? null);
 
         $blocks = ContentBlock::query()->where('is_visible', true)->orderBy('sort_order')->get()
             ->mapWithKeys(fn (ContentBlock $block) => [$block->key => [

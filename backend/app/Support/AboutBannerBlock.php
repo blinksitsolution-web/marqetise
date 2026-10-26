@@ -21,7 +21,7 @@ class AboutBannerBlock
             'key' => 'about.banner',
             'group' => 'about',
             'label' => 'Banner',
-            'payload' => json_encode(['text' => '']),
+            'payload' => json_encode(['heading' => '', 'text' => '', 'image' => '', 'image_alt' => '']),
             'is_visible' => true,
             'sort_order' => 0,
             'created_at' => $now,

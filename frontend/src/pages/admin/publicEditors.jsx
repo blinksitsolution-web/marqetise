@@ -28,8 +28,13 @@ const aboutSections = [
     key: 'about.banner',
     group: 'about',
     label: 'Banner',
-    help: 'Optional line under the About heading, in the template banner. Leave it blank. The page summary is not printed on the banner.',
-    fields: [['text', 'Banner line', 'textarea']],
+    help: 'The first part of About: heading, a short line, and an image. Leave the line blank to hide it. The page summary is not printed here. With no image, the template photo stays.',
+    fields: [
+      ['heading', 'Heading', 'text'],
+      ['text', 'Short line', 'textarea'],
+      ['image', 'Image', 'image'],
+      ['image_alt', 'Image description', 'text'],
+    ],
   },
   {
     key: 'about.identity',
@@ -170,7 +175,7 @@ const chromeSections = [chromeSection]
 const legalSections = []
 
 export function AboutEditorPage() {
-  return <SectionEditorPage title="About page" seoPath="/admin/cms/about" liveHref="/about" pageSlug="about" sections={aboutSections} navLabel="About sections" pageHelp="The banner heading is the page title. The summary stays in the CMS and is not shown on the banner. Who we are also fills the side panel." />
+  return <SectionEditorPage title="About page" seoPath="/admin/cms/about" liveHref="/about" pageSlug="about" sections={aboutSections} navLabel="About sections" pageHelp="The first banner is the heading, short line, and image below. Leave the line blank to hide it. The summary stays in the CMS and is not shown on the banner. Who we are also fills the side panel." />
 }
 
 export function CoursesPageEditor() {
