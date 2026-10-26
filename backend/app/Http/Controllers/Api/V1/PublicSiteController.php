@@ -11,7 +11,7 @@ use App\Models\Faq;
 use App\Models\Page;
 use App\Models\Service;
 use App\Models\Setting;
-use App\Support\PublicLogo;
+use App\Support\PublicMedia;
 use Illuminate\Http\JsonResponse;
 
 class PublicSiteController extends Controller
@@ -22,13 +22,14 @@ class PublicSiteController extends Controller
             ->mapWithKeys(fn (Setting $setting) => [$setting->key => Setting::decodeStored($setting->value)])
             ->only(config('marqetise.public_setting_keys'))
             ->all();
-        $settings['logo_url'] = PublicLogo::available($settings['logo_url'] ?? null);
+        $logo = PublicMedia::publish($settings['logo_url'] ?? null);
+        $settings['logo_url'] = $logo === '' || $logo === null ? null : $logo;
 
         $blocks = ContentBlock::query()->where('is_visible', true)->orderBy('sort_order')->get()
             ->mapWithKeys(fn (ContentBlock $block) => [$block->key => [
                 'label' => $block->label,
                 'group' => $block->group,
-                'payload' => $block->payload,
+                'payload' => PublicMedia::present($block->payload),
             ]]);
 
         $faqs = Faq::query()->where('is_published', true)->orderBy('sort_order')->get()
@@ -43,13 +44,21 @@ class PublicSiteController extends Controller
                 'settings' => $settings,
                 'pages' => Page::query()->published()->orderBy('title')->get(['title', 'slug', 'excerpt', 'body', 'meta_title', 'meta_description']),
                 'blocks' => $blocks,
-                'services' => ServiceResource::collection(Service::query()->published()->orderBy('sort_order')->get()),
-                'featured_courses' => CourseResource::collection(
+                'services' => collect(ServiceResource::collection(Service::query()->published()->orderBy('sort_order')->get())->resolve())
+                    ->map(fn (array $service) => array_merge($service, [
+                        'image_path' => PublicMedia::publish($service['image_path'] ?? null) ?: null,
+                    ]))
+                    ->values(),
+                'featured_courses' => collect(CourseResource::collection(
                     Course::query()->published()->where('featured', true)->orderBy('sort_order')->limit(6)->get()
-                ),
+                )->resolve())
+                    ->map(fn (array $course) => array_merge($course, [
+                        'image_path' => PublicMedia::publish($course['image_path'] ?? null) ?: null,
+                    ]))
+                    ->values(),
                 'faqs' => $faqs,
                 'booking_times' => config('marqetise.booking_times'),
             ],
-        ]);
+        ])->header('Cache-Control', 'no-store');
     }
 }

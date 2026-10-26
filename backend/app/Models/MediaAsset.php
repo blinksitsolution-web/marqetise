@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['disk', 'path', 'original_name', 'mime', 'size', 'alt', 'uploaded_by'])]
+#[Fillable(['disk', 'path', 'original_name', 'mime', 'size', 'hash', 'alt', 'uploaded_by'])]
 class MediaAsset extends Model
 {
     protected $table = 'media';
+
+    protected $hidden = ['bytes'];
 
     public function uploader(): BelongsTo
     {
@@ -19,6 +21,10 @@ class MediaAsset extends Model
 
     public function url(): string
     {
-        return Storage::disk($this->disk)->url($this->path);
+        if (is_string($this->path) && str_starts_with($this->path, '/media/')) {
+            return $this->path;
+        }
+
+        return Storage::disk($this->disk ?: 'public')->url((string) $this->path);
     }
 }

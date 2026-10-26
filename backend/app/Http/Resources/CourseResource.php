@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\PublicMedia;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -29,7 +30,9 @@ class CourseResource extends JsonResource
             'instructor_name' => $this->instructor_name,
             'instructor_title' => $this->instructor_title,
             'instructor_bio' => $this->instructor_bio,
-            'image_path' => $this->image_path,
+            'image_path' => $request->is('api/v1/admin/*')
+                ? $this->image_path
+                : (PublicMedia::publish($this->image_path) ?: null),
             'sort_order' => $this->sort_order,
             'students_count' => $this->whenCounted('students'),
             'modules' => $this->whenLoaded('modules', fn () => $this->modules->map(fn ($module) => [

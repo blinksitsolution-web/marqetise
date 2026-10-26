@@ -24,9 +24,35 @@
   function safeMedia(value) {
     if (typeof value !== 'string') return '';
     var path = value.trim();
-    if (/^(https?:|javascript:|data:)/i.test(path) || path.indexOf('..') !== -1 || /[\s\\]/.test(path)) return '';
-    if (path.charAt(0) === '/' || path.indexOf('images/') === 0) return path;
+    if (!path || /^(javascript:|data:)/i.test(path) || path.indexOf('..') !== -1 || /[\s\\]/.test(path)) return '';
+    if (path.indexOf('images/') === 0) return path;
+    if (path.charAt(0) === '/' && path.charAt(1) !== '/') return path;
+    try {
+      var url = new URL(path);
+      if (url.origin === window.location.origin && (url.pathname.indexOf('/media/') === 0 || url.pathname.indexOf('/storage/') === 0)) {
+        return path;
+      }
+    } catch {
+      return '';
+    }
     return '';
+  }
+
+  function applyImage(img, src) {
+    if (!img || !src) return;
+    if (!img.hasAttribute('data-template-src')) {
+      img.setAttribute('data-template-src', img.getAttribute('src') || '');
+    }
+    img.onerror = function () {
+      var fallback = img.getAttribute('data-template-src') || '';
+      if (fallback && img.getAttribute('src') !== fallback) {
+        img.onerror = null;
+        img.setAttribute('src', fallback);
+        return;
+      }
+      img.hidden = true;
+    };
+    img.setAttribute('src', src);
   }
 
   function payloadOf(blocks, key) {
@@ -130,7 +156,7 @@
     var image = safeMedia(hero.image);
     if (image) {
       Array.prototype.forEach.call(document.querySelectorAll('.ks-slider-thumb > img'), function (img) {
-        img.setAttribute('src', image);
+        applyImage(img, image);
         if (text(hero.image_alt)) img.setAttribute('alt', text(hero.image_alt));
       });
     }
@@ -240,7 +266,7 @@
         var image = safeMedia(row.image);
         var photo = card.querySelector('.ks-team-thumb > img');
         if (photo && image) {
-          photo.setAttribute('src', image);
+          applyImage(photo, image);
           if (text(row.image_alt) || name) photo.setAttribute('alt', text(row.image_alt) || name);
         }
       });
@@ -269,6 +295,12 @@
       paint(document.querySelectorAll('.ks-testimonial-user-info span'), items(quotes), function (node, row) {
         if (text(row.role)) node.textContent = text(row.role);
       });
+      paint(document.querySelectorAll('.ks-testimonial-user-wrap .thumb img'), items(quotes), function (img, row) {
+        var image = safeMedia(row.image);
+        if (!image) return;
+        applyImage(img, image);
+        if (text(row.image_alt) || text(row.name)) img.setAttribute('alt', text(row.image_alt) || text(row.name));
+      });
     }
 
     var partners = payloadOf(blocks, 'home.partners');
@@ -279,7 +311,7 @@
     paint(document.querySelectorAll('.ks-brand-item img'), items(partners), function (img, row) {
       var image = safeMedia(row.image);
       if (!image) return;
-      img.setAttribute('src', image);
+      applyImage(img, image);
       if (text(row.image_alt) || text(row.name)) img.setAttribute('alt', text(row.image_alt) || text(row.name));
     });
 
@@ -303,7 +335,7 @@
         var image = safeMedia(row.image);
         var photo = card.querySelector('.ks-blog-thumb img');
         if (photo && image) {
-          photo.setAttribute('src', image);
+          applyImage(photo, image);
           if (text(row.image_alt)) photo.setAttribute('alt', text(row.image_alt));
         }
       });

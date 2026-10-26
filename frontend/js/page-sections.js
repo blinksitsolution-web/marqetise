@@ -25,6 +25,47 @@
     return value;
   }
 
+  function mediaSrc(value) {
+    if (typeof value !== 'string') return '';
+    var path = value.trim();
+    if (!path || /^(javascript:|data:)/i.test(path) || path.indexOf('..') !== -1 || /[\s\\]/.test(path)) return '';
+    if (path.indexOf('images/') === 0) return path;
+    if (path.charAt(0) === '/' && path.charAt(1) !== '/') return path;
+    try {
+      var url = new URL(path);
+      if (url.origin === window.location.origin && (url.pathname.indexOf('/media/') === 0 || url.pathname.indexOf('/storage/') === 0)) {
+        return path;
+      }
+    } catch {
+      return '';
+    }
+    return '';
+  }
+
+  function applyImage(img, src) {
+    if (!img || !src) return;
+    if (!img.hasAttribute('data-template-src')) {
+      img.setAttribute('data-template-src', img.getAttribute('src') || '');
+    }
+    img.onerror = function () {
+      var fallback = img.getAttribute('data-template-src') || '';
+      if (fallback && img.getAttribute('src') !== fallback) {
+        img.onerror = null;
+        img.setAttribute('src', fallback);
+        return;
+      }
+      img.hidden = true;
+    };
+    img.setAttribute('src', src);
+  }
+
+  function bindImageFallback(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    Array.prototype.forEach.call(scope.querySelectorAll('img[data-template-src]'), function (img) {
+      applyImage(img, img.getAttribute('src'));
+    });
+  }
+
   function payloadOf(blocks, key) {
     var block = blocks && blocks[key];
     if (!block || !block.payload || typeof block.payload !== 'object') return null;
@@ -56,9 +97,9 @@
   }
 
   function imageTag(src, alt) {
-    var path = safePath(src);
+    var path = mediaSrc(src);
     if (!path) return '';
-    return '<img src="' + esc(path) + '" alt="' + esc(text(alt)) + '">';
+    return '<img src="' + esc(path) + '" alt="' + esc(text(alt)) + '" data-template-src="">';
   }
 
   function card(title, body, href, image) {
@@ -127,7 +168,7 @@
         input.setAttribute('placeholder', placeholder);
       });
     }
-    var banner = safePath(chrome.banner_image);
+    var banner = mediaSrc(chrome.banner_image);
     if (banner) {
       Array.prototype.forEach.call(document.querySelectorAll('.page-title'), function (node) {
         node.style.backgroundImage = 'url("' + banner.replace(/"/g, '') + '")';
@@ -251,8 +292,8 @@
     if (heading && text(banner.heading)) heading.textContent = text(banner.heading);
     var image = document.querySelector('[data-about="banner-image"]');
     if (!image) return;
-    var src = safePath(banner.image);
-    if (src) image.setAttribute('src', src);
+    var src = mediaSrc(banner.image);
+    if (src) applyImage(image, src);
     var alt = text(banner.image_alt);
     if (alt) image.setAttribute('alt', alt);
   }
@@ -399,6 +440,7 @@
     if (page === 'news-item') html = detailHtml(blocks, 'home.news', 'article');
     if (page === 'service') html = serviceDetail(data.services);
     mount.innerHTML = html;
+    bindImageFallback(mount);
     mount.hidden = !text(mount.textContent);
   }
 
@@ -424,7 +466,7 @@
     var body = text(payload.body || payload.text);
     var rows = items(payload);
     if (!title && !body && !rows.length) return '';
-    var image = safePath(payload.image) || fallbackImage;
+    var image = mediaSrc(payload.image) || fallbackImage;
     var alt = text(payload.image_alt) || title;
     return '<div class="ks-about-2-area pt-110 pb-80">'
       + '<div class="container">'
@@ -434,7 +476,7 @@
       + (body ? '<p>' + lines(body) + '</p>' : '')
       + pointList(rows)
       + '</div></div>'
-      + '<div class="ks-about-2-thumb p-relative"><img src="' + esc(image) + '" alt="' + esc(alt) + '"></div>'
+      + '<div class="ks-about-2-thumb p-relative"><img src="' + esc(image) + '" alt="' + esc(alt) + '" data-template-src="' + esc(fallbackImage) + '"></div>'
       + '</div></div></div></div></div>';
   }
 
@@ -464,9 +506,9 @@
       copy.innerHTML = (body ? '<p>' + lines(body) + '</p>' : '') + pointList(rows);
     }
     var image = document.querySelector('[data-about-card="who-image"]');
-    var src = safePath(payload.image);
+    var src = mediaSrc(payload.image);
     if (image && src) {
-      image.setAttribute('src', src);
+      applyImage(image, src);
       var alt = text(payload.image_alt);
       if (alt) image.setAttribute('alt', alt);
     }
@@ -485,6 +527,7 @@
         extraCards(payloadOf(blocks, 'about.extra')),
       ].join('');
       mount.innerHTML = html;
+      bindImageFallback(mount);
       if (html) showed = true;
     }
     if (showed && document.body.getAttribute('data-cms-page') === 'about') {

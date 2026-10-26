@@ -51,7 +51,7 @@ class UpdateSettingsRequest extends FormRequest
             'settings.social_youtube' => ['sometimes', 'nullable', 'url', 'max:255'],
             'settings.meta_title' => ['sometimes', 'nullable', 'string', 'max:160'],
             'settings.meta_description' => ['sometimes', 'nullable', 'string', 'max:320'],
-            'settings.logo_url' => ['sometimes', 'nullable', 'string', 'max:255', 'regex:/^(\/storage\/|https?:\/\/)/'],
+            'settings.logo_url' => ['sometimes', 'nullable', 'string', 'max:255', 'regex:/^(\/storage\/|\/media\/|https?:\/\/)/'],
             'settings.notification_email' => ['sometimes', 'nullable', 'email', 'max:255'],
             'settings.ip_retention_days' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:3650'],
             'settings.*' => [function (string $attribute, mixed $value, \Closure $fail) use ($allowed): void {
