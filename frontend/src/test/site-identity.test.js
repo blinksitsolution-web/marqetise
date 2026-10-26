@@ -30,7 +30,22 @@ function mount() {
       <a data-site="social_facebook" aria-label="Facebook" hidden></a>
     </div>
     <div class="ks-copyright-text"><p>© Marqetise</p></div>
+    <div class="logo"><img src="images/logo-black.png" alt="Marqetise"></div>
+    <div class="ks-footer-widget-logo"><img src="images/logo-white.png" alt="Marqetise"></div>
+    <img class="preloader-logo" src="images/loader-logo.png" alt="Marqetise">
   `
+}
+
+function stubLogoProbe(fails) {
+  class FakeImage {
+    set src(value) {
+      queueMicrotask(() => {
+        if (fails) this.onerror(new Error('missing'))
+        else this.onload()
+      })
+    }
+  }
+  vi.stubGlobal('Image', FakeImage)
 }
 
 function boot(settings) {
@@ -117,5 +132,32 @@ describe('public template identity', () => {
     expect(document.querySelector('[data-site-group]')).toHaveAttribute('hidden')
     expect(document.body.textContent).not.toContain('Kentucky')
     expect(document.body.textContent).not.toContain('+92')
+  })
+
+  it('keeps each static brand logo when the settings logo fails to load', async () => {
+    stubLogoProbe(true)
+    await boot({
+      company_name: 'Marqetise',
+      logo_url: 'https://marqetise.onrender.com/storage/media/missing.jpg',
+    })
+
+    expect(document.querySelector('.logo img')).toHaveAttribute('src', 'images/logo-black.png')
+    expect(document.querySelector('.ks-footer-widget-logo img')).toHaveAttribute('src', 'images/logo-white.png')
+    expect(document.querySelector('.preloader-logo')).toHaveAttribute('src', 'images/loader-logo.png')
+    vi.unstubAllGlobals()
+  })
+
+  it('uses a settings logo after it loads', async () => {
+    stubLogoProbe(false)
+    await boot({
+      company_name: 'Marqetise',
+      logo_url: '/storage/media/logo.png',
+    })
+
+    const logo = document.querySelector('.logo img')
+    expect(logo).toHaveAttribute('src', '/storage/media/logo.png')
+    expect(logo).toHaveAttribute('data-brand-src', 'images/logo-black.png')
+    expect(logo).toHaveAttribute('alt', 'Marqetise')
+    vi.unstubAllGlobals()
   })
 })
