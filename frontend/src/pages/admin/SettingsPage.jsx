@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Seo from '../../components/Seo'
 import { MediaImageField, flushImageFields } from '../../components/MediaImageField'
+import { saveErrorAlert, savedAlert } from '../../components/saveAlert'
 import { Button, Field, Notice, Spinner, inputClass } from '../../components/ui'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 
@@ -122,8 +123,11 @@ export function SettingsPage() {
       const response = await api.put('/api/v1/admin/settings', { settings: settingsRef.current })
       applySettings(response)
       setMessage('Settings saved. Secrets and database credentials are not available here.')
+      savedAlert()
     } catch (saveError) {
-      setError(saveError?.response ? errorMessage(saveError) : (saveError.message || 'Settings were not saved.'))
+      const text = saveError?.response ? errorMessage(saveError) : (saveError.message || 'Settings were not saved.')
+      setError(text)
+      saveErrorAlert([text])
     }
   }
 
@@ -173,6 +177,7 @@ export function SettingsPage() {
                   <div className="space-y-3">
                     <LogoPreview url={settings.logo_url} />
                     <MediaImageField scope="settings" label="Logo" value={settings.logo_url || ''} onChange={(url) => replaceSettings({ ...settingsRef.current, logo_url: url })} onError={setError} />
+                    <p className="text-sm text-muted">If you remove the logo and save, the site uses the bundled Marqetise logo.</p>
                   </div>
                 </div>
               ) : (

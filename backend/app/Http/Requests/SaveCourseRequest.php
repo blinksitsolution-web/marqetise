@@ -60,6 +60,7 @@ class SaveCourseRequest extends FormRequest
                     $fail('The image must be a file uploaded on this site.');
                 }
             }],
+            'image_removed' => ['sometimes', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'modules' => ['nullable', 'array', 'max:20'],
             'modules.*.title' => ['required', 'string', 'max:160'],

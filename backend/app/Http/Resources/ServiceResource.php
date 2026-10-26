@@ -20,6 +20,7 @@ class ServiceResource extends JsonResource
             'image_path' => $request->is('api/v1/admin/*')
                 ? $this->image_path
                 : (PublicMedia::publish($this->image_path) ?: null),
+            'image_removed' => (bool) $this->image_removed,
             'starting_price' => $this->starting_price,
             'duration_label' => $this->duration_label,
             'status' => $this->status,

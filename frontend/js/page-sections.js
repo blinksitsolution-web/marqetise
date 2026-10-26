@@ -42,6 +42,16 @@
     return '';
   }
 
+  function explicitlyRemoved(record) {
+    return !!(record && (record.image_removed === true || record.image_removed === 1));
+  }
+
+  function hideRemoved(node) {
+    if (!node) return;
+    node.setAttribute('data-image-removed', '');
+    node.hidden = true;
+  }
+
   function applyImage(img, src) {
     if (!img || !src) return;
     if (!img.hasAttribute('data-template-src')) {
@@ -168,11 +178,17 @@
         input.setAttribute('placeholder', placeholder);
       });
     }
-    var banner = mediaSrc(chrome.banner_image);
-    if (banner) {
+    if (chrome.banner_image_removed === true || chrome.banner_image_removed === 1) {
       Array.prototype.forEach.call(document.querySelectorAll('.page-title'), function (node) {
-        node.style.backgroundImage = 'url("' + banner.replace(/"/g, '') + '")';
+        node.style.backgroundImage = 'none';
       });
+    } else {
+      var banner = mediaSrc(chrome.banner_image);
+      if (banner) {
+        Array.prototype.forEach.call(document.querySelectorAll('.page-title'), function (node) {
+          node.style.backgroundImage = 'url("' + banner.replace(/"/g, '') + '")';
+        });
+      }
     }
   }
 
@@ -292,6 +308,10 @@
     if (heading && text(banner.heading)) heading.textContent = text(banner.heading);
     var image = document.querySelector('[data-about="banner-image"]');
     if (!image) return;
+    if (explicitlyRemoved(banner)) {
+      hideRemoved(image.closest('.ks-about-2-thumb') || image);
+      return;
+    }
     var src = mediaSrc(banner.image);
     if (src) applyImage(image, src);
     var alt = text(banner.image_alt);
@@ -342,7 +362,7 @@
     var cards = listOf(services).map(function (service) {
       if (!service || !text(service.name)) return '';
       var href = '/service-details?slug=' + encodeURIComponent(service.slug || '');
-      return card(service.name, service.summary || '', href, imageTag(service.image_path, service.name));
+      return card(service.name, service.summary || '', href, imageTag(explicitlyRemoved(service) ? '' : service.image_path, service.name));
     }).join('');
     return section(hero.title, hero.intro, grid(cards));
   }
@@ -354,7 +374,7 @@
       var title = text(item.title || item.name);
       if (!title && !text(item.summary || item.body || item.quote)) return '';
       var href = safePath(item.href) || (hrefFor ? hrefFor(item) : '');
-      var image = imageTag(item.image, item.image_alt || title);
+      var image = imageTag(explicitlyRemoved(item) ? '' : item.image, item.image_alt || title);
       var body = item.summary || item.body || item.quote || '';
       if (blockKey === 'home.team') body = item.role || item.bio || '';
       if (blockKey === 'home.testimonials') {
@@ -376,7 +396,7 @@
     var title = text(item.title || item.name);
     var heading = document.querySelector('h1.title');
     if (heading && title) heading.textContent = title;
-    var image = imageTag(item.image, item.image_alt || title);
+    var image = imageTag(explicitlyRemoved(item) ? '' : item.image, item.image_alt || title);
     var body = item.summary || item.bio || item.body || '';
     var role = text(item.role);
     return section('', role, image + (body ? '<p>' + lines(body) + '</p>' : ''));
@@ -389,7 +409,7 @@
     var heading = document.querySelector('h1.title');
     if (heading && service.name) heading.textContent = service.name;
     if (service.name) document.title = service.name + ' | Marqetise';
-    return section('', service.summary || '', imageTag(service.image_path, service.name) + (service.description ? '<p>' + lines(service.description) + '</p>' : ''));
+    return section('', service.summary || '', imageTag(explicitlyRemoved(service) ? '' : service.image_path, service.name) + (service.description ? '<p>' + lines(service.description) + '</p>' : ''));
   }
 
   function packagesHtml(blocks) {
@@ -466,8 +486,12 @@
     var body = text(payload.body || payload.text);
     var rows = items(payload);
     if (!title && !body && !rows.length) return '';
-    var image = mediaSrc(payload.image) || fallbackImage;
+    var removed = explicitlyRemoved(payload);
+    var image = removed ? '' : (mediaSrc(payload.image) || fallbackImage);
     var alt = text(payload.image_alt) || title;
+    var thumb = removed
+      ? ''
+      : '<div class="ks-about-2-thumb p-relative"><img src="' + esc(image) + '" alt="' + esc(alt) + '" data-template-src="' + esc(fallbackImage) + '"></div>';
     return '<div class="ks-about-2-area pt-110 pb-80">'
       + '<div class="container">'
       + (title ? '<h2 class="mq-section-heading">' + esc(title) + '</h2>' : '')
@@ -476,7 +500,7 @@
       + (body ? '<p>' + lines(body) + '</p>' : '')
       + pointList(rows)
       + '</div></div>'
-      + '<div class="ks-about-2-thumb p-relative"><img src="' + esc(image) + '" alt="' + esc(alt) + '" data-template-src="' + esc(fallbackImage) + '"></div>'
+      + thumb
       + '</div></div></div></div></div>';
   }
 
@@ -488,6 +512,7 @@
         body: item.body,
         image: item.image,
         image_alt: item.image_alt,
+        image_removed: item.image_removed,
         items: [],
       }, 'images/about/about-4-1.jpg');
     }).join('');
@@ -506,11 +531,15 @@
       copy.innerHTML = (body ? '<p>' + lines(body) + '</p>' : '') + pointList(rows);
     }
     var image = document.querySelector('[data-about-card="who-image"]');
-    var src = mediaSrc(payload.image);
-    if (image && src) {
-      applyImage(image, src);
-      var alt = text(payload.image_alt);
-      if (alt) image.setAttribute('alt', alt);
+    if (image && explicitlyRemoved(payload)) {
+      hideRemoved(image.closest('.ks-about-2-thumb') || image);
+    } else {
+      var src = mediaSrc(payload.image);
+      if (image && src) {
+        applyImage(image, src);
+        var alt = text(payload.image_alt);
+        if (alt) image.setAttribute('alt', alt);
+      }
     }
     return true;
   }

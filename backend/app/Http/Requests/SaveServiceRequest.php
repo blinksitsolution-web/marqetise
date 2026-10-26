@@ -38,6 +38,7 @@ class SaveServiceRequest extends FormRequest
                     $fail('The image must be a file uploaded on this site.');
                 }
             }],
+            'image_removed' => ['sometimes', 'boolean'],
             'starting_price' => ['nullable', 'numeric', 'min:0', 'max:999999'],
             'duration_label' => ['nullable', 'string', 'max:80'],
             'status' => ['required', Rule::in(['draft', 'published'])],

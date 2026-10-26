@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { MediaImageField, flushImageFields } from '../../components/MediaImageField'
+import { saveErrorAlert, savedAlert } from '../../components/saveAlert'
 import { Button, Field, Notice, Spinner, inputClass } from '../../components/ui'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
-import { emptyItem, sectionPayload } from './homeSections'
+import { emptyItem, imageFlags, sectionPayload } from './homeSections'
 
 function move(items, index, direction) {
   const target = index + direction
@@ -13,6 +14,11 @@ function move(items, index, direction) {
   const [row] = next.splice(index, 1)
   next.splice(target, 0, row)
   return next
+}
+
+function failureText(saveError, fallback) {
+  if (saveError?.response) return errorMessage(saveError, fallback)
+  return saveError?.message || fallback
 }
 
 function FieldControl({ field, value, onChange, onError, scope }) {
@@ -47,7 +53,7 @@ function ItemList({ label, fields, rows, onChange, onError, scope }) {
               scope={scope}
               value={item[field[0]] || ''}
               onError={onError}
-              onChange={(value) => onChange((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, [field[0]]: value } : row))}
+              onChange={(value) => onChange((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, ...imageFlags(field, value) } : row))}
             />
           ))}
           <div className="flex flex-wrap gap-3">
@@ -76,10 +82,11 @@ export function SectionEditorPage({
   const blocksRef = useRef(null)
   const [saved, setSaved] = useState(null)
   const [page, setPage] = useState(null)
+  const pageRef = useRef(null)
   const [savedPage, setSavedPage] = useState(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const [saving, setSaving] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -104,6 +111,7 @@ export function SectionEditorPage({
         ? (pageResponse.data.data || []).find((item) => item.slug === pageSlug) || null
         : null
       blocksRef.current = next
+      pageRef.current = record
       setBlocks(next)
       setSaved(structuredClone(next))
       setPage(record)
@@ -140,68 +148,104 @@ export function SectionEditorPage({
     updatePayload(key, { [listKey]: items })
   }
 
-  async function saveSection(section) {
-    setSaving(section.key)
-    setError('')
-    setMessage('')
-    try {
-      await flushImageFields(section.key)
-      const block = blocksRef.current[section.key]
-      const body = {
-        key: section.key,
-        group: section.group || defaultGroup,
-        label: block.label || section.label,
-        payload: block.payload,
-        is_visible: Boolean(block.is_visible),
-        sort_order: block.sort_order || 0,
-      }
-      await ensureCsrf()
-      const response = block.id
-        ? await api.put(`/api/v1/admin/blocks/${block.id}`, body)
-        : await api.post('/api/v1/admin/blocks', body)
-      const stored = response.data.data
-      const next = {
-        ...block,
-        id: stored.id,
-        is_visible: Boolean(stored.is_visible),
-        payload: sectionPayload(section, stored.payload),
-      }
-      blocksRef.current = { ...blocksRef.current, [section.key]: next }
-      setBlocks(blocksRef.current)
-      setSaved((current) => ({ ...current, [section.key]: structuredClone(next) }))
-      setMessage(`${section.label} saved.`)
-    } catch (saveError) {
-      setError(saveError?.response ? errorMessage(saveError, `${section.label} was not saved.`) : (saveError.message || `${section.label} was not saved.`))
-    } finally {
-      setSaving('')
-    }
+  function replacePage(next) {
+    pageRef.current = next
+    setPage(next)
   }
 
-  async function savePage(event) {
-    event.preventDefault()
-    if (!page) return
-    setSaving('page')
+  async function persistSection(section) {
+    const block = blocksRef.current[section.key]
+    const body = {
+      key: section.key,
+      group: section.group || defaultGroup,
+      label: block.label || section.label,
+      payload: block.payload,
+      is_visible: Boolean(block.is_visible),
+      sort_order: block.sort_order || 0,
+    }
+    await ensureCsrf()
+    const response = block.id
+      ? await api.put(`/api/v1/admin/blocks/${block.id}`, body)
+      : await api.post('/api/v1/admin/blocks', body)
+    const stored = response.data.data
+    const next = {
+      ...block,
+      id: stored.id,
+      is_visible: Boolean(stored.is_visible),
+      payload: sectionPayload(section, stored.payload),
+    }
+    blocksRef.current = { ...blocksRef.current, [section.key]: next }
+    setBlocks(blocksRef.current)
+    setSaved((current) => ({ ...current, [section.key]: structuredClone(next) }))
+    return section.label
+  }
+
+  async function persistPage() {
+    const current = pageRef.current
+    if (!current) return null
+    await ensureCsrf()
+    const response = await api.put(`/api/v1/admin/pages/${current.id}`, {
+      title: current.title,
+      slug: current.slug,
+      excerpt: current.excerpt || '',
+      body: current.body || '',
+      meta_title: current.meta_title || '',
+      meta_description: current.meta_description || '',
+      status: current.status,
+    })
+    pageRef.current = response.data.data
+    setPage(response.data.data)
+    setSavedPage(structuredClone(response.data.data))
+    return 'Page text'
+  }
+
+  async function saveAll() {
+    setSaving(true)
     setError('')
     setMessage('')
     try {
-      await ensureCsrf()
-      const response = await api.put(`/api/v1/admin/pages/${page.id}`, {
-        title: page.title,
-        slug: page.slug,
-        excerpt: page.excerpt || '',
-        body: page.body || '',
-        meta_title: page.meta_title || '',
-        meta_description: page.meta_description || '',
-        status: page.status,
-      })
-      setPage(response.data.data)
-      setSavedPage(structuredClone(response.data.data))
-      setMessage('Page text saved.')
-    } catch (saveError) {
-      setError(errorMessage(saveError, 'The page text was not saved.'))
-    } finally {
-      setSaving('')
+      await flushImageFields()
+    } catch (flushError) {
+      const text = flushError.message || 'The image was not uploaded.'
+      setError(text)
+      setSaving(false)
+      saveErrorAlert([text])
+      return
     }
+
+    const savedSnapshot = saved
+    const dirtySections = sections.filter((section) => JSON.stringify(blocksRef.current[section.key]) !== JSON.stringify(savedSnapshot?.[section.key]))
+    const pageDirty = Boolean(pageRef.current && JSON.stringify(pageRef.current) !== JSON.stringify(savedPage))
+    const savedLabels = []
+    const failures = []
+
+    for (const section of dirtySections) {
+      try {
+        savedLabels.push(await persistSection(section))
+      } catch (saveError) {
+        failures.push(`${section.label}: ${failureText(saveError, 'was not saved.')}`)
+      }
+    }
+    if (pageDirty) {
+      try {
+        const label = await persistPage()
+        if (label) savedLabels.push(label)
+      } catch (saveError) {
+        failures.push(`Page text: ${failureText(saveError, 'was not saved.')}`)
+      }
+    }
+
+    setSaving(false)
+    if (failures.length) {
+      const lines = []
+      if (savedLabels.length) lines.push(`Saved: ${savedLabels.join(', ')}.`)
+      lines.push(...failures)
+      setError(failures.join(' '))
+      saveErrorAlert(lines)
+      return
+    }
+    setMessage('Saved.')
+    savedAlert()
   }
 
   if (error && !blocks) return <Notice tone="error">{error}</Notice>
@@ -219,7 +263,10 @@ export function SectionEditorPage({
           <h1 className="text-2xl font-semibold">{title}</h1>
           <p className="text-sm text-muted">{dirty ? 'You have unsaved changes.' : 'All sections match the last save.'}</p>
         </div>
-        <a className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-sm font-semibold" href={liveHref} target="_blank" rel="noopener noreferrer">View live page</a>
+        <div className="flex flex-wrap items-center gap-3">
+          <a className="inline-flex min-h-11 items-center rounded-full border border-line bg-white px-4 text-sm font-semibold" href={liveHref} target="_blank" rel="noopener noreferrer">View live page</a>
+          <Button type="button" variant="blue" disabled={saving} onClick={saveAll}>{saving ? 'Saving…' : 'Save'}</Button>
+        </div>
       </div>
       {message ? <Notice tone="success">{message}</Notice> : null}
       {error ? <div className="mt-3"><Notice tone="error">{error}</Notice></div> : null}
@@ -236,27 +283,26 @@ export function SectionEditorPage({
         </nav>
         <div className="min-w-0 space-y-4">
           {pageSlug ? (
-            <form id={`editor-${pageSlug}`} className="space-y-3 rounded-2xl bg-white p-4 sm:p-6" onSubmit={savePage}>
+            <div id={`editor-${pageSlug}`} className="space-y-3 rounded-2xl bg-white p-4 sm:p-6">
               <h2 className="text-xl font-semibold">Page text</h2>
               {pageHelp ? <p className="text-sm text-muted">{pageHelp}</p> : null}
               {page ? (
                 <>
-                  <Field label="Heading"><input className={inputClass} value={page.title || ''} onChange={(event) => setPage({ ...page, title: event.target.value })} /></Field>
-                  <Field label="Summary"><textarea className={inputClass} value={page.excerpt || ''} onChange={(event) => setPage({ ...page, excerpt: event.target.value })} /></Field>
-                  <Field label="Body"><textarea className={`${inputClass} min-h-32`} value={page.body || ''} onChange={(event) => setPage({ ...page, body: event.target.value })} /></Field>
-                  <Field label="Meta title"><input className={inputClass} value={page.meta_title || ''} onChange={(event) => setPage({ ...page, meta_title: event.target.value })} /></Field>
-                  <Field label="Meta description"><textarea className={inputClass} value={page.meta_description || ''} onChange={(event) => setPage({ ...page, meta_description: event.target.value })} /></Field>
+                  <Field label="Heading"><input className={inputClass} value={page.title || ''} onChange={(event) => replacePage({ ...pageRef.current, title: event.target.value })} /></Field>
+                  <Field label="Summary"><textarea className={inputClass} value={page.excerpt || ''} onChange={(event) => replacePage({ ...pageRef.current, excerpt: event.target.value })} /></Field>
+                  <Field label="Body"><textarea className={`${inputClass} min-h-32`} value={page.body || ''} onChange={(event) => replacePage({ ...pageRef.current, body: event.target.value })} /></Field>
+                  <Field label="Meta title"><input className={inputClass} value={page.meta_title || ''} onChange={(event) => replacePage({ ...pageRef.current, meta_title: event.target.value })} /></Field>
+                  <Field label="Meta description"><textarea className={inputClass} value={page.meta_description || ''} onChange={(event) => replacePage({ ...pageRef.current, meta_description: event.target.value })} /></Field>
                   <Field label="Status">
-                    <select className={inputClass} value={page.status || 'draft'} onChange={(event) => setPage({ ...page, status: event.target.value })}>
+                    <select className={inputClass} value={page.status || 'draft'} onChange={(event) => replacePage({ ...pageRef.current, status: event.target.value })}>
                       <option value="draft">Draft</option>
                       <option value="published">Published</option>
                       <option value="archived">Archived</option>
                     </select>
                   </Field>
-                  <Button type="submit" variant="blue" disabled={saving === 'page'}>Save page text</Button>
                 </>
               ) : <p className="text-sm text-muted">This page record is not in the CMS yet.</p>}
-            </form>
+            </div>
           ) : null}
           {sections.map((section) => {
             const block = blocks[section.key]
@@ -283,7 +329,7 @@ export function SectionEditorPage({
                     scope={section.key}
                     value={block.payload[field[0]] || ''}
                     onError={setError}
-                    onChange={(value) => updatePayload(section.key, { [field[0]]: value })}
+                    onChange={(value) => updatePayload(section.key, imageFlags(field, value))}
                   />
                 ))}
                 {section.items ? (
@@ -307,7 +353,6 @@ export function SectionEditorPage({
                     onChange={(items) => updateItems(section.key, list.key, items)}
                   />
                 ))}
-                <Button type="button" variant="blue" disabled={saving === section.key} onClick={() => saveSection(section)}>Save {section.label}</Button>
               </section>
             )
           })}

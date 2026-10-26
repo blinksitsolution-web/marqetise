@@ -101,6 +101,7 @@ describe('admin remediation', () => {
     expect(api.put).toHaveBeenCalledWith('/api/v1/admin/blocks/3', expect.objectContaining({
       payload: expect.objectContaining({ headline: 'New headline', primary_href: '/book' }),
     }))
+    expect(await screen.findByRole('dialog', { name: 'Saved' })).toHaveTextContent('Your changes are live.')
   })
 
   it('saves the home hero from labeled fields', async () => {
@@ -145,13 +146,69 @@ describe('admin remediation', () => {
     const headline = await screen.findByRole('textbox', { name: 'Headline' })
     await user.clear(headline)
     await user.type(headline, 'New headline')
-    await user.click(screen.getByRole('button', { name: 'Save Hero' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
 
+    expect(api.put).toHaveBeenCalledTimes(1)
     expect(api.put).toHaveBeenCalledWith('/api/v1/admin/blocks/3', expect.objectContaining({
       key: 'home.hero',
       is_visible: true,
       payload: expect.objectContaining({ headline: 'New headline', primary_href: '/book' }),
     }))
+    expect(await screen.findByRole('dialog', { name: 'Saved' })).toHaveTextContent('Saved')
+    expect(screen.getByRole('dialog', { name: 'Saved' })).toHaveTextContent('Your changes are live.')
+  })
+
+  it('reports a partial save in one dialog', async () => {
+    const user = userEvent.setup()
+    api.get.mockImplementation((url) => {
+      if (String(url).includes('/blocks')) {
+        return Promise.resolve({
+          data: {
+            data: [{
+              id: 3,
+              key: 'home.hero',
+              group: 'home',
+              label: 'Home hero',
+              is_visible: true,
+              sort_order: 1,
+              payload: { headline: 'Old headline', primary_label: 'Book', primary_href: '/book' },
+            }],
+          },
+        })
+      }
+      return Promise.resolve({
+        data: {
+          data: [{ id: 1, title: 'Home', slug: 'home', excerpt: '', body: 'Saved body', meta_title: '', meta_description: '', status: 'published' }],
+        },
+      })
+    })
+    api.put.mockResolvedValue({
+      data: {
+        data: {
+          id: 3,
+          key: 'home.hero',
+          label: 'Home hero',
+          is_visible: true,
+          sort_order: 1,
+          payload: { headline: 'New headline', primary_label: 'Book', primary_href: '/book' },
+        },
+      },
+    })
+    api.post.mockRejectedValue({ response: { status: 500, data: { message: 'Focus failed.' } } })
+
+    render(<MemoryRouter><HomeEditorPage /></MemoryRouter>)
+    const headline = await screen.findByRole('textbox', { name: 'Headline' })
+    await user.clear(headline)
+    await user.type(headline, 'New headline')
+    const toggles = screen.getAllByRole('checkbox', { name: 'Show on the website' })
+    await user.click(toggles[1])
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Some changes were not saved' })
+    expect(dialog).toHaveTextContent('Some changes were not saved')
+    expect(dialog).toHaveTextContent('Focus areas: Focus failed.')
+    expect(api.put).toHaveBeenCalledWith('/api/v1/admin/blocks/3', expect.anything())
+    expect(api.post).toHaveBeenCalledWith('/api/v1/admin/blocks', expect.objectContaining({ key: 'home.focus' }))
   })
 
   it('shows a logo upload error', async () => {
@@ -189,6 +246,14 @@ describe('admin remediation', () => {
 
     await user.type(screen.getByLabelText('Company name'), '!')
     expect(screen.getByText('You have unsaved changes.')).toBeInTheDocument()
+    api.put.mockResolvedValue({
+      data: {
+        data: { company_name: 'Marqetise!', tagline: 'Beyond Marketing', email: '', logo_url: '' },
+        mail_can_deliver: false,
+      },
+    })
+    await user.click(screen.getByRole('button', { name: 'Save settings' }))
+    expect(await screen.findByRole('dialog', { name: 'Saved' })).toHaveTextContent('Your changes are live.')
   })
 
   it('opens a CMS submenu of every public page', async () => {

@@ -1333,3 +1333,7 @@ h2.ks-footer-widget-title {
     padding: 6.5rem 0 3rem;
   }
 }
+
+[data-image-removed] {
+  display: none !important;
+}

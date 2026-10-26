@@ -5,6 +5,7 @@ import { MediaImageField, flushImageFields } from '../../components/MediaImageFi
 import { Badge, Button, EmptyState, Field, Modal, Notice, Pager, Skeleton, inputClass } from '../../components/ui'
 import { statusTone } from '../../components/statusTone'
 import { useAuth } from '../../context/useAuth'
+import { saveErrorAlert, savedAlert } from '../../components/saveAlert'
 import { api, can, ensureCsrf, errorMessage } from '../../services/api'
 
 export function CmsListPage() {
@@ -258,7 +259,7 @@ function ItemList({ label, items, fields, onChange }) {
 }
 
 function blankForm() {
-  return { question: '', answer: '', context: 'contact', is_published: false, name: '', slug: '', summary: '', description: '', icon: 'spark', image_path: '', duration_label: '', starting_price: '', status: 'draft', key: '', label: '', group: 'home', is_visible: false, payload: '{"title":"","items":[]}' }
+  return { question: '', answer: '', context: 'contact', is_published: false, name: '', slug: '', summary: '', description: '', icon: 'spark', image_path: '', image_removed: false, duration_label: '', starting_price: '', status: 'draft', key: '', label: '', group: 'home', is_visible: false, payload: '{"title":"","items":[]}' }
 }
 
 function recordForm(record) {
@@ -270,6 +271,8 @@ function recordForm(record) {
     starting_price: record.starting_price ?? '',
     is_published: Boolean(record.is_published),
     is_visible: Boolean(record.is_visible),
+    image_path: record.image_path || '',
+    image_removed: Boolean(record.image_removed),
     payload: JSON.stringify(record.payload || { title: '', items: [] }, null, 2),
   }
 }
@@ -305,7 +308,9 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
     try {
       await flushImageFields('service')
     } catch (flushError) {
-      setError(flushError.message || 'The image was not uploaded.')
+      const text = flushError.message || 'The image was not uploaded.'
+      setError(text)
+      saveErrorAlert([text])
       return
     }
     const current = formRef.current
@@ -324,6 +329,7 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
           icon: current.icon || 'spark',
           duration_label: current.duration_label || null,
           image_path: current.image_path || null,
+          image_removed: Boolean(current.image_removed),
           starting_price: current.starting_price === '' ? null : current.starting_price,
           status: current.status,
           sort_order: current.sort_order || 0,
@@ -336,16 +342,20 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
           parsed = JSON.parse(current.payload)
         } catch {
           setError('The JSON payload is not valid.')
+          saveErrorAlert(['The JSON payload is not valid.'])
           return
         }
         const payload = { key: current.key, group: current.group, label: current.label, is_visible: Boolean(current.is_visible), sort_order: current.sort_order || 0, payload: parsed }
         if (editing) await api.put(`/api/v1/admin/blocks/${record.id}`, payload)
         else await api.post('/api/v1/admin/blocks', payload)
       }
+      savedAlert()
       close()
       onSaved()
     } catch (saveError) {
-      setError(errorMessage(saveError, 'The content was not saved.'))
+      const text = errorMessage(saveError, 'The content was not saved.')
+      setError(text)
+      saveErrorAlert([text])
     }
   }
 
@@ -369,7 +379,7 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
                 <Field label="Name"><input className={inputClass} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></Field>
                 <Field label="Slug"><input className={inputClass} value={form.slug} onChange={(event) => setForm({ ...form, slug: event.target.value })} /></Field>
                 <Field label="Summary"><textarea className={inputClass} value={form.summary} onChange={(event) => setForm({ ...form, summary: event.target.value })} /></Field>
-                <MediaImageField scope="service" label="Service image" value={form.image_path || ''} onChange={(url) => { formRef.current = { ...formRef.current, image_path: url }; setForm(formRef.current) }} onError={setError} />
+                <MediaImageField scope="service" label="Service image" value={form.image_path || ''} onChange={(url) => { formRef.current = { ...formRef.current, image_path: url, image_removed: url === '' }; setForm(formRef.current) }} onError={setError} />
                 <Field label="Description"><textarea className={inputClass} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></Field>
                 <Field label="Duration"><input className={inputClass} value={form.duration_label} onChange={(event) => setForm({ ...form, duration_label: event.target.value })} /></Field>
                 <Field label="Starting price"><input className={inputClass} inputMode="decimal" value={form.starting_price} onChange={(event) => setForm({ ...form, starting_price: event.target.value })} /></Field>

@@ -107,6 +107,39 @@ describe('public page content', () => {
     expect(document.querySelector('[data-about-source="body"]')).toHaveAttribute('hidden')
   })
 
+  it('hides an about image after it is removed and keeps the template photo until then', () => {
+    document.body.innerHTML = `
+      <div class="ks-about-2-thumb"><img data-about="banner-image" src="images/about/about-1-1.jpg" alt=""></div>
+      <div class="ks-about-2-thumb"><img data-about-card="who-image" src="images/about/about-2.jpg" alt=""></div>
+      <h2 data-about-card="who-title">Who we are</h2>
+      <div data-about-card="who-copy"></div>
+      <div id="about-cards"></div>
+    `
+    window.eval(readFileSync(`${root}/js/page-sections.js`, 'utf8'))
+    window.renderPageSections({
+      blocks: {
+        'about.story': { payload: { title: 'Our story', body: 'Began as DigiGrowth Hub.', image: '' } },
+      },
+    })
+    expect(document.getElementById('about-cards').innerHTML).toContain('images/about/about-1-2.jpg')
+
+    window.renderPageSections({
+      blocks: {
+        'about.banner': { payload: { image: '', image_removed: true } },
+        'about.who': { payload: { title: 'Who we are', body: 'Three business units.', image: '', image_removed: true } },
+        'about.story': { payload: { title: 'Our story', body: 'Began as DigiGrowth Hub.', image: '', image_removed: true } },
+      },
+    })
+    const banner = document.querySelector('[data-about="banner-image"]')
+    expect(banner.closest('.ks-about-2-thumb')).toHaveAttribute('hidden')
+    expect(banner.closest('.ks-about-2-thumb')).toHaveAttribute('data-image-removed', '')
+    expect(document.querySelector('[data-about-card="who-image"]').closest('.ks-about-2-thumb')).toHaveAttribute('hidden')
+    const cards = document.getElementById('about-cards')
+    expect(cards.innerHTML).not.toContain('images/about/about-1-2.jpg')
+    expect(cards.querySelector('img')).toBeNull()
+    expect(cards).toHaveTextContent('Our story')
+  })
+
   it('saves the header button from the chrome editor', async () => {
     const user = userEvent.setup()
     api.get.mockResolvedValue({
@@ -129,12 +162,13 @@ describe('public page content', () => {
     const label = await screen.findByRole('textbox', { name: 'Header button label' })
     await user.clear(label)
     await user.type(label, 'Talk to us')
-    await user.click(screen.getByRole('button', { name: 'Save Header and footer' }))
+    await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(api.put).toHaveBeenCalledWith('/api/v1/admin/blocks/9', expect.objectContaining({
       key: 'site.chrome',
       group: 'global',
       payload: expect.objectContaining({ cta_label: 'Talk to us', cta_href: '/contact' }),
     }))
+    expect(await screen.findByRole('dialog', { name: 'Saved' })).toHaveTextContent('Your changes are live.')
   })
 })

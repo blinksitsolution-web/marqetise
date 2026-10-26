@@ -14,7 +14,9 @@ test('selecting an About banner image uploads it, save stores it, and the public
   await signIn(page)
   await page.goto('/admin/cms/about')
   const banner = page.locator('[id="editor-about.banner"]')
-  await expect(banner.getByRole('button', { name: 'Save Banner' })).toBeVisible()
+  const save = page.getByRole('button', { name: 'Save', exact: true })
+  await expect(save).toBeVisible()
+  await expect(banner.getByRole('button', { name: /Save / })).toHaveCount(0)
 
   const uploaded = page.waitForResponse((response) => response.url().includes('/api/v1/admin/media') && response.request().method() === 'POST')
   await banner.locator('input[type="file"]').setInputFiles({ name: 'pixel.png', mimeType: 'image/png', buffer: png })
@@ -25,13 +27,16 @@ test('selecting an About banner image uploads it, save stores it, and the public
   await expect(banner.locator('img')).toHaveAttribute('src', path)
 
   const saved = page.waitForResponse((response) => response.request().method() === 'PUT' && /\/api\/v1\/admin\/blocks\/\d+$/.test(new URL(response.url()).pathname))
-  await banner.getByRole('button', { name: 'Save Banner' }).click()
+  await save.click()
   const put = await saved
   expect(put.status()).toBe(200)
   const body = put.request().postDataJSON()
   // Production block 24 is about.banner. The editor and the public About banner both use payload.image.
   expect(body.key).toBe('about.banner')
   expect(body.payload.image).toBe(path)
+
+  await expect(page.getByRole('dialog')).toContainText('Your changes are live.')
+  await page.getByRole('button', { name: 'OK' }).click()
 
   const site = await page.request.get('/api/v1/site')
   expect(site.ok()).toBe(true)
@@ -58,7 +63,7 @@ test('saving during an in-flight upload still stores the media url', async ({ pa
   const banner = page.locator('[id="editor-about.banner"]')
   const saved = page.waitForRequest((request) => request.method() === 'PUT' && /\/api\/v1\/admin\/blocks\/\d+$/.test(new URL(request.url()).pathname))
   await banner.locator('input[type="file"]').setInputFiles({ name: 'pixel.png', mimeType: 'image/png', buffer: png })
-  await banner.getByRole('button', { name: 'Save Banner' }).click()
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
   const put = await saved
   expect(put.postDataJSON().payload.image).toMatch(/^\/media\/\d+-[a-f0-9]{64}\.png$/)
 })
@@ -76,9 +81,38 @@ test('a rejected file shows an error and is not stored as a preview', async ({ p
   await story.locator('input[type="file"]').setInputFiles({ name: 'pixel.gif', mimeType: 'image/gif', buffer: Buffer.from('GIF89a') })
   await expect(story.getByRole('alert')).toContainText('Use a JPEG, PNG, or WebP image.')
   await expect(story.locator('img')).toHaveCount(0)
-  await story.getByRole('button', { name: 'Save Our story' }).click()
-  await expect(page.getByText('The image was not uploaded.')).toBeVisible()
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByRole('dialog')).toContainText('The image was not uploaded.')
   expect(posts).toEqual([])
   expect(puts).toEqual([])
   await expect(story.locator('img')).toHaveCount(0)
+})
+
+test('removing a saved About image hides it on the public page', async ({ page }) => {
+  await signIn(page)
+  await page.goto('/admin/cms/about')
+  const banner = page.locator('[id="editor-about.banner"]')
+  const save = page.getByRole('button', { name: 'Save', exact: true })
+  const uploaded = page.waitForResponse((response) => response.url().includes('/api/v1/admin/media') && response.request().method() === 'POST')
+  await banner.locator('input[type="file"]').setInputFiles({ name: 'pixel.png', mimeType: 'image/png', buffer: png })
+  await uploaded
+  await save.click()
+  await expect(page.getByRole('dialog')).toContainText('Your changes are live.')
+  await page.getByRole('button', { name: 'OK' }).click()
+
+  await banner.getByRole('button', { name: 'Remove image' }).click()
+  const saved = page.waitForResponse((response) => response.request().method() === 'PUT' && /\/api\/v1\/admin\/blocks\/\d+$/.test(new URL(response.url()).pathname))
+  await save.click()
+  const put = await saved
+  expect(put.request().postDataJSON().payload.image_removed).toBe(true)
+  await expect(page.getByRole('dialog')).toContainText('Your changes are live.')
+  await page.getByRole('button', { name: 'OK' }).click()
+
+  const site = await page.request.get('/api/v1/site')
+  const payload = (await site.json()).data.blocks['about.banner'].payload
+  expect(payload.image == null || payload.image === '').toBe(true)
+  expect(payload.image_removed).toBe(true)
+
+  await page.goto('/about')
+  await expect(page.locator('[data-about="banner-image"]')).toBeHidden()
 })
