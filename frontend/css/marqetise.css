@@ -413,9 +413,6 @@ body[data-cms-page="courses"] .page-title {
 .ks-footer-widget-logo a {
   display: inline-flex;
   align-items: center;
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 6px 12px;
   line-height: 0;
 }
 

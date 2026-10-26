@@ -7,7 +7,7 @@ const groups = [
   {
     id: 'brand',
     title: 'General',
-    help: 'The name and logo used across the public site.',
+    help: 'The name and logo used across the public site. When no uploaded logo is available, the site uses the bundled Marqetise logo.',
     fields: [
       ['company_name', 'Company name', 'Used in the copyright line when it is set.', 'text'],
       ['tagline', 'Tagline', 'Shown where the public site prints the tagline.', 'text'],
@@ -62,6 +62,29 @@ const groups = [
     ],
   },
 ]
+
+function LogoPreview({ url }) {
+  const [failed, setFailed] = useState(false)
+  const missing = !url || failed
+
+  useEffect(() => {
+    setFailed(false)
+  }, [url])
+
+  return (
+    <div className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl bg-navy-900 p-4">
+      <img
+        src={missing ? '/images/logo-white.png' : url}
+        alt="Marqetise logo"
+        className="max-h-16 max-w-full"
+        onError={() => {
+          if (!failed) setFailed(true)
+        }}
+      />
+      {missing ? <p className="text-center text-sm text-white/80">Using the bundled Marqetise logo.</p> : null}
+    </div>
+  )
+}
 
 export function SettingsPage() {
   const [settings, setSettings] = useState(null)
@@ -164,11 +187,7 @@ export function SettingsPage() {
                     ))}
                   </div>
                   <div className="space-y-3">
-                    <div className="flex min-h-24 items-center justify-center rounded-2xl bg-navy-900 p-4">
-                      {settings.logo_url
-                        ? <img src={settings.logo_url} alt="Uploaded logo" className="max-h-16 max-w-full" />
-                        : <p className="text-center text-sm text-white/80">No logo uploaded</p>}
-                    </div>
+                    <LogoPreview url={settings.logo_url} />
                     <Field label="Logo" hint="JPEG, PNG, or WebP. Maximum 5 MB.">
                       <input type="file" accept="image/png,image/jpeg,image/webp" onChange={upload} />
                     </Field>
