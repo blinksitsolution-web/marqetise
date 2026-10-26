@@ -24,7 +24,7 @@ vi.mock('../context/useAuth', () => ({
       name: 'Ada Lovelace',
       phone: '',
       role: { name: 'Administrator' },
-      permissions: ['users.manage', 'roles.view', 'settings.view', 'content.manage', 'courses.manage', 'bookings.view', 'dashboard.view'],
+      permissions: ['users.manage', 'roles.view', 'settings.view', 'content.view', 'content.manage', 'courses.manage', 'bookings.view', 'dashboard.view'],
     },
     refresh,
     logout: vi.fn(),
@@ -189,6 +189,25 @@ describe('admin remediation', () => {
 
     await user.type(screen.getByLabelText('Company name'), '!')
     expect(screen.getByText('You have unsaved changes.')).toBeInTheDocument()
+  })
+
+  it('opens a CMS submenu of every public page', async () => {
+    const user = userEvent.setup()
+    render(<MemoryRouter initialEntries={['/admin/cms/about']}><AdminLayout /></MemoryRouter>)
+
+    const menu = screen.getByRole('button', { name: 'CMS' })
+    expect(menu).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByRole('link', { name: 'About' })).toHaveAttribute('href', '/admin/cms/about')
+    expect(screen.getByRole('link', { name: 'Header & Footer' })).toHaveAttribute('href', '/admin/cms/chrome')
+    expect(screen.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/admin/cms/privacy')
+    expect(screen.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/admin/cms/terms')
+
+    await user.click(menu)
+    expect(menu).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('link', { name: 'About' })).not.toBeInTheDocument()
+
+    await user.click(menu)
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/admin/cms/home')
   })
 
   it('links a booking search result to that booking', async () => {

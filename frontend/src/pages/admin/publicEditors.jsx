@@ -25,6 +25,13 @@ const chromeSection = {
 
 const aboutSections = [
   {
+    key: 'about.banner',
+    group: 'about',
+    label: 'Banner',
+    help: 'Optional line under the About heading, in the template banner. Leave it blank. The page summary is not printed on the banner.',
+    fields: [['text', 'Banner line', 'textarea']],
+  },
+  {
     key: 'about.identity',
     group: 'about',
     label: 'Who we are',
@@ -68,7 +75,7 @@ const servicesSections = [
     key: 'services.hero',
     group: 'services',
     label: 'Services intro',
-    help: 'Optional heading above the service cards. Edit each service under CMS, Services.',
+    help: 'Optional heading above the service cards. Edit each card from All content, on the Services tab.',
     fields: [
       ['title', 'Heading', 'text'],
       ['intro', 'Intro', 'textarea'],
@@ -160,8 +167,10 @@ const newsSections = [sectionByKey('home.news')]
 const testimonialSections = [sectionByKey('home.testimonials')]
 const chromeSections = [chromeSection]
 
+const legalSections = []
+
 export function AboutEditorPage() {
-  return <SectionEditorPage title="About page" seoPath="/admin/cms/about" liveHref="/about" pageSlug="about" sections={aboutSections} navLabel="About sections" pageHelp="The heading is the About page title." />
+  return <SectionEditorPage title="About page" seoPath="/admin/cms/about" liveHref="/about" pageSlug="about" sections={aboutSections} navLabel="About sections" pageHelp="The banner heading is the page title. The summary stays in the CMS and is not shown on the banner. Who we are also fills the side panel." />
 }
 
 export function CoursesPageEditor() {
@@ -206,4 +215,12 @@ export function PackagesEditorPage() {
 
 export function ChromeEditorPage() {
   return <SectionEditorPage title="Header and footer" seoPath="/admin/cms/chrome" liveHref="/" sections={chromeSections} navLabel="Header and footer" />
+}
+
+export function PrivacyEditorPage() {
+  return <SectionEditorPage title="Privacy" seoPath="/admin/cms/privacy" liveHref="/privacy" pageSlug="privacy" sections={legalSections} navLabel="Privacy" pageHelp="The heading and body are the privacy notice." />
+}
+
+export function TermsEditorPage() {
+  return <SectionEditorPage title="Terms" seoPath="/admin/cms/terms" liveHref="/terms" pageSlug="terms" sections={legalSections} navLabel="Terms" pageHelp="The heading and body are the terms of service." />
 }
