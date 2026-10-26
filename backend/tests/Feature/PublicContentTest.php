@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\AboutBannerBlock;
+use App\Support\AboutPageCards;
 use App\Support\PublicContentDefaults;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\WebsiteContentSeeder;
@@ -75,6 +76,91 @@ class PublicContentTest extends TestCase
         } finally {
             @unlink($directory.'/logo.png');
         }
+    }
+
+    public function test_about_cards_copy_the_page_body_without_replacing_edits(): void
+    {
+        $this->seed(WebsiteContentSeeder::class);
+        $body = <<<'BODY'
+# Who we are
+
+Operating under the tagline Beyond Marketing.
+
+## Marqetise Digital Growth
+
+Digital marketing, brand strategy, content creation, advertising and related growth services.
+
+## Marqetise Academy
+
+Practical digital skills education and professional training.
+
+# Our story
+
+The business began as DigiGrowth Hub.
+
+# Our priorities
+
+Strengthen Digital Growth and keep enrolment predictable.
+
+# Our long-term ambition
+
+Become a trusted African digital solutions company.
+
+# Vision
+
+Recognized for driving business growth.
+
+# Mission
+
+Help businesses grow through practical digital education.
+
+# Brand positioning
+
+A storytelling-led digital solutions company.
+
+Its distinguishing principle is to look beyond individual deliverables.
+
+# Core values
+
+## Excellence
+
+Deliver thoughtful, high-quality work.
+
+## Lifelong learning
+
+Build knowledge continuously.
+BODY;
+        $page = Page::query()->where('slug', 'about')->firstOrFail();
+        $page->update(['body' => $body]);
+        $identity = ContentBlock::query()->where('key', 'about.identity')->firstOrFail()->payload;
+        ContentBlock::query()->whereIn('key', array_keys(AboutPageCards::definitions()))->delete();
+
+        AboutPageCards::ensure();
+
+        $this->assertSame($body, $page->fresh()->body);
+        $this->assertSame($identity, ContentBlock::query()->where('key', 'about.identity')->firstOrFail()->payload);
+
+        $who = ContentBlock::query()->where('key', 'about.who')->firstOrFail();
+        $this->assertSame('Who we are', $who->payload['title']);
+        $this->assertStringContainsString('Beyond Marketing', $who->payload['body']);
+        $this->assertSame('Marqetise Academy', $who->payload['items'][1]['title']);
+
+        $this->assertStringContainsString('DigiGrowth Hub', ContentBlock::query()->where('key', 'about.story')->firstOrFail()->payload['body']);
+        $this->assertStringContainsString('enrolment predictable', ContentBlock::query()->where('key', 'about.priorities')->firstOrFail()->payload['body']);
+
+        $direction = ContentBlock::query()->where('key', 'about.direction')->firstOrFail()->payload;
+        $this->assertSame('Our long-term ambition', $direction['title']);
+        $this->assertSame(['Vision', 'Mission', 'Brand positioning'], array_column($direction['items'], 'title'));
+        $this->assertStringContainsString('individual deliverables', $direction['items'][2]['body']);
+
+        $values = ContentBlock::query()->where('key', 'about.values')->firstOrFail()->payload;
+        $this->assertSame(['Excellence', 'Lifelong learning'], array_column($values['items'], 'title'));
+        $this->assertSame([], ContentBlock::query()->where('key', 'about.extra')->firstOrFail()->payload['items']);
+
+        $story = ContentBlock::query()->where('key', 'about.story')->firstOrFail();
+        $story->update(['payload' => ['title' => 'Our story', 'body' => 'Kept story', 'image' => '', 'image_alt' => '', 'items' => []]]);
+        AboutPageCards::ensure();
+        $this->assertSame('Kept story', ContentBlock::query()->where('key', 'about.story')->firstOrFail()->payload['body']);
     }
 
     public function test_the_public_payload_includes_chrome_and_omits_empty_packages(): void
