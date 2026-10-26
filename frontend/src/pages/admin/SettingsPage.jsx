@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Seo from '../../components/Seo'
+import { MediaImageField, flushImageFields } from '../../components/MediaImageField'
 import { Button, Field, Notice, Spinner, inputClass } from '../../components/ui'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 
@@ -88,13 +89,21 @@ function LogoPreview({ url }) {
 
 export function SettingsPage() {
   const [settings, setSettings] = useState(null)
+  const settingsRef = useRef(null)
   const [saved, setSaved] = useState(null)
   const [mailCanDeliver, setMailCanDeliver] = useState(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
+  function replaceSettings(value) {
+    const next = typeof value === 'function' ? value(settingsRef.current) : value
+    settingsRef.current = next
+    setSettings(next)
+  }
+
   function applySettings(response) {
     const next = response.data.data
+    settingsRef.current = next
     setSettings(next)
     setSaved(structuredClone(next))
     setMailCanDeliver(response.data.mail_can_deliver)
@@ -108,38 +117,13 @@ export function SettingsPage() {
     event.preventDefault()
     setError('')
     try {
+      await flushImageFields('settings')
       await ensureCsrf()
-      const response = await api.put('/api/v1/admin/settings', { settings })
+      const response = await api.put('/api/v1/admin/settings', { settings: settingsRef.current })
       applySettings(response)
       setMessage('Settings saved. Secrets and database credentials are not available here.')
     } catch (saveError) {
-      setError(errorMessage(saveError))
-    }
-  }
-
-  async function upload(event) {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file) return
-    setError('')
-    setMessage('')
-    const body = new FormData()
-    body.append('file', file)
-    body.append('alt', 'Marqetise logo')
-    try {
-      await ensureCsrf()
-      const response = await api.post('/api/v1/admin/media', body)
-      const next = { ...settings, logo_url: response.data.data.url }
-      setSettings(next)
-      try {
-        const savedResponse = await api.put('/api/v1/admin/settings', { settings: next })
-        applySettings(savedResponse)
-        setMessage('Logo saved.')
-      } catch (saveError) {
-        setError(errorMessage(saveError, 'The logo was uploaded. Save settings to keep it.'))
-      }
-    } catch (uploadError) {
-      setError(errorMessage(uploadError, 'The logo was not uploaded.'))
+      setError(saveError?.response ? errorMessage(saveError) : (saveError.message || 'Settings were not saved.'))
     }
   }
 
@@ -183,20 +167,18 @@ export function SettingsPage() {
                 <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_11rem] sm:items-start">
                   <div className="space-y-4">
                     {group.fields.map(([key, label, hint, type]) => (
-                      <SettingField key={key} settingKey={key} label={label} hint={hint} type={type} value={settings[key] ?? ''} onChange={(value) => setSettings({ ...settings, [key]: value })} />
+                      <SettingField key={key} settingKey={key} label={label} hint={hint} type={type} value={settings[key] ?? ''} onChange={(value) => replaceSettings({ ...settingsRef.current, [key]: value })} />
                     ))}
                   </div>
                   <div className="space-y-3">
                     <LogoPreview url={settings.logo_url} />
-                    <Field label="Logo" hint="JPEG, PNG, or WebP. Maximum 5 MB.">
-                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={upload} />
-                    </Field>
+                    <MediaImageField scope="settings" label="Logo" value={settings.logo_url || ''} onChange={(url) => replaceSettings({ ...settingsRef.current, logo_url: url })} onError={setError} />
                   </div>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {group.fields.map(([key, label, hint, type]) => (
-                    <SettingField key={key} settingKey={key} label={label} hint={hint} type={type} value={settings[key] ?? ''} onChange={(value) => setSettings({ ...settings, [key]: value })} />
+                    <SettingField key={key} settingKey={key} label={label} hint={hint} type={type} value={settings[key] ?? ''} onChange={(value) => replaceSettings({ ...settingsRef.current, [key]: value })} />
                   ))}
                 </div>
               )}
