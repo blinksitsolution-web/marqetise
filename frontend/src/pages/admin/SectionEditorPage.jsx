@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { MediaImageField, flushImageFields } from '../../components/MediaImageField'
+import { MediaVideoField } from '../../components/MediaVideoField'
 import { saveErrorAlert, savedAlert } from '../../components/saveAlert'
 import { Button, Field, Notice, Spinner, inputClass } from '../../components/ui'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
-import { emptyItem, imageFlags, sectionPayload } from './homeSections'
+import { emptyItem, fieldPatch, imageFlags, sectionPayload } from './homeSections'
 
 function move(items, index, direction) {
   const target = index + direction
@@ -21,12 +22,17 @@ function failureText(saveError, fallback) {
   return saveError?.message || fallback
 }
 
-function FieldControl({ field, value, onChange, onError, scope }) {
+function FieldControl({ field, value, onChange, onError, scope, videoRemoved = false }) {
   const [key, label, type = 'text'] = field
   if (type === 'image') {
     return <MediaImageField scope={scope} label={label} value={value || ''} onChange={onChange} onError={onError} />
   }
-  const hint = key === 'href' || key.endsWith('_href')
+  if (type === 'video') {
+    return <MediaVideoField scope={scope} label={label} value={value || ''} removed={videoRemoved} onChange={onChange} onError={onError} />
+  }
+  const hint = key === 'video_label'
+    ? 'The words around the play button. Leave this blank to keep the template circle.'
+    : key === 'href' || key.endsWith('_href')
     ? 'Same-site path, such as /contact.'
     : key === 'slug'
       ? 'Short address used in the page link, such as office-refresh.'
@@ -328,8 +334,9 @@ export function SectionEditorPage({
                     field={field}
                     scope={section.key}
                     value={block.payload[field[0]] || ''}
+                    videoRemoved={block.payload.video_removed === true}
                     onError={setError}
-                    onChange={(value) => updatePayload(section.key, imageFlags(field, value))}
+                    onChange={(value) => updatePayload(section.key, fieldPatch(field, value))}
                   />
                 ))}
                 {section.items ? (

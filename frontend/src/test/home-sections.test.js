@@ -13,6 +13,13 @@ function render(payload) {
       <span class="ks-slider-desc"><span><span>30k+ Active Customers</span></span></span>
       <div class="ks-slider-link"><a href="page-contact.html"><span>apply now</span></a></div>
       <div class="ks-slider-thumb"><img src="images/slider/slider-img-1.png" alt=""></div>
+      <div class="ks-slider-text-anim-wrap video-btn">
+        <a class="icon popup-video" href="https://www.youtube.com/watch?v=Lplq8RjQ0zU" aria-label="Play video">
+          <div class="ks-slider-text-anim">
+            <img src="images/slider/circle-text.png" alt="">
+          </div>
+        </a>
+      </div>
     </div>
     <div class="ks-service-area"><div class="row gx-30">
       <div class="col-xl-4"><div class="ks-service-item">
@@ -47,6 +54,9 @@ describe('home page sections', () => {
       '30k+ Active Customers',
       'name="consent"',
       'js/home-sections.js',
+      'popup-video',
+      'https://www.youtube.com/watch?v=Lplq8RjQ0zU',
+      'images/slider/circle-text.png',
     ]) {
       expect(html, needle).toContain(needle)
     }
@@ -124,5 +134,86 @@ describe('home page sections', () => {
     const thumb = document.querySelector('.ks-slider-thumb')
     expect(thumb).toHaveAttribute('hidden')
     expect(thumb).toHaveAttribute('data-image-removed', '')
+    expect(document.querySelector('.popup-video')).toHaveAttribute('href', 'https://www.youtube.com/watch?v=Lplq8RjQ0zU')
+  })
+
+  it('keeps the template intro video until a cms video is saved', () => {
+    render({
+      blocks: {
+        'home.hero': { payload: { headline: 'Hi', video_url: '' } },
+      },
+    })
+
+    expect(document.querySelector('.popup-video')).toHaveAttribute('href', 'https://www.youtube.com/watch?v=Lplq8RjQ0zU')
+    expect(document.querySelector('.ks-slider-text-anim img')).not.toHaveAttribute('hidden')
+    expect(document.querySelector('#mq-hero-video')).toBeNull()
+  })
+
+  it('opens a youtube embed from the play button', () => {
+    render({
+      blocks: {
+        'home.hero': { payload: { video_url: 'https://www.youtube.com/embed/Lplq8RjQ0zU' } },
+      },
+    })
+
+    const link = document.querySelector('.popup-video')
+    expect(link).toHaveAttribute('href', 'https://www.youtube.com/embed/Lplq8RjQ0zU')
+    expect(link).toHaveAttribute('data-video-kind', 'youtube')
+  })
+
+  it('ignores a video address that is not an embed or an uploaded file', () => {
+    render({
+      blocks: {
+        'home.hero': { payload: { video_url: 'javascript:alert(1)' } },
+      },
+    })
+
+    expect(document.querySelector('.popup-video')).toHaveAttribute('href', 'https://www.youtube.com/watch?v=Lplq8RjQ0zU')
+  })
+
+  it('hides the play button when the intro video was removed', () => {
+    render({
+      blocks: {
+        'home.hero': { payload: { video_url: '', video_removed: true } },
+      },
+    })
+
+    const wrap = document.querySelector('.ks-slider-text-anim-wrap.video-btn')
+    expect(wrap).toHaveAttribute('hidden')
+    expect(wrap).toHaveAttribute('data-video-removed', '')
+  })
+
+  it('draws the play-button words and does not treat them as html', () => {
+    render({
+      blocks: {
+        'home.hero': { payload: { video_label: 'Award <img src=x onerror=alert(1)>' } },
+      },
+    })
+
+    const svg = document.querySelector('.ks-slider-text-anim svg.mq-circle-text')
+    expect(svg).not.toBeNull()
+    expect(svg.textContent).toBe('Award <img src=x onerror=alert(1)>')
+    expect(svg.querySelector('img')).toBeNull()
+    expect(document.querySelector('.ks-slider-text-anim img')).toHaveAttribute('hidden')
+  })
+
+  it('prepares an uploaded video for the popup player', () => {
+    const hash = 'b'.repeat(64)
+    const src = `/media/9-${hash}.mp4`
+    render({
+      blocks: {
+        'home.hero': { payload: { video_url: src, video_kind: 'file' } },
+      },
+    })
+
+    expect(document.querySelector('.popup-video')).toHaveAttribute('href', src)
+    expect(document.querySelector('.popup-video')).toHaveAttribute('data-video-kind', 'file')
+    const video = document.querySelector('#mq-hero-video video')
+    expect(video).not.toBeNull()
+    expect(video).toHaveAttribute('src', src)
+    expect(video).toHaveAttribute('controls')
+    expect(video).toHaveAttribute('autoplay')
+    expect(video).toHaveAttribute('playsinline')
+    expect(document.querySelector('#mq-hero-video')).toHaveClass('mfp-hide')
   })
 })

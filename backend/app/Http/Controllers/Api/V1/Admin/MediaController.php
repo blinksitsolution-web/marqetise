@@ -7,6 +7,7 @@ use App\Http\Requests\UploadMediaRequest;
 use App\Models\MediaAsset;
 use App\Services\AuditLogger;
 use App\Support\MediaBytes;
+use App\Support\MediaUpload;
 use App\Support\SafeText;
 use Illuminate\Http\JsonResponse;
 
@@ -16,15 +17,11 @@ class MediaController extends Controller
     {
         $file = $request->file('file');
         $contents = file_get_contents($file->getRealPath());
-        $mime = (string) $file->getMimeType();
-        $extension = match ($mime) {
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-            'image/webp' => 'webp',
-            default => null,
-        };
+        $mime = MediaUpload::detectedMime($file->getPathname());
+        $extension = MediaUpload::extension($mime);
+        $video = in_array($extension, ['mp4', 'webm', 'mov'], true);
         if (! is_string($contents) || $contents === '' || $extension === null) {
-            abort(422, 'The image was not uploaded.');
+            abort(422, $video ? 'The video was not uploaded.' : 'The image was not uploaded.');
         }
 
         $hash = hash('sha256', $contents);

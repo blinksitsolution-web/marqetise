@@ -48,7 +48,7 @@ class PublicMedia
             return PublicLogo::available($value) ? $path : '';
         }
 
-        if (preg_match('#^/media/(\d+)-([a-f0-9]{64})\.(?:jpe?g|png|webp)$#', $path, $match) === 1) {
+        if (preg_match('#^/media/(\d+)-([a-f0-9]{64})\.(?:jpe?g|png|webp|mp4|webm|mov)$#', $path, $match) === 1) {
             $stored = MediaAsset::query()->whereKey($match[1])->where('hash', $match[2])->whereNotNull('bytes')->exists();
 
             return $stored ? $path : '';
@@ -73,6 +73,12 @@ class PublicMedia
             return $next;
         }
 
+        if ($key === 'video_url') {
+            $published = self::publishVideo($value);
+
+            return $published === '' ? null : $published;
+        }
+
         if (! self::isImageKey($key)) {
             return $value;
         }
@@ -80,6 +86,25 @@ class PublicMedia
         $published = self::publish($value);
 
         return $published === '' ? null : $published;
+    }
+
+    private static function publishVideo(mixed $value): string
+    {
+        if (! is_string($value)) {
+            return '';
+        }
+
+        $embed = YouTubeUrl::embed($value);
+        if ($embed !== null) {
+            return $embed;
+        }
+
+        $path = self::usable($value);
+        if ($path === '' || preg_match('#^/media/\d+-[a-f0-9]{64}\.(?:mp4|webm|mov)$#', $path) !== 1) {
+            return '';
+        }
+
+        return str_starts_with($path, '/') ? url($path) : $path;
     }
 
     private static function isImageKey(string $key): bool

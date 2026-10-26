@@ -1334,6 +1334,29 @@ h2.ks-footer-widget-title {
   }
 }
 
-[data-image-removed] {
+[data-image-removed],
+[data-video-removed] {
   display: none !important;
+}
+
+.ks-slider-text-anim svg.mq-circle-text {
+  width: 214px;
+  height: 214px;
+  display: block;
+  animation: animationglob 6s cubic-bezier(1, 0.99, 0.03, 0.01) infinite;
+}
+
+.mfp-iframe-scaler:has(video) {
+  position: relative;
+}
+
+.mfp-iframe-scaler video.mfp-iframe {
+  position: absolute;
+  display: block;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
 }
