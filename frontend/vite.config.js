@@ -93,9 +93,9 @@ const securityHeaders = {
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
 }
 
-function serveBixomAndAdmin() {
+function serveSiteAndAdmin() {
   return {
-    name: 'serve-bixom-and-admin',
+    name: 'serve-site-and-admin',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         for (const [key, value] of Object.entries(securityHeaders)) res.setHeader(key, value)
@@ -154,7 +154,7 @@ function serveBixomAndAdmin() {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), serveBixomAndAdmin()],
+  plugins: [react(), tailwindcss(), serveSiteAndAdmin()],
   appType: 'mpa',
   build: {
     sourcemap: false,

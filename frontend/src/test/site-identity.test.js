@@ -65,7 +65,26 @@ function boot(settings) {
   })
 }
 
+function pngSize(path) {
+  const bytes = readFileSync(path)
+  return {
+    width: bytes.readUInt32BE(16),
+    height: bytes.readUInt32BE(20),
+  }
+}
+
 describe('public template identity', () => {
+  it('uses the Marqetise wordmark for the header, footer, and preloader', () => {
+    for (const name of ['logo-black.png', 'logo-white.png', 'loader-logo.png']) {
+      const size = pngSize(`${root}/images/${name}`)
+      expect(size.width, name).toBeGreaterThan(1000)
+      expect(size.height, name).toBeGreaterThan(200)
+    }
+    const css = readFileSync(`${root}/css/marqetise.css`, 'utf8')
+    expect(css).not.toMatch(/\.ks-footer-widget-logo a \{[^}]*background:\s*#ffffff/)
+    expect(readFileSync(`${root}/css/style.css`, 'utf8').slice(0, 200).toLowerCase()).not.toContain('bixom')
+  })
+
   it('keeps template addresses, phones, emails, and the cart out of the public HTML', () => {
     for (const name of pages) {
       const html = readFileSync(`${root}/${name}`, 'utf8')

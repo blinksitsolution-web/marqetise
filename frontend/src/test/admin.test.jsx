@@ -184,7 +184,7 @@ describe('admin remediation', () => {
     }
     expect(screen.getByRole('navigation', { name: 'Settings sections' })).toBeInTheDocument()
     expect(screen.getByText('All settings match the last save.')).toBeInTheDocument()
-    expect(screen.getByText('No logo uploaded')).toBeInTheDocument()
+    expect(screen.getByText('Using the bundled Marqetise logo.')).toBeInTheDocument()
     expect(screen.getByText('Email delivery is not configured. Reset and invitation emails are not being sent.')).toBeInTheDocument()
 
     await user.type(screen.getByLabelText('Company name'), '!')
