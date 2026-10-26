@@ -711,14 +711,30 @@
         });
       }
 
+      var logoImages = document.querySelectorAll('.logo img, .nav-logo img, .ks-footer-widget-logo img, .sticky-header .logo img, .preloader-logo');
+      Array.prototype.forEach.call(logoImages, function (img) {
+        if (!img.getAttribute('data-brand-src')) {
+          img.setAttribute('data-brand-src', img.getAttribute('src') || '');
+        }
+      });
+      function restoreBrandLogos() {
+        Array.prototype.forEach.call(logoImages, function (img) {
+          var brand = img.getAttribute('data-brand-src');
+          if (brand) img.setAttribute('src', brand);
+        });
+      }
       if (settings.logo_url) {
-        Array.prototype.forEach.call(
-          document.querySelectorAll('.logo img, .nav-logo img, .ks-footer-widget-logo img, .sticky-header .logo img, .preloader-logo'),
-          function (img) {
+        var logoProbe = new Image();
+        logoProbe.onload = function () {
+          Array.prototype.forEach.call(logoImages, function (img) {
             img.src = settings.logo_url;
-            img.alt = settings.company_name || 'Marqetise';
-          }
-        );
+            img.alt = settings.company_name || img.alt || 'Marqetise';
+          });
+        };
+        logoProbe.onerror = restoreBrandLogos;
+        logoProbe.src = settings.logo_url;
+      } else {
+        restoreBrandLogos();
       }
       var phone = typeof settings.phone === 'string' ? settings.phone.trim() : '';
       var email = typeof settings.email === 'string' ? settings.email.trim() : '';
