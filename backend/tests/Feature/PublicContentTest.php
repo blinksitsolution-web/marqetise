@@ -72,7 +72,7 @@ class PublicContentTest extends TestCase
         Setting::putValue('logo_url', '/storage/media/logo.png', 'general', true);
 
         try {
-            $this->getJson('/api/v1/site')->assertOk()->assertJsonPath('data.settings.logo_url', '/storage/media/logo.png');
+            $this->getJson('/api/v1/site')->assertOk()->assertJsonPath('data.settings.logo_url', url('/storage/media/logo.png'));
         } finally {
             @unlink($directory.'/logo.png');
         }

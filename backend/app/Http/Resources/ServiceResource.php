@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\PublicMedia;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,7 +17,9 @@ class ServiceResource extends JsonResource
             'summary' => $this->summary,
             'description' => $this->description,
             'icon' => $this->icon,
-            'image_path' => $this->image_path,
+            'image_path' => $request->is('api/v1/admin/*')
+                ? $this->image_path
+                : (PublicMedia::publish($this->image_path) ?: null),
             'starting_price' => $this->starting_price,
             'duration_label' => $this->duration_label,
             'status' => $this->status,

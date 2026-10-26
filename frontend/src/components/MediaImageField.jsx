@@ -29,7 +29,7 @@ export function MediaImageField({ label, value, onChange, onError }) {
       <Field label={label} hint="JPEG, PNG, or WebP. Maximum 5 MB.">
         <input className={inputClass} type="file" accept="image/png,image/jpeg,image/webp" onChange={upload} disabled={busy} />
       </Field>
-      {value ? <img src={value} alt="" className="mt-2 max-h-28 rounded-xl border border-line bg-white object-contain" /> : <p className="mt-1 text-xs text-muted">No image yet.</p>}
+      {value ? <img src={value.startsWith('images/') ? `/${value}` : value} alt="" className="mt-2 max-h-28 rounded-xl border border-line bg-white object-contain" /> : <p className="mt-1 text-xs text-muted">No image yet.</p>}
       {value ? <button type="button" className="mt-2 inline-flex min-h-11 items-center text-sm text-red-700" onClick={() => onChange('')}>Remove image</button> : null}
     </div>
   )

@@ -1,10 +1,14 @@
 <?php
 
+use App\Http\Controllers\MediaFileController;
 use App\Models\Course;
 use App\Models\Page;
 use App\Support\PublicSite;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/media/{file}', [MediaFileController::class, 'show'])
+    ->where('file', '[0-9]+-[a-f0-9]{64}\.(?:jpe?g|png|webp)');
 
 Route::get('/up', function () {
     try {

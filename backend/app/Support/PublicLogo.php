@@ -5,9 +5,9 @@ namespace App\Support;
 class PublicLogo
 {
     /**
-     * A logo stored on this site is only published when the file is still on disk.
-     * Uploads live on the container filesystem, so a redeploy can leave the saved
-     * URL pointing at a file that nginx no longer has. The stored setting is kept.
+     * A logo stored under /storage is only published when that file is still on disk.
+     * Older uploads lived on the container filesystem, so a redeploy can leave the
+     * saved URL pointing at a file that nginx no longer has. The stored setting is kept.
      */
     public static function available(mixed $url): ?string
     {

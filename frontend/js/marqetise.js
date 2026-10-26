@@ -183,18 +183,54 @@
       .join(' · ');
   }
 
-  function safeMediaPath(value) {
-    if (typeof value !== 'string' || !/^\/(?!\/)[^:\s\\]*$/.test(value)) return '';
-    return value;
+  function mediaSrc(value) {
+    if (typeof value !== 'string') return '';
+    var path = value.trim();
+    if (!path || /^(javascript:|data:)/i.test(path) || path.indexOf('..') !== -1 || /[\s\\]/.test(path)) return '';
+    if (path.indexOf('images/') === 0) return path;
+    if (path.charAt(0) === '/' && path.charAt(1) !== '/') return path;
+    try {
+      var url = new URL(path);
+      if (url.origin === window.location.origin && (url.pathname.indexOf('/media/') === 0 || url.pathname.indexOf('/storage/') === 0)) {
+        return path;
+      }
+    } catch {
+      return '';
+    }
+    return '';
+  }
+
+  function applyImage(img, src) {
+    if (!img || !src) return;
+    if (!img.hasAttribute('data-template-src')) {
+      img.setAttribute('data-template-src', img.getAttribute('src') || '');
+    }
+    img.onerror = function () {
+      var fallback = img.getAttribute('data-template-src') || '';
+      if (fallback && img.getAttribute('src') !== fallback) {
+        img.onerror = null;
+        img.setAttribute('src', fallback);
+        return;
+      }
+      img.hidden = true;
+    };
+    img.setAttribute('src', src);
+  }
+
+  function bindImageFallback(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    Array.prototype.forEach.call(scope.querySelectorAll('img[data-template-src]'), function (img) {
+      applyImage(img, img.getAttribute('src'));
+    });
   }
 
   function courseCard(course) {
-    var image = safeMediaPath(course.image_path);
+    var image = mediaSrc(course.image_path);
     var href = '/courses/' + encodeURIComponent(course.slug);
     return ''
       + '<article class="mq-course-card col-lg-4 col-md-6">'
       + '<a class="mq-course-link" href="' + href + '">'
-      + (image ? '<div class="mq-course-media"><img src="' + esc(image) + '" alt=""></div>' : '')
+      + (image ? '<div class="mq-course-media"><img src="' + esc(image) + '" alt="" data-template-src=""></div>' : '')
       + '<div class="mq-course-body">'
       + '<p class="mq-kicker">' + esc(course.category || course.level || 'Course') + '</p>'
       + '<h3>' + esc(course.title) + '</h3>'
@@ -229,6 +265,7 @@
         return;
       }
       grid.innerHTML = courses.map(courseCard).join('');
+      bindImageFallback(grid);
     }).catch(function () {
       grid.innerHTML = '<div class="col-12"><div class="mq-state"><h3>The course list could not be loaded.</h3><p>Refresh the page to try again.</p></div></div>';
     });
@@ -293,9 +330,11 @@
           return '<li><a href="/courses/' + encodeURIComponent(item.slug) + '">' + esc(item.title) + '</a></li>';
         }).join('');
 
+        var courseImage = mediaSrc(course.image_path);
         detail.innerHTML = ''
           + '<div class="mq-detail">'
           + '<div class="mq-detail-main">'
+          + (courseImage ? '<img src="' + esc(courseImage) + '" alt="" data-template-src="">' : '')
           + '<p class="mq-facts">' + facts.join(' · ') + '</p>'
           + (course.summary ? '<p class="mq-lead">' + esc(course.summary) + '</p>' : '')
           + (course.description ? '<p>' + esc(course.description) + '</p>' : '')
@@ -312,6 +351,7 @@
           + '<a class="ks-btn-black blue-bg" href="' + enquire + '"><span><span class="text-1">Enquire about this course</span><span class="text-2">Enquire about this course</span></span></a>'
           + (related ? '<h3>Other courses</h3><ul>' + related + '</ul>' : '')
           + '</aside></div>';
+        bindImageFallback(detail);
       }).catch(function () {
         detail.innerHTML = '<p>The course could not be loaded. Refresh the page to try again.</p>';
       });
@@ -620,6 +660,9 @@
       if (summary) summary.textContent = service.summary || '';
       var arrow = card.querySelector('.image-box a');
       if (arrow) arrow.href = link;
+      var photo = card.querySelector('.image-box > img');
+      var image = mediaSrc(service.image_path);
+      if (photo && image) applyImage(photo, image);
       var number = card.querySelector('.number');
       if (number) number.textContent = String(index + 1).padStart(2, '0');
       card.hidden = false;
@@ -686,6 +729,9 @@
     if (crumb && !crumb.querySelector('a')) crumb.textContent = service.name;
     var body = document.querySelector('[data-cms-service-body]');
     if (body) body.textContent = service.description || service.summary || '';
+    var photo = document.querySelector('.services-details__content > img');
+    var image = mediaSrc(service.image_path);
+    if (photo && image) applyImage(photo, image);
     if (service.name) document.title = service.name + ' | Marqetise';
   }
 
@@ -780,9 +826,10 @@
       fillServiceDetail(services);
       fillFaqs(payload.faqs || {});
       if (window.renderPageSections) window.renderPageSections(payload);
-      if (settings.logo_url && /^\/(?!\/)[^:\s\\]*$/.test(settings.logo_url)) {
+      var iconHref = mediaSrc(settings.logo_url);
+      if (iconHref) {
         Array.prototype.forEach.call(document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]'), function (icon) {
-          icon.setAttribute('href', settings.logo_url);
+          icon.setAttribute('href', iconHref);
         });
       }
     })

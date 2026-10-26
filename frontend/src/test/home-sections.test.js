@@ -86,4 +86,31 @@ describe('home page sections', () => {
     expect(document.querySelector('.ks-slider-link a').getAttribute('href')).toBe('page-contact.html')
     expect(document.querySelector('.ks-slider-title').textContent).toBe('Hi')
   })
+
+  it('uses a stored media image and restores the template photo if it fails', () => {
+    const hash = 'a'.repeat(64)
+    const src = `${window.location.origin}/media/4-${hash}.webp`
+    render({
+      blocks: {
+        'home.hero': { payload: { image: src, image_alt: 'Studio' } },
+      },
+    })
+
+    const img = document.querySelector('.ks-slider-thumb img')
+    expect(img.getAttribute('src')).toBe(src)
+    expect(img.getAttribute('alt')).toBe('Studio')
+    expect(img.getAttribute('data-template-src')).toBe('images/slider/slider-img-1.png')
+    img.onerror()
+    expect(img.getAttribute('src')).toBe('images/slider/slider-img-1.png')
+  })
+
+  it('ignores an off-site hero image', () => {
+    render({
+      blocks: {
+        'home.hero': { payload: { image: 'https://evil.example/media/1.png' } },
+      },
+    })
+
+    expect(document.querySelector('.ks-slider-thumb img').getAttribute('src')).toBe('images/slider/slider-img-1.png')
+  })
 })
