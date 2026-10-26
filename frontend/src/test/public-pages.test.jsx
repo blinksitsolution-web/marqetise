@@ -38,6 +38,8 @@ describe('public page content', () => {
     expect(banner).toContain('data-about="heading"')
     expect(banner).toContain('data-about="banner-image"')
     expect(banner).toContain('ks-about-2-thumb')
+    expect(aboutHtml).toContain('id="about-cards"')
+    expect(aboutHtml).toContain('data-about-card="who-copy"')
     expect(banner).not.toContain('data-cms="excerpt"')
     expect(aboutHtml).not.toContain('storytelling-led digital solutions')
     expect(readFileSync(`${root}/page-services.html`, 'utf8')).toContain('data-cms-services')
@@ -53,6 +55,10 @@ describe('public page content', () => {
       <h1 data-about="heading">About Us</h1>
       <p class="text" data-about="banner" hidden></p>
       <img data-about="banner-image" src="images/about/about-1-1.jpg" alt="">
+      <h2 data-about-card="who-title">Who we are</h2>
+      <div data-about-card="who-copy">Demo line</div>
+      <div id="about-cards"></div>
+      <div class="mq-cms-body" data-cms="body" data-about-source="body">Plain stacked text</div>
       <div id="page-sections" data-page="about"></div>
       <div id="page-sections" data-page="team"></div>
     `
@@ -61,6 +67,10 @@ describe('public page content', () => {
       blocks: {
         'site.chrome': { payload: { cta_label: 'Talk to us', cta_href: '/contact', nav: [{ label: 'About', href: '/about' }, { label: 'Bad', href: 'javascript:alert(1)' }] } },
         'about.banner': { payload: { heading: 'Our story', text: 'A short banner line', image: '/storage/media/about.jpg', image_alt: 'The studio' } },
+        'about.who': { payload: { title: 'Who we are', body: 'Three business units.', image: '', items: [{ title: 'Marqetise Academy', body: 'Practical training.' }] } },
+        'about.story': { payload: { title: 'Our story', body: 'Began as DigiGrowth Hub.', image: '' } },
+        'about.direction': { payload: { title: 'Our long-term ambition', body: 'Global reach.', items: [{ title: 'Vision', body: 'Trusted company.' }, { title: 'Mission', body: 'Help businesses grow.' }, { title: 'Brand positioning', body: 'Storytelling-led.' }] } },
+        'about.values': { payload: { title: 'Core values', body: '', items: [{ title: 'Excellence', body: 'High-quality work.' }] } },
         'about.identity': { payload: { title: 'An agency and a training practice', body: 'Marqetise helps businesses.', mission: 'Make progress visible.', values: [{ title: 'Clarity', body: 'Say what the work is.' }] } },
       },
       services: [],
@@ -77,6 +87,24 @@ describe('public page content', () => {
     expect(document.querySelector('[data-about="banner"]')).not.toHaveAttribute('hidden')
     expect(document.querySelector('[data-about="banner-image"]')).toHaveAttribute('src', '/storage/media/about.jpg')
     expect(document.querySelector('[data-about="banner-image"]')).toHaveAttribute('alt', 'The studio')
+    document.body.setAttribute('data-cms-page', 'about')
+    window.renderPageSections({
+      blocks: {
+        'about.who': { payload: { title: 'Who we are', body: 'Three business units.', items: [{ title: 'Marqetise Academy', body: 'Practical training.' }] } },
+        'about.story': { payload: { title: 'Our story', body: 'Began as DigiGrowth Hub.' } },
+        'about.direction': { payload: { title: 'Our long-term ambition', body: 'Global reach.', items: [{ title: 'Vision', body: 'Trusted company.' }, { title: 'Brand positioning', body: 'Storytelling-led.' }] } },
+        'about.values': { payload: { title: 'Core values', items: [{ title: 'Excellence', body: 'High-quality work.' }] } },
+      },
+    })
+    expect(document.querySelector('[data-about-card="who-copy"]')).toHaveTextContent('Three business units.')
+    expect(document.querySelector('[data-about-card="who-copy"]')).toHaveTextContent('Marqetise Academy')
+    const cards = document.getElementById('about-cards')
+    expect(cards.querySelectorAll('.ks-about-2-wrap')).toHaveLength(3)
+    expect(cards).toHaveTextContent('Our story')
+    expect(cards).toHaveTextContent('Vision')
+    expect(cards).toHaveTextContent('Brand positioning')
+    expect(cards).toHaveTextContent('Excellence')
+    expect(document.querySelector('[data-about-source="body"]')).toHaveAttribute('hidden')
   })
 
   it('saves the header button from the chrome editor', async () => {

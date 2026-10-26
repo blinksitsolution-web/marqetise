@@ -23,6 +23,13 @@ const chromeSection = {
   ],
 }
 
+const cardFields = [
+  ['title', 'Heading', 'text'],
+  ['body', 'Text', 'textarea'],
+  ['image', 'Image', 'image'],
+  ['image_alt', 'Image description', 'text'],
+]
+
 const aboutSections = [
   {
     key: 'about.banner',
@@ -37,10 +44,56 @@ const aboutSections = [
     ],
   },
   {
+    key: 'about.who',
+    group: 'about',
+    label: 'Who we are card',
+    help: 'The card that already has the photos. Its heading, text, points, and main image are saved here.',
+    fields: cardFields,
+    items: [['title', 'Point'], ['body', 'Text', 'textarea']],
+  },
+  {
+    key: 'about.story',
+    group: 'about',
+    label: 'Our story',
+    help: 'Its own card, in the same layout as Who we are.',
+    fields: cardFields,
+  },
+  {
+    key: 'about.priorities',
+    group: 'about',
+    label: 'Our priorities',
+    help: 'Its own card, in the same layout as Who we are.',
+    fields: cardFields,
+  },
+  {
+    key: 'about.direction',
+    group: 'about',
+    label: 'Ambition, vision, mission',
+    help: 'One card for the long-term ambition, vision, mission, and brand positioning.',
+    fields: cardFields,
+    items: [['title', 'Part'], ['body', 'Text', 'textarea']],
+  },
+  {
+    key: 'about.values',
+    group: 'about',
+    label: 'Core values',
+    help: 'All of the values on one card, in the same layout as Who we are.',
+    fields: cardFields,
+    items: [['title', 'Value'], ['body', 'Text', 'textarea']],
+  },
+  {
+    key: 'about.extra',
+    group: 'about',
+    label: 'Other sections',
+    help: 'Any other About section, each on its own card.',
+    itemsLabel: 'Cards',
+    items: [['title', 'Heading'], ['body', 'Text', 'textarea'], ['image', 'Image', 'image'], ['image_alt', 'Image description', 'text']],
+  },
+  {
     key: 'about.identity',
     group: 'about',
-    label: 'Who we are',
-    help: 'The introduction, mission, vision, and values.',
+    label: 'Side panel',
+    help: 'Shown in the side panel. It is not the Who we are card.',
     fields: [
       ['title', 'Heading', 'text'],
       ['body', 'Text', 'textarea'],
@@ -175,7 +228,7 @@ const chromeSections = [chromeSection]
 const legalSections = []
 
 export function AboutEditorPage() {
-  return <SectionEditorPage title="About page" seoPath="/admin/cms/about" liveHref="/about" pageSlug="about" sections={aboutSections} navLabel="About sections" pageHelp="The first banner is the heading, short line, and image below. Leave the line blank to hide it. The summary stays in the CMS and is not shown on the banner. Who we are also fills the side panel." />
+  return <SectionEditorPage title="About page" seoPath="/admin/cms/about" liveHref="/about" pageSlug="about" sections={aboutSections} navLabel="About sections" pageHelp="The banner is the heading, short line, and image. The sections below it are cards: Who we are keeps its photos, and the other sections use that same card. The summary stays in the CMS and is not shown on the banner. The side panel is separate from the cards." />
 }
 
 export function CoursesPageEditor() {

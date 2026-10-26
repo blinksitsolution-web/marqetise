@@ -402,6 +402,97 @@
     mount.hidden = !text(mount.textContent);
   }
 
+  var aboutArrow = '<svg width="14" height="12" viewBox="0 0 14 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.327862 5.32253L10.856 5.3226L7.41878 1.8854L8.47728 0.826891L13.7215 6.07107L8.47728 11.3152L7.41878 10.2567L10.856 6.81955L0.327862 6.81961V5.32253Z" fill="#0938D3"></path></svg>';
+
+  function pointList(rows) {
+    var list = rows.map(function (item) {
+      var title = text(item.title);
+      var body = text(item.body);
+      if (!title && !body) return '';
+      return '<li><span>' + aboutArrow + '</span>'
+        + esc(title)
+        + (body ? '<p>' + lines(body) + '</p>' : '')
+        + '</li>';
+    }).join('');
+    if (!list) return '';
+    return '<div class="ks-about-list-box mb-30"><ul>' + list + '</ul></div>';
+  }
+
+  function aboutCard(payload, fallbackImage) {
+    if (!payload) return '';
+    var title = text(payload.title);
+    var body = text(payload.body || payload.text);
+    var rows = items(payload);
+    if (!title && !body && !rows.length) return '';
+    var image = safePath(payload.image) || fallbackImage;
+    var alt = text(payload.image_alt) || title;
+    return '<div class="ks-about-2-area pt-110 pb-80">'
+      + '<div class="container">'
+      + (title ? '<h2 class="mq-section-heading">' + esc(title) + '</h2>' : '')
+      + '<div class="row"><div class="col-12"><div class="ks-about-2-wrap p-relative">'
+      + '<div class="ks-about-content"><div>'
+      + (body ? '<p>' + lines(body) + '</p>' : '')
+      + pointList(rows)
+      + '</div></div>'
+      + '<div class="ks-about-2-thumb p-relative"><img src="' + esc(image) + '" alt="' + esc(alt) + '"></div>'
+      + '</div></div></div></div></div>';
+  }
+
+  function extraCards(payload) {
+    if (!payload) return '';
+    return items(payload).map(function (item) {
+      return aboutCard({
+        title: item.title,
+        body: item.body,
+        image: item.image,
+        image_alt: item.image_alt,
+        items: [],
+      }, 'images/about/about-4-1.jpg');
+    }).join('');
+  }
+
+  function fillWhoCard(payload) {
+    if (!payload) return false;
+    var title = text(payload.title);
+    var body = text(payload.body);
+    var rows = items(payload).filter(function (item) { return text(item.title) || text(item.body); });
+    if (!title && !body && !rows.length) return false;
+    var heading = document.querySelector('[data-about-card="who-title"]');
+    if (heading && title) heading.textContent = title;
+    var copy = document.querySelector('[data-about-card="who-copy"]');
+    if (copy) {
+      copy.innerHTML = (body ? '<p>' + lines(body) + '</p>' : '') + pointList(rows);
+    }
+    var image = document.querySelector('[data-about-card="who-image"]');
+    var src = safePath(payload.image);
+    if (image && src) {
+      image.setAttribute('src', src);
+      var alt = text(payload.image_alt);
+      if (alt) image.setAttribute('alt', alt);
+    }
+    return true;
+  }
+
+  function applyAboutCards(blocks) {
+    var showed = fillWhoCard(payloadOf(blocks, 'about.who'));
+    var mount = document.getElementById('about-cards');
+    if (mount) {
+      var html = [
+        aboutCard(payloadOf(blocks, 'about.story'), 'images/about/about-1-2.jpg'),
+        aboutCard(payloadOf(blocks, 'about.priorities'), 'images/about/about-4.jpg'),
+        aboutCard(payloadOf(blocks, 'about.direction'), 'images/about/about-3.jpg'),
+        aboutCard(payloadOf(blocks, 'about.values'), 'images/about/about-1-3.jpg'),
+        extraCards(payloadOf(blocks, 'about.extra')),
+      ].join('');
+      mount.innerHTML = html;
+      if (html) showed = true;
+    }
+    if (showed && document.body.getAttribute('data-cms-page') === 'about') {
+      var source = document.querySelector('[data-about-source="body"]');
+      if (source) source.hidden = true;
+    }
+  }
+
   window.renderPageSections = function (data) {
     data = data || {};
     var blocks = data.blocks || {};
@@ -412,6 +503,7 @@
     applyContact(blocks);
     applyPackages(blocks);
     applyAboutBanner(blocks);
+    applyAboutCards(blocks);
     fillPanel(blocks);
     Array.prototype.forEach.call(document.querySelectorAll('#page-sections'), function (mount) {
       renderMount(mount, blocks, data);
