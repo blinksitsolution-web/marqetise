@@ -239,6 +239,15 @@
     if (box) box.hidden = !text(hero.headline) && !text(hero.subcopy);
   }
 
+  function applyAboutBanner(blocks) {
+    var node = document.querySelector('[data-about="banner"]');
+    if (!node) return;
+    var banner = payloadOf(blocks, 'about.banner');
+    var line = banner && text(banner.text);
+    node.textContent = line || '';
+    node.hidden = !line;
+  }
+
   function fillPanel(blocks) {
     var panel = document.querySelector('[data-chrome="panel"]');
     if (!panel) return;
@@ -393,6 +402,7 @@
     applyCourses(blocks);
     applyContact(blocks);
     applyPackages(blocks);
+    applyAboutBanner(blocks);
     fillPanel(blocks);
     Array.prototype.forEach.call(document.querySelectorAll('#page-sections'), function (mount) {
       renderMount(mount, blocks, data);

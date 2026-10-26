@@ -6,6 +6,7 @@ use App\Models\ContentBlock;
 use App\Models\Page;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\AboutBannerBlock;
 use App\Support\PublicContentDefaults;
 use Database\Seeders\RolePermissionSeeder;
 use Database\Seeders\WebsiteContentSeeder;
@@ -34,6 +35,12 @@ class PublicContentTest extends TestCase
         $this->assertSame('Kept button', $chrome->payload['cta_label']);
         $this->assertSame('Kept services page', Page::query()->where('slug', 'services')->firstOrFail()->title);
         $this->assertSame('Kept body', Page::query()->where('slug', 'services')->firstOrFail()->body);
+
+        $banner = ContentBlock::query()->where('key', 'about.banner')->firstOrFail();
+        $this->assertSame('', $banner->payload['text'] ?? null);
+        $banner->update(['payload' => ['text' => 'Kept banner line']]);
+        AboutBannerBlock::ensure();
+        $this->assertSame('Kept banner line', ContentBlock::query()->where('key', 'about.banner')->firstOrFail()->payload['text']);
 
         foreach (PublicContentDefaults::blocks() as $block) {
             $this->assertTrue(ContentBlock::query()->where('key', $block['key'])->exists(), $block['key']);

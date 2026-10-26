@@ -24,6 +24,8 @@ const NewsEditorPage = lazy(() => import('./pages/admin/publicEditors').then((mo
 const TestimonialsEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.TestimonialsEditorPage })))
 const PackagesEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.PackagesEditorPage })))
 const ChromeEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.ChromeEditorPage })))
+const PrivacyEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.PrivacyEditorPage })))
+const TermsEditorPage = lazy(() => import('./pages/admin/publicEditors').then((module) => ({ default: module.TermsEditorPage })))
 const CourseAdminListPage = lazy(() => import('./pages/admin/CourseAdminPages').then((module) => ({ default: module.CourseAdminListPage })))
 const CourseEditorPage = lazy(() => import('./pages/admin/CourseAdminPages').then((module) => ({ default: module.CourseEditorPage })))
 const InquiriesPage = lazy(() => import('./pages/admin/InquiriesPage').then((module) => ({ default: module.InquiriesPage })))
@@ -95,6 +97,8 @@ export default function App() {
           <Route path="cms/testimonials" element={<RequireAuth permission="content.manage"><TestimonialsEditorPage /></RequireAuth>} />
           <Route path="cms/packages" element={<RequireAuth permission="content.manage"><PackagesEditorPage /></RequireAuth>} />
           <Route path="cms/chrome" element={<RequireAuth permission="content.manage"><ChromeEditorPage /></RequireAuth>} />
+          <Route path="cms/privacy" element={<RequireAuth permission="content.manage"><PrivacyEditorPage /></RequireAuth>} />
+          <Route path="cms/terms" element={<RequireAuth permission="content.manage"><TermsEditorPage /></RequireAuth>} />
           <Route path="cms/pages/new" element={<RequireAuth permission="content.manage"><PageEditorPage /></RequireAuth>} />
           <Route path="cms/pages/:id" element={<RequireAuth permission="content.manage"><PageEditorPage /></RequireAuth>} />
           <Route path="courses" element={<RequireAuth permission="courses.view"><CourseAdminListPage /></RequireAuth>} />

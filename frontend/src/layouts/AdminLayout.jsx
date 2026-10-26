@@ -1,13 +1,32 @@
-import { useEffect, useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import Brand from '../components/Brand'
 import { useDialog } from '../components/useDialog'
 import { useAuth } from '../context/useAuth'
 import { api, can } from '../services/api'
 
+const cmsPages = [
+  { to: '/admin/cms/home', label: 'Home' },
+  { to: '/admin/cms/about', label: 'About' },
+  { to: '/admin/cms/services', label: 'Services' },
+  { to: '/admin/cms/courses', label: 'Courses' },
+  { to: '/admin/cms/projects', label: 'Projects' },
+  { to: '/admin/cms/team', label: 'Team' },
+  { to: '/admin/cms/news', label: 'News' },
+  { to: '/admin/cms/testimonials', label: 'Testimonials' },
+  { to: '/admin/cms/faq', label: 'FAQ' },
+  { to: '/admin/cms/contact', label: 'Contact' },
+  { to: '/admin/cms/book', label: 'Booking' },
+  { to: '/admin/cms/packages', label: 'Packages' },
+  { to: '/admin/cms/chrome', label: 'Header & Footer' },
+  { to: '/admin/cms/privacy', label: 'Privacy' },
+  { to: '/admin/cms/terms', label: 'Terms' },
+  { to: '/admin/cms', label: 'All content', end: true },
+]
+
 const items = [
   { to: '/admin', label: 'Dashboard', permission: 'dashboard.view', end: true },
-  { to: '/admin/cms', label: 'CMS', permission: 'content.view' },
+  { to: '/admin/cms', label: 'CMS', permission: 'content.view', menu: 'cms' },
   { to: '/admin/courses', label: 'Courses', permission: 'courses.view' },
   { to: '/admin/inquiries', label: 'Inquiries', permission: 'inquiries.view' },
   { to: '/admin/bookings', label: 'Bookings', permission: 'bookings.view' },
@@ -45,15 +64,19 @@ export default function AdminLayout() {
   const nav = (
     <nav className="space-y-1" aria-label="Admin">
       {visible.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          end={item.end}
-          onClick={() => setOpen(false)}
-          className={({ isActive }) => `flex min-h-11 items-center rounded-xl px-3 text-sm font-medium ${isActive ? 'bg-blue/10 text-blue' : 'text-ink hover:bg-surface'}`}
-        >
-          {item.label}
-        </NavLink>
+        item.menu === 'cms'
+          ? <CmsMenu key="cms" onNavigate={() => setOpen(false)} />
+          : (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              onClick={() => setOpen(false)}
+              className={({ isActive }) => `flex min-h-11 items-center rounded-xl px-3 text-sm font-medium ${isActive ? 'bg-blue/10 text-blue' : 'text-ink hover:bg-surface'}`}
+            >
+              {item.label}
+            </NavLink>
+          )
       ))}
     </nav>
   )
@@ -97,6 +120,63 @@ export default function AdminLayout() {
           </aside>
         </div>
       ) : null}
+    </div>
+  )
+}
+
+function CmsMenu({ onNavigate }) {
+  const location = useLocation()
+  const buttonRef = useRef(null)
+  const listRef = useRef(null)
+  const onCms = location.pathname === '/admin/cms' || location.pathname.startsWith('/admin/cms/')
+  const [expanded, setExpanded] = useState(onCms)
+  const [trackedPath, setTrackedPath] = useState(location.pathname)
+  if (location.pathname !== trackedPath) {
+    setTrackedPath(location.pathname)
+    if (onCms) setExpanded(true)
+  }
+
+  function onKeyDown(event) {
+    if (event.key === 'Escape') {
+      setExpanded(false)
+      buttonRef.current?.focus()
+      return
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setExpanded(true)
+      queueMicrotask(() => listRef.current?.querySelector('a')?.focus())
+    }
+  }
+
+  return (
+    <div>
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-expanded={expanded}
+        aria-controls="cms-page-menu"
+        onClick={() => setExpanded((value) => !value)}
+        onKeyDown={onKeyDown}
+        className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 text-left text-sm font-medium ${onCms ? 'bg-blue/10 text-blue' : 'text-ink hover:bg-surface'}`}
+      >
+        CMS
+        <span aria-hidden="true">{expanded ? '▾' : '▸'}</span>
+      </button>
+      <ul id="cms-page-menu" ref={listRef} hidden={!expanded} aria-label="CMS pages" className="mt-1 space-y-1 border-l border-line pl-2">
+        {cmsPages.map((page) => (
+          <li key={page.label}>
+            <NavLink
+              to={page.to}
+              end={page.end}
+              onClick={onNavigate}
+              className={({ isActive }) => `flex min-h-11 items-center rounded-xl px-3 text-sm ${isActive ? 'bg-blue/10 font-semibold text-blue' : 'text-ink hover:bg-surface'}`}
+            >
+              {page.label}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
