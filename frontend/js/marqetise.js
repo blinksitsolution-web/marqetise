@@ -4,6 +4,33 @@
     corporate: 'corporate_training',
   };
 
+  var GHANA_MOBILE = { '20': 1, '23': 1, '24': 1, '25': 1, '26': 1, '27': 1, '28': 1, '50': 1, '53': 1, '54': 1, '55': 1, '56': 1, '57': 1, '59': 1 };
+  var GHANA_PHONE_ERROR = 'Enter a valid Ghanaian phone number, e.g. 024 123 4567 or +233 24 123 4567.';
+
+  function ghanaNational(value) {
+    var compact = String(value || '').trim().replace(/[\s().-]/g, '');
+    if (!/^\+?\d+$/.test(compact)) return '';
+    var digits = compact.charAt(0) === '+' ? compact.slice(1) : compact;
+    var national = '';
+    if (digits.indexOf('233') === 0 && digits.length === 12) national = digits.slice(3);
+    else if (digits.charAt(0) === '0' && digits.length === 10) national = digits.slice(1);
+    else return '';
+    var prefix = national.slice(0, 2);
+    if (prefix.charAt(0) !== '3' && !GHANA_MOBILE[prefix]) return '';
+    return national;
+  }
+
+  function ghanaE164(value) {
+    var national = ghanaNational(value);
+    return national ? '+233' + national : '';
+  }
+
+  function ghanaDisplay(value) {
+    var national = ghanaNational(value);
+    if (!national) return String(value || '').trim();
+    return '+233 ' + national.slice(0, 2) + ' ' + national.slice(2, 5) + ' ' + national.slice(5);
+  }
+
   function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
@@ -154,6 +181,11 @@
       };
 
       if (payload.type === 'course') payload.course = fieldValue(form, ['course']);
+
+      if (payload.phone && !ghanaE164(payload.phone)) {
+        setStatus(form, GHANA_PHONE_ERROR);
+        return;
+      }
 
       var button = form.querySelector('[type="submit"]');
       if (button) button.disabled = true;
@@ -397,8 +429,8 @@
     if (!fieldValue(form, ['name'])) return 'Enter your name.';
     if (!fieldValue(form, ['email'])) return 'Enter your email address.';
     var phone = fieldValue(form, ['phone']);
-    if (phone && !/^[0-9+().\-\s]{6,30}$/.test(phone)) {
-      return 'Enter a phone number using digits, spaces, and + ( ) . - only.';
+    if (phone && !ghanaE164(phone)) {
+      return GHANA_PHONE_ERROR;
     }
     var website = fieldValue(form, ['website']);
     if (website && !/^https?:\/\/\S+$/i.test(website)) {
@@ -801,7 +833,7 @@
       var email = typeof settings.email === 'string' ? settings.email.trim() : '';
       var address = typeof settings.address === 'string' ? settings.address.trim() : '';
       var hours = typeof settings.hours === 'string' ? settings.hours.trim() : '';
-      if (phone) applySiteText('[data-site="phone"]', phone, 'tel:' + phone.replace(/[^\d+]/g, ''));
+      if (phone) applySiteText('[data-site="phone"]', ghanaDisplay(phone), 'tel:' + (ghanaE164(phone) || phone.replace(/[^\d+]/g, '')));
       if (email && /^[^\s@]+@[^\s@]+$/.test(email)) applySiteText('[data-site="email"]', email, 'mailto:' + email);
       if (address) applySiteText('[data-site="address"]', address);
       if (hours) applySiteText('[data-site="hours"]', hours);

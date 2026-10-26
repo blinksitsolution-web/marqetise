@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\GhanaPhone;
 use App\Support\PermissionCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -22,7 +23,7 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'phone' => $this->phone,
+            'phone' => GhanaPhone::format($this->phone),
             'status' => $this->status,
             'last_login_at' => $this->last_login_at,
             'created_at' => $this->created_at,

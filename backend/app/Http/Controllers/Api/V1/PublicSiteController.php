@@ -11,6 +11,7 @@ use App\Models\Faq;
 use App\Models\Page;
 use App\Models\Service;
 use App\Models\Setting;
+use App\Support\GhanaPhone;
 use App\Support\PublicMedia;
 use Illuminate\Http\JsonResponse;
 
@@ -22,6 +23,9 @@ class PublicSiteController extends Controller
             ->mapWithKeys(fn (Setting $setting) => [$setting->key => Setting::decodeStored($setting->value)])
             ->only(config('marqetise.public_setting_keys'))
             ->all();
+        if (array_key_exists('phone', $settings)) {
+            $settings['phone'] = GhanaPhone::format($settings['phone']);
+        }
         $logo = PublicMedia::publish($settings['logo_url'] ?? null);
         $settings['logo_url'] = $logo === '' || $logo === null ? null : $logo;
 

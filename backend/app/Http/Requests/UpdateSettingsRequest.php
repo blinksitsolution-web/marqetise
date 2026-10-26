@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\SanitizesStrings;
+use App\Rules\GhanaianPhone;
+use App\Support\GhanaPhone;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSettingsRequest extends FormRequest
@@ -29,6 +31,10 @@ class UpdateSettingsRequest extends FormRequest
             }
         }
 
+        if (is_string($settings['phone'] ?? null)) {
+            $settings['phone'] = GhanaPhone::prepare($settings['phone']);
+        }
+
         $this->merge(['settings' => $settings]);
     }
 
@@ -41,7 +47,7 @@ class UpdateSettingsRequest extends FormRequest
             'settings.company_name' => ['sometimes', 'required', 'string', 'max:120'],
             'settings.tagline' => ['sometimes', 'nullable', 'string', 'max:240'],
             'settings.email' => ['sometimes', 'nullable', 'email', 'max:255'],
-            'settings.phone' => ['sometimes', 'nullable', 'string', 'max:30'],
+            'settings.phone' => ['sometimes', 'nullable', 'string', new GhanaianPhone],
             'settings.address' => ['sometimes', 'nullable', 'string', 'max:300'],
             'settings.hours' => ['sometimes', 'nullable', 'string', 'max:160'],
             'settings.social_linkedin' => ['sometimes', 'nullable', 'url', 'max:255'],

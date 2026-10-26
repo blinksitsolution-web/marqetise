@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateSettingsRequest;
 use App\Models\Setting;
+use App\Support\GhanaPhone;
 use App\Services\AuditLogger;
 use App\Services\MailStatus;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +16,7 @@ class SettingController extends Controller
     {
         $keys = array_merge(config('marqetise.public_setting_keys'), config('marqetise.private_setting_keys'));
         $settings = collect($keys)
-            ->mapWithKeys(fn (string $key) => [$key => Setting::getValue($key)]);
+            ->mapWithKeys(fn (string $key) => [$key => $key === 'phone' ? GhanaPhone::format(Setting::getValue($key)) : Setting::getValue($key)]);
 
         return response()->json([
             'data' => $settings,

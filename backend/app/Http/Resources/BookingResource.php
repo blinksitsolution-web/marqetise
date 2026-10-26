@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\GhanaPhone;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,7 +17,7 @@ class BookingResource extends JsonResource
             'service_name' => $this->service_name,
             'name' => $this->name,
             'email' => $this->email,
-            'phone' => $this->phone,
+            'phone' => GhanaPhone::format($this->phone),
             'company' => $this->company,
             'website' => $this->website,
             'budget' => $this->budget,

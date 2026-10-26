@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Seo from '../../components/Seo'
 import { MediaImageField, flushImageFields } from '../../components/MediaImageField'
+import { GHANA_PHONE_ERROR, GHANA_PHONE_HINT, GHANA_PHONE_PLACEHOLDER, ghanaE164 } from '../../components/ghanaPhone'
 import { saveErrorAlert, savedAlert } from '../../components/saveAlert'
 import { Button, Field, Notice, Spinner, inputClass } from '../../components/ui'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
@@ -21,7 +22,7 @@ const groups = [
     help: 'Shown in the header menu and footer when filled in. An empty value stays hidden.',
     fields: [
       ['email', 'Public email', 'The address visitors can use to reach the team.', 'email'],
-      ['phone', 'Phone', 'Shown next to the public email.', 'text'],
+      ['phone', 'Phone', GHANA_PHONE_HINT, 'text'],
       ['address', 'Address', 'Shown in the footer when it is filled in.', 'textarea'],
       ['hours', 'Hours', 'Shown in the header menu when it is filled in.', 'text'],
     ],
@@ -117,6 +118,12 @@ export function SettingsPage() {
   async function save(event) {
     event.preventDefault()
     setError('')
+    const phone = String(settingsRef.current?.phone || '').trim()
+    if (phone && !ghanaE164(phone)) {
+      setError(GHANA_PHONE_ERROR)
+      saveErrorAlert([GHANA_PHONE_ERROR])
+      return
+    }
     try {
       await flushImageFields('settings')
       await ensureCsrf()
@@ -198,7 +205,7 @@ export function SettingsPage() {
 function SettingField({ settingKey, label, hint, type, value, onChange }) {
   const control = type === 'textarea'
     ? <textarea className={`${inputClass} min-h-24`} value={value} onChange={(event) => onChange(event.target.value)} />
-    : <input className={inputClass} type={type === 'email' || type === 'url' ? type : 'text'} inputMode={settingKey === 'ip_retention_days' ? 'numeric' : undefined} value={value} onChange={(event) => onChange(event.target.value)} />
+    : <input className={inputClass} type={type === 'email' || type === 'url' ? type : 'text'} inputMode={settingKey === 'ip_retention_days' ? 'numeric' : settingKey === 'phone' ? 'tel' : undefined} autoComplete={settingKey === 'phone' ? 'tel' : undefined} placeholder={settingKey === 'phone' ? GHANA_PHONE_PLACEHOLDER : undefined} value={value} onChange={(event) => onChange(event.target.value)} />
 
   return <Field label={label} hint={hint || undefined}>{control}</Field>
 }

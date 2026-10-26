@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { GHANA_PHONE_ERROR, GHANA_PHONE_HINT, GHANA_PHONE_PLACEHOLDER, ghanaE164 } from '../../components/ghanaPhone'
 import { LegalNotice } from '../../components/LegalNotice'
 import Seo from '../../components/Seo'
 import { Badge, Button, EmptyState, Field, Modal, Notice, Pager, Skeleton, Spinner, inputClass } from '../../components/ui'
@@ -27,9 +28,14 @@ export function StudentsPage() {
   async function create(event) {
     event.preventDefault()
     setError('')
+    const phone = form.phone.trim()
+    if (phone && !ghanaE164(phone)) {
+      setError(GHANA_PHONE_ERROR)
+      return
+    }
     try {
       await ensureCsrf()
-      await api.post('/api/v1/admin/students', { ...form, phone: form.phone || null, notes: form.notes || null, course_id: form.course_id ? Number(form.course_id) : null })
+      await api.post('/api/v1/admin/students', { ...form, phone: phone || null, notes: form.notes || null, course_id: form.course_id ? Number(form.course_id) : null })
       setOpen(false)
       reload()
     } catch (saveError) {
@@ -70,7 +76,7 @@ export function StudentsPage() {
             {error ? <Notice tone="error">{error}</Notice> : null}
             <Field label="Name"><input className={inputClass} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></Field>
             <Field label="Email"><input className={inputClass} value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></Field>
-            <Field label="Phone"><input className={inputClass} value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></Field>
+            <Field label="Phone" hint={GHANA_PHONE_HINT}><input className={inputClass} type="tel" inputMode="tel" autoComplete="tel" placeholder={GHANA_PHONE_PLACEHOLDER} value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /></Field>
             <Field label="Status"><select className={inputClass} value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}><option value="waitlist">Waitlist</option><option value="active">Active</option><option value="completed">Completed</option><option value="withdrawn">Withdrawn</option></select></Field>
             <Field label="Course"><select className={inputClass} value={form.course_id} onChange={(event) => setForm({ ...form, course_id: event.target.value })}><option value="">No course</option>{courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}</select></Field>
             <Field label="Notes"><textarea className={inputClass} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} /></Field>

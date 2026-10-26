@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\SanitizesStrings;
+use App\Rules\GhanaianPhone;
+use App\Support\GhanaPhone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,6 +20,7 @@ class UpdateUserRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->sanitize(['name', 'email', 'phone']);
+        GhanaPhone::mergeNormalized($this, 'phone');
         if ($this->exists('email')) {
             $this->merge(['email' => strtolower((string) $this->input('email'))]);
         }
@@ -30,7 +33,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:120'],
             'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
-            'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+().\\-\\s]{6,30}$/'],
+            'phone' => ['nullable', 'string', new GhanaianPhone],
             'role_id' => ['sometimes', 'required', 'integer', 'exists:roles,id'],
             'status' => ['sometimes', 'required', Rule::in(['active', 'invited', 'suspended'])],
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\GhanaPhone;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,7 +15,7 @@ class InquiryResource extends JsonResource
             'type' => $this->type,
             'name' => $this->name,
             'email' => $this->email,
-            'phone' => $this->phone,
+            'phone' => GhanaPhone::format($this->phone),
             'subject' => $this->subject,
             'message' => $this->message,
             'status' => $this->status,
