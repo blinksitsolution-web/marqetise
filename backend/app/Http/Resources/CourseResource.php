@@ -33,6 +33,7 @@ class CourseResource extends JsonResource
             'image_path' => $request->is('api/v1/admin/*')
                 ? $this->image_path
                 : (PublicMedia::publish($this->image_path) ?: null),
+            'image_removed' => (bool) $this->image_removed,
             'sort_order' => $this->sort_order,
             'students_count' => $this->whenCounted('students'),
             'modules' => $this->whenLoaded('modules', fn () => $this->modules->map(fn ($module) => [

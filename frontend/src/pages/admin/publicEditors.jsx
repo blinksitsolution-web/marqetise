@@ -35,7 +35,7 @@ const aboutSections = [
     key: 'about.banner',
     group: 'about',
     label: 'Banner',
-    help: 'The first part of About: heading, a short line, and an image. Leave the line blank to hide it. The page summary is not printed here. With no image, the template photo stays.',
+    help: 'The first part of About: heading, a short line, and an image. Leave the line blank to hide it. The page summary is not printed here. Until an image is chosen, the template photo stays. Remove the image and save to hide it.',
     fields: [
       ['heading', 'Heading', 'text'],
       ['text', 'Short line', 'textarea'],

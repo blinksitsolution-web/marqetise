@@ -215,4 +215,36 @@ BODY;
             ->assertOk()
             ->assertJsonPath('data.payload.nav.0.href', '/news');
     }
+
+    public function test_a_removed_about_image_stays_empty_on_the_public_site(): void
+    {
+        $this->seed(RolePermissionSeeder::class);
+        $editor = User::factory()->create([
+            'role_id' => Role::query()->where('slug', 'content-editor')->value('id'),
+            'status' => 'active',
+        ]);
+        $story = ContentBlock::query()->where('key', 'about.story')->firstOrFail();
+
+        $this->actingAs($editor)
+            ->putJson('/api/v1/admin/blocks/'.$story->id, [
+                'key' => 'about.story',
+                'group' => 'about',
+                'label' => 'Our story',
+                'is_visible' => true,
+                'payload' => [
+                    'title' => 'Our story',
+                    'body' => 'The photo was removed.',
+                    'image' => '',
+                    'image_alt' => '',
+                    'image_removed' => true,
+                    'items' => [],
+                ],
+            ])
+            ->assertOk();
+
+        $payload = $this->getJson('/api/v1/site')->assertOk()->json('data.blocks')['about.story']['payload'];
+
+        $this->assertTrue($payload['image_removed']);
+        $this->assertNull($payload['image']);
+    }
 }

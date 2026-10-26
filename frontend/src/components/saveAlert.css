@@ -1,0 +1,36 @@
+.swal2-container {
+  z-index: 1060;
+}
+
+.swal2-popup.mq-swal {
+  border-radius: 1rem;
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  color: #0e1b3d;
+}
+
+.mq-swal-title,
+.mq-swal-text {
+  color: #0e1b3d;
+}
+
+.swal2-popup.mq-swal .swal2-confirm.mq-swal-ok {
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 9999px;
+  background: #113da5;
+  color: #fff;
+  padding: 0 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.swal2-popup.mq-swal .swal2-confirm.mq-swal-ok:focus-visible {
+  outline: 2px solid #f36a09;
+  outline-offset: 2px;
+}
+
+.mq-swal-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  text-align: left;
+}

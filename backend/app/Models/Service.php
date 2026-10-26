@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'name', 'slug', 'summary', 'description', 'icon', 'image_path', 'starting_price',
+    'name', 'slug', 'summary', 'description', 'icon', 'image_path', 'image_removed', 'starting_price',
     'duration_label', 'status', 'sort_order',
 ])]
 class Service extends Model
@@ -16,6 +16,7 @@ class Service extends Model
     {
         return [
             'starting_price' => 'decimal:2',
+            'image_removed' => 'boolean',
         ];
     }
 

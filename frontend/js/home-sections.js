@@ -38,6 +38,16 @@
     return '';
   }
 
+  function explicitlyRemoved(record) {
+    return !!(record && (record.image_removed === true || record.image_removed === 1));
+  }
+
+  function hideRemoved(node) {
+    if (!node) return;
+    node.setAttribute('data-image-removed', '');
+    node.hidden = true;
+  }
+
   function applyImage(img, src) {
     if (!img || !src) return;
     if (!img.hasAttribute('data-template-src')) {
@@ -153,12 +163,16 @@
       if (href) link.setAttribute('href', href);
       if (label) setLabel(link.querySelector('span') || link, label);
     });
-    var image = safeMedia(hero.image);
-    if (image) {
-      Array.prototype.forEach.call(document.querySelectorAll('.ks-slider-thumb > img'), function (img) {
-        applyImage(img, image);
-        if (text(hero.image_alt)) img.setAttribute('alt', text(hero.image_alt));
-      });
+    if (explicitlyRemoved(hero)) {
+      Array.prototype.forEach.call(document.querySelectorAll('.ks-slider-thumb'), hideRemoved);
+    } else {
+      var image = safeMedia(hero.image);
+      if (image) {
+        Array.prototype.forEach.call(document.querySelectorAll('.ks-slider-thumb > img'), function (img) {
+          applyImage(img, image);
+          if (text(hero.image_alt)) img.setAttribute('alt', text(hero.image_alt));
+        });
+      }
     }
   }
 
@@ -239,10 +253,15 @@
         if (category && text(row.category)) category.textContent = text(row.category);
         var summary = card.querySelector('.ks-project-content p');
         if (summary && text(row.summary)) summary.textContent = text(row.summary);
-        var image = safeMedia(row.image);
-        if (image) {
-          card.setAttribute('data-background', image);
-          card.style.backgroundImage = 'url("' + image.replace(/"/g, '') + '")';
+        if (explicitlyRemoved(row)) {
+          card.style.backgroundImage = 'none';
+          card.removeAttribute('data-background');
+        } else {
+          var image = safeMedia(row.image);
+          if (image) {
+            card.setAttribute('data-background', image);
+            card.style.backgroundImage = 'url("' + image.replace(/"/g, '') + '")';
+          }
         }
       });
     }
@@ -263,11 +282,15 @@
         }
         var role = card.querySelector('.ks-team-content > span');
         if (role && text(row.role)) role.textContent = text(row.role);
-        var image = safeMedia(row.image);
-        var photo = card.querySelector('.ks-team-thumb > img');
-        if (photo && image) {
-          applyImage(photo, image);
-          if (text(row.image_alt) || name) photo.setAttribute('alt', text(row.image_alt) || name);
+        if (explicitlyRemoved(row)) {
+          hideRemoved(card.querySelector('.ks-team-thumb'));
+        } else {
+          var image = safeMedia(row.image);
+          var photo = card.querySelector('.ks-team-thumb > img');
+          if (photo && image) {
+            applyImage(photo, image);
+            if (text(row.image_alt) || name) photo.setAttribute('alt', text(row.image_alt) || name);
+          }
         }
       });
     }
@@ -296,6 +319,10 @@
         if (text(row.role)) node.textContent = text(row.role);
       });
       paint(document.querySelectorAll('.ks-testimonial-user-wrap .thumb img'), items(quotes), function (img, row) {
+        if (explicitlyRemoved(row)) {
+          hideRemoved(img);
+          return;
+        }
         var image = safeMedia(row.image);
         if (!image) return;
         applyImage(img, image);
@@ -309,6 +336,10 @@
       if (brand) setRich(brand, partners.title);
     }
     paint(document.querySelectorAll('.ks-brand-item img'), items(partners), function (img, row) {
+      if (explicitlyRemoved(row)) {
+        hideRemoved(img);
+        return;
+      }
       var image = safeMedia(row.image);
       if (!image) return;
       applyImage(img, image);
@@ -332,11 +363,15 @@
         if (thumb) thumb.setAttribute('href', href);
         var date = card.querySelector('.ks-blog-date span');
         if (date && text(row.date)) date.textContent = text(row.date);
-        var image = safeMedia(row.image);
-        var photo = card.querySelector('.ks-blog-thumb img');
-        if (photo && image) {
-          applyImage(photo, image);
-          if (text(row.image_alt)) photo.setAttribute('alt', text(row.image_alt));
+        if (explicitlyRemoved(row)) {
+          hideRemoved(card.querySelector('.ks-blog-thumb'));
+        } else {
+          var image = safeMedia(row.image);
+          var photo = card.querySelector('.ks-blog-thumb img');
+          if (photo && image) {
+            applyImage(photo, image);
+            if (text(row.image_alt)) photo.setAttribute('alt', text(row.image_alt));
+          }
         }
       });
     }

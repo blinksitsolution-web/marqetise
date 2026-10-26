@@ -113,4 +113,16 @@ describe('home page sections', () => {
 
     expect(document.querySelector('.ks-slider-thumb img').getAttribute('src')).toBe('images/slider/slider-img-1.png')
   })
+
+  it('hides a hero image that was removed', () => {
+    render({
+      blocks: {
+        'home.hero': { payload: { headline: 'Marketing that grows', image: '', image_removed: true } },
+      },
+    })
+
+    const thumb = document.querySelector('.ks-slider-thumb')
+    expect(thumb).toHaveAttribute('hidden')
+    expect(thumb).toHaveAttribute('data-image-removed', '')
+  })
 })

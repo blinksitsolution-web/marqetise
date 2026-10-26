@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, Spinner, inputClass } from '../../components/ui'
+import { saveErrorAlert, savedAlert } from '../../components/saveAlert'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 
 export function PageEditorPage() {
@@ -46,9 +47,12 @@ export function PageEditorPage() {
       const payload = { title: current.title, slug: current.slug, excerpt: current.excerpt, body: current.body, meta_title: current.meta_title, meta_description: current.meta_description, status: current.status }
       if (id) await api.put(`/api/v1/admin/pages/${id}`, payload)
       else await api.post('/api/v1/admin/pages', payload)
+      savedAlert()
       navigate('/admin/cms')
     } catch (saveError) {
-      setError(errorMessage(saveError))
+      const text = errorMessage(saveError)
+      setError(text)
+      saveErrorAlert([text])
     }
   }
 

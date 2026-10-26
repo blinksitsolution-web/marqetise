@@ -200,6 +200,16 @@
     return '';
   }
 
+  function explicitlyRemoved(record) {
+    return !!(record && (record.image_removed === true || record.image_removed === 1));
+  }
+
+  function hideRemoved(node) {
+    if (!node) return;
+    node.setAttribute('data-image-removed', '');
+    node.hidden = true;
+  }
+
   function applyImage(img, src) {
     if (!img || !src) return;
     if (!img.hasAttribute('data-template-src')) {
@@ -225,7 +235,7 @@
   }
 
   function courseCard(course) {
-    var image = mediaSrc(course.image_path);
+    var image = explicitlyRemoved(course) ? '' : mediaSrc(course.image_path);
     var href = '/courses/' + encodeURIComponent(course.slug);
     return ''
       + '<article class="mq-course-card col-lg-4 col-md-6">'
@@ -330,7 +340,7 @@
           return '<li><a href="/courses/' + encodeURIComponent(item.slug) + '">' + esc(item.title) + '</a></li>';
         }).join('');
 
-        var courseImage = mediaSrc(course.image_path);
+        var courseImage = explicitlyRemoved(course) ? '' : mediaSrc(course.image_path);
         detail.innerHTML = ''
           + '<div class="mq-detail">'
           + '<div class="mq-detail-main">'
@@ -662,7 +672,11 @@
       if (arrow) arrow.href = link;
       var photo = card.querySelector('.image-box > img');
       var image = mediaSrc(service.image_path);
-      if (photo && image) applyImage(photo, image);
+      if (photo && explicitlyRemoved(service)) {
+        hideRemoved(card.querySelector('.image-box') || photo);
+      } else if (photo && image) {
+        applyImage(photo, image);
+      }
       var number = card.querySelector('.number');
       if (number) number.textContent = String(index + 1).padStart(2, '0');
       card.hidden = false;
@@ -731,7 +745,8 @@
     if (body) body.textContent = service.description || service.summary || '';
     var photo = document.querySelector('.services-details__content > img');
     var image = mediaSrc(service.image_path);
-    if (photo && image) applyImage(photo, image);
+    if (photo && explicitlyRemoved(service)) hideRemoved(photo);
+    else if (photo && image) applyImage(photo, image);
     if (service.name) document.title = service.name + ' | Marqetise';
   }
 

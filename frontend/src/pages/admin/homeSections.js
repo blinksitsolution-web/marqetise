@@ -126,10 +126,18 @@ export function blankPayload(section) {
   return payload
 }
 
+export function imageFlags(field, value) {
+  const [key, , type = 'text'] = field
+  if (type !== 'image') return { [key]: value }
+  const flag = key === 'banner_image' ? 'banner_image_removed' : 'image_removed'
+  return { [key]: value, [flag]: value === '' }
+}
+
 function rowsFor(raw, key, fields, mapRow) {
   const rows = Array.isArray(raw?.[key]) ? raw[key] : []
   return rows.map((item) => {
     const next = Object.fromEntries(fields.map(([field]) => [field, item?.[field] || '']))
+    if (item?.image_removed === true) next.image_removed = true
     return mapRow ? mapRow(next, item) : next
   })
 }
