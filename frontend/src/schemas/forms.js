@@ -1,8 +1,9 @@
 import { z } from 'zod'
+import { GHANA_PHONE_ERROR, ghanaE164 } from '../components/ghanaPhone'
 
 const phone = z.string().trim().refine(
-  (value) => value === '' || /^[0-9+().\-\s]{6,30}$/.test(value),
-  'Enter a valid phone number',
+  (value) => value === '' || Boolean(ghanaE164(value)),
+  GHANA_PHONE_ERROR,
 )
 
 export const enquiryTypes = [

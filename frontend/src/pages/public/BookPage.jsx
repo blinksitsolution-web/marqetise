@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useParams } from 'react-router-dom'
+import { GHANA_PHONE_HINT, GHANA_PHONE_PLACEHOLDER } from '../../components/ghanaPhone'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
 import { bookingSchema } from '../../schemas/forms'
@@ -127,7 +128,7 @@ export default function BookPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Name" error={form.formState.errors.name?.message}><input className={inputClass} {...form.register('name')} /></Field>
             <Field label="Email" error={form.formState.errors.email?.message}><input className={inputClass} type="email" {...form.register('email')} /></Field>
-            <Field label="Phone" error={form.formState.errors.phone?.message}><input className={inputClass} {...form.register('phone')} /></Field>
+            <Field label="Phone" hint={GHANA_PHONE_HINT} error={form.formState.errors.phone?.message}><input className={inputClass} type="tel" inputMode="tel" autoComplete="tel" placeholder={GHANA_PHONE_PLACEHOLDER} {...form.register('phone')} /></Field>
             <Field label="Company"><input className={inputClass} {...form.register('company')} /></Field>
             <Field label="Website" error={form.formState.errors.website?.message}><input className={inputClass} {...form.register('website')} /></Field>
             <Field label="Budget"><input className={inputClass} {...form.register('budget')} /></Field>

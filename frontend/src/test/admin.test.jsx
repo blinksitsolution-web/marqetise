@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { GHANA_PHONE_ERROR } from '../components/ghanaPhone'
 import AccountPage from '../pages/admin/AccountPage.jsx'
 import { CmsListPage } from '../pages/admin/CmsListPage.jsx'
 import { HomeEditorPage } from '../pages/admin/HomeEditorPage.jsx'
@@ -351,5 +352,53 @@ describe('admin remediation', () => {
 
     expect(api.patch).toHaveBeenCalledWith('/api/v1/account', { name: 'Ada', phone: null })
     expect(refresh).toHaveBeenCalled()
+    expect(await screen.findByRole('dialog', { name: 'Saved' })).toHaveTextContent('Your changes are live.')
+  })
+
+  it('saves a Ghana phone and keeps it when the password is rejected', async () => {
+    const user = userEvent.setup()
+    api.patch.mockImplementation((_url, payload) => {
+      if (payload.password) {
+        return Promise.reject({
+          response: {
+            status: 422,
+            data: {
+              message: 'The password field must be at least 12 characters.',
+              errors: { password: ['The password field must be at least 12 characters.'] },
+            },
+          },
+        })
+      }
+      return Promise.resolve({ data: { data: { name: 'Ada Lovelace', phone: '+233 59 353 5225' } } })
+    })
+
+    render(<MemoryRouter><AccountPage /></MemoryRouter>)
+    await user.type(screen.getByLabelText('Phone'), '0593535225')
+    await user.type(screen.getByLabelText('New password'), 'short-pass')
+    await user.click(screen.getByRole('button', { name: 'Save account' }))
+
+    expect(api.patch).toHaveBeenNthCalledWith(1, '/api/v1/account', { name: 'Ada Lovelace', phone: '0593535225' })
+    expect(api.patch).toHaveBeenNthCalledWith(2, '/api/v1/account', {
+      current_password: '',
+      password: 'short-pass',
+      password_confirmation: '',
+    })
+    expect(screen.getByLabelText('Phone')).toHaveValue('+233 59 353 5225')
+    expect(screen.getByRole('alert', { hidden: true })).toHaveTextContent('at least 12 characters')
+    const dialog = await screen.findByRole('dialog', { name: 'Some changes were not saved' })
+    expect(dialog).toHaveTextContent('The name and phone were saved.')
+    expect(dialog).toHaveTextContent('at least 12 characters')
+    expect(refresh).toHaveBeenCalled()
+  })
+
+  it('blocks an invalid phone before the account request', async () => {
+    const user = userEvent.setup()
+    render(<MemoryRouter><AccountPage /></MemoryRouter>)
+    await user.type(screen.getByLabelText('Phone'), '0211234567')
+    await user.click(screen.getByRole('button', { name: 'Save account' }))
+
+    expect(api.patch).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert', { hidden: true })).toHaveTextContent(GHANA_PHONE_ERROR)
+    expect(await screen.findByRole('dialog', { name: 'Not saved' })).toHaveTextContent(GHANA_PHONE_ERROR)
   })
 })

@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\SanitizesStrings;
+use App\Rules\GhanaianPhone;
+use App\Support\GhanaPhone;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,6 +20,7 @@ class StoreInquiryRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->sanitize(['name', 'email', 'phone', 'subject', 'message', 'course', 'enquiry']);
+        GhanaPhone::mergeNormalized($this, 'phone');
         $this->merge(['email' => strtolower((string) $this->input('email'))]);
 
         if (! $this->filled('type') && $this->filled('enquiry')) {
@@ -35,7 +38,7 @@ class StoreInquiryRequest extends FormRequest
             'type' => ['required', Rule::in(['marketing_services', 'website_development', 'course', 'corporate_training', 'other'])],
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+().\\-\\s]{6,30}$/'],
+            'phone' => ['nullable', 'string', new GhanaianPhone],
             'subject' => ['required', 'string', 'max:160'],
             'message' => ['required', 'string', 'min:20', 'max:5000'],
             'course' => [

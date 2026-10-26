@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useSearchParams } from 'react-router-dom'
+import { GHANA_PHONE_HINT, GHANA_PHONE_PLACEHOLDER, ghanaDisplay } from '../../components/ghanaPhone'
 import Seo from '../../components/Seo'
 import { Button, Field, Notice, inputClass } from '../../components/ui'
 import { useSite } from '../../context/SiteContext'
@@ -77,8 +78,8 @@ export default function ContactPage() {
             <Field label="Email" error={form.formState.errors.email?.message}>
               <input className={inputClass} type="email" {...form.register('email')} />
             </Field>
-            <Field label="Phone" error={form.formState.errors.phone?.message}>
-              <input className={inputClass} {...form.register('phone')} />
+            <Field label="Phone" hint={GHANA_PHONE_HINT} error={form.formState.errors.phone?.message}>
+              <input className={inputClass} type="tel" inputMode="tel" autoComplete="tel" placeholder={GHANA_PHONE_PLACEHOLDER} {...form.register('phone')} />
             </Field>
             <Field label="Enquiry type" error={form.formState.errors.type?.message}>
               <select className={inputClass} {...form.register('type')}>
@@ -116,7 +117,7 @@ export default function ContactPage() {
             <h2 className="text-lg font-semibold">Contact details</h2>
             <ul className="mt-4 space-y-2 text-muted">
               {settings.email ? <li>{settings.email}</li> : null}
-              {settings.phone ? <li>{settings.phone}</li> : null}
+              {settings.phone ? <li>{ghanaDisplay(settings.phone)}</li> : null}
               {settings.address ? <li>{settings.address}</li> : null}
               {settings.hours ? <li>{settings.hours}</li> : null}
               {!settings.email && !settings.phone && !settings.address ? <li>Contact details have not been published yet. The form still saves your message.</li> : null}

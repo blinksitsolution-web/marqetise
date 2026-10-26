@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Support\GhanaPhone;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,7 +14,7 @@ class StudentResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'phone' => $this->phone,
+            'phone' => GhanaPhone::format($this->phone),
             'status' => $this->status,
             'enrolled_on' => $this->enrolled_on?->toDateString(),
             'notes' => $this->when(
