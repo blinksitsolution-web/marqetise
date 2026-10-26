@@ -64,6 +64,15 @@ h1, h2, h3, h4, .ks-section-title, .page-title .title {
   margin: 0;
 }
 
+.main-header .logo a,
+.nav-logo a,
+.sticky-header .logo a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  line-height: 0;
+}
+
 .main-header .outer-box .ks-btn-black,
 .sticky-header .outer-box .ks-btn-black {
   display: inline-flex;
@@ -119,49 +128,42 @@ h1, h2, h3, h4, .ks-section-title, .page-title .title {
   color: #ffffff !important;
 }
 
-.main-header .main-box > .col-xl-2,
-.main-header .logo-box {
-  width: auto;
-  max-width: none;
-  flex: 0 0 auto;
+/* container-1630 is only widened in the template stylesheet at 1400px.
+   Below that, Bootstrap's 1140px container makes the six nav items wrap. */
+@media (min-width: 992px) and (max-width: 1399.98px) {
+  .main-header .container.container-1630 {
+    max-width: 100%;
+  }
+
+  .main-header .main-box > .col-lg-6 {
+    flex: 1 1 auto;
+    width: auto;
+    max-width: none;
+  }
+
+  .main-header .main-box > .col-lg-4 {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: none;
+  }
 }
 
-.main-header .logo,
-.nav-logo,
-.sticky-header .logo {
-  display: flex;
-  align-items: center;
-  height: 48px;
+@media (min-width: 992px) {
+  .main-header .main-menu .navigation {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .main-header .main-menu .navigation > li {
+    float: none;
+    white-space: nowrap;
+  }
 }
 
-.main-header .logo a,
-.nav-logo a,
-.sticky-header .logo a {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  min-height: 44px;
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 4px 10px;
-  line-height: 0;
-}
-
-.logo img,
-.nav-logo img,
-.sticky-header .logo img {
-  display: block;
-  height: 40px !important;
-  width: auto !important;
-  max-width: 210px;
-  object-fit: contain;
-  object-position: left center;
-}
-
-@media (min-width: 1200px) {
-  .main-header .logo,
-  .sticky-header .logo {
-    transform: translateY(-12px);
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .main-header .main-menu .navigation > li {
+    margin-right: 18px;
   }
 }
 
@@ -685,6 +687,23 @@ body[data-cms-page="courses"] .page-title {
   color: #ffffff;
   max-width: 720px;
   margin: 8px 0 0;
+}
+
+body[data-cms-page="about"] .page-title .ks-about-2-thumb {
+  position: relative;
+  z-index: 1;
+}
+
+body[data-cms-page="about"] .page-title .ks-about-2-thumb > img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+}
+
+@media (max-width: 991.98px) {
+  body[data-cms-page="about"] .page-title .ks-about-2-thumb {
+    margin-top: 24px;
+  }
 }
 
 .mq-cms-body {

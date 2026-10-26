@@ -240,12 +240,21 @@
   }
 
   function applyAboutBanner(blocks) {
+    var banner = payloadOf(blocks, 'about.banner') || {};
     var node = document.querySelector('[data-about="banner"]');
-    if (!node) return;
-    var banner = payloadOf(blocks, 'about.banner');
-    var line = banner && text(banner.text);
-    node.textContent = line || '';
-    node.hidden = !line;
+    if (node) {
+      var line = text(banner.text);
+      node.textContent = line || '';
+      node.hidden = !line;
+    }
+    var heading = document.querySelector('[data-about="heading"]');
+    if (heading && text(banner.heading)) heading.textContent = text(banner.heading);
+    var image = document.querySelector('[data-about="banner-image"]');
+    if (!image) return;
+    var src = safePath(banner.image);
+    if (src) image.setAttribute('src', src);
+    var alt = text(banner.image_alt);
+    if (alt) image.setAttribute('alt', alt);
   }
 
   function fillPanel(blocks) {

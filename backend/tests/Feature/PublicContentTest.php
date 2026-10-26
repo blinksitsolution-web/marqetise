@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ContentBlock;
 use App\Models\Page;
 use App\Models\Role;
+use App\Models\Setting;
 use App\Models\User;
 use App\Support\AboutBannerBlock;
 use App\Support\PublicContentDefaults;
@@ -49,6 +50,31 @@ class PublicContentTest extends TestCase
         $packages = ContentBlock::query()->where('key', 'packages.plans')->firstOrFail();
         $this->assertTrue($packages->is_visible);
         $this->assertSame('Basic Plan', $packages->payload['items'][0]['name']);
+    }
+
+    public function test_a_missing_storage_logo_is_left_off_the_public_site(): void
+    {
+        $this->seed(WebsiteContentSeeder::class);
+        Setting::putValue('logo_url', 'https://marqetise.test/storage/media/missing.jpg', 'general', true);
+
+        $this->getJson('/api/v1/site')->assertOk()->assertJsonPath('data.settings.logo_url', null);
+        $this->assertSame(
+            'https://marqetise.test/storage/media/missing.jpg',
+            Setting::getValue('logo_url'),
+        );
+
+        $directory = storage_path('app/public/media');
+        if (! is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+        file_put_contents($directory.'/logo.png', 'png');
+        Setting::putValue('logo_url', '/storage/media/logo.png', 'general', true);
+
+        try {
+            $this->getJson('/api/v1/site')->assertOk()->assertJsonPath('data.settings.logo_url', '/storage/media/logo.png');
+        } finally {
+            @unlink($directory.'/logo.png');
+        }
     }
 
     public function test_the_public_payload_includes_chrome_and_omits_empty_packages(): void
