@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Support\MediaUpload;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 
 class UploadMediaRequest extends FormRequest
 {
@@ -14,7 +16,18 @@ class UploadMediaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'file' => ['required', 'file', function (string $attribute, mixed $value, \Closure $fail): void {
+                if (! $value instanceof UploadedFile) {
+                    $fail('The file was not uploaded.');
+
+                    return;
+                }
+
+                $problem = MediaUpload::rejection(MediaUpload::detectedMime($value->getPathname()), (int) $value->getSize());
+                if ($problem !== null) {
+                    $fail($problem);
+                }
+            }],
             'alt' => ['nullable', 'string', 'max:180'],
         ];
     }

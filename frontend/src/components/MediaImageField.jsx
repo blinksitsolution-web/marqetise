@@ -5,14 +5,20 @@ import { api, ensureCsrf, errorMessage } from '../services/api'
 const registry = new Set()
 const MAX_BYTES = 5 * 1024 * 1024
 
+export function registerFlushField(entry) {
+  registry.add(entry)
+  return () => registry.delete(entry)
+}
+
 export async function flushImageFields(scope) {
   const jobs = []
   for (const entry of registry) {
     if (!scope || entry.scope === scope) jobs.push(entry.run())
   }
   const results = await Promise.all(jobs)
-  if (results.some((result) => result?.ok === false)) {
-    throw new Error('The image was not uploaded.')
+  const failed = results.find((result) => result?.ok === false)
+  if (failed) {
+    throw new Error(failed.message || 'The image was not uploaded.')
   }
 }
 
@@ -50,7 +56,7 @@ export function MediaImageField({ label, value, onChange, onError, scope = 'defa
   function fail(message) {
     setFieldError(message)
     onErrorRef.current?.(message)
-    return { ok: false }
+    return { ok: false, message: 'The image was not uploaded.' }
   }
 
   function start(file) {

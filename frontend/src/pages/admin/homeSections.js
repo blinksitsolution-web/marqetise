@@ -2,7 +2,7 @@ export const homeSections = [
   {
     key: 'home.hero',
     label: 'Hero',
-    help: 'The first screen: headline, buttons, and an optional image.',
+    help: 'The first screen: headline, buttons, the intro video, and an optional image.',
     fields: [
       ['eyebrow', 'Small label', 'text'],
       ['headline', 'Headline', 'textarea'],
@@ -14,6 +14,8 @@ export const homeSections = [
       ['proof', 'Proof line', 'text'],
       ['image', 'Hero image', 'image'],
       ['image_alt', 'Hero image description', 'text'],
+      ['video_label', 'Play button text', 'text'],
+      ['video_url', 'Intro video', 'video'],
     ],
   },
   {
@@ -131,6 +133,11 @@ export function imageFlags(field, value) {
   if (type !== 'image') return { [key]: value }
   const flag = key === 'banner_image' ? 'banner_image_removed' : 'image_removed'
   return { [key]: value, [flag]: value === '' }
+}
+
+export function fieldPatch(field, value) {
+  if (field[2] === 'video' && value && typeof value === 'object') return value
+  return imageFlags(field, value)
 }
 
 function rowsFor(raw, key, fields, mapRow) {

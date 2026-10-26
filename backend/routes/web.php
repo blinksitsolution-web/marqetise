@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/media/{file}', [MediaFileController::class, 'show'])
-    ->where('file', '[0-9]+-[a-f0-9]{64}\.(?:jpe?g|png|webp)');
+    ->where('file', '[0-9]+-[a-f0-9]{64}\.(?:jpe?g|png|webp|mp4|webm|mov)');
 
 Route::get('/up', function () {
     try {
