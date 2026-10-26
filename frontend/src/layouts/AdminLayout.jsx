@@ -61,32 +61,34 @@ export default function AdminLayout() {
     navigate('/admin/login')
   }
 
-  const nav = (
-    <nav className="space-y-1" aria-label="Admin">
-      {visible.map((item) => (
-        item.menu === 'cms'
-          ? <CmsMenu key="cms" onNavigate={() => setOpen(false)} />
-          : (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) => `flex min-h-11 items-center rounded-xl px-3 text-sm font-medium ${isActive ? 'bg-blue/10 text-blue' : 'text-ink hover:bg-surface'}`}
-            >
-              {item.label}
-            </NavLink>
-          )
-      ))}
-    </nav>
-  )
+  function adminNav(menuId) {
+    return (
+      <nav className="space-y-1" aria-label="Admin">
+        {visible.map((item) => (
+          item.menu === 'cms'
+            ? <CmsMenu key="cms" menuId={menuId} onNavigate={() => setOpen(false)} />
+            : (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                onClick={() => setOpen(false)}
+                className={({ isActive }) => `flex min-h-11 items-center rounded-xl px-3 text-sm font-medium ${isActive ? 'bg-blue/10 text-blue' : 'text-ink hover:bg-surface'}`}
+              >
+                {item.label}
+              </NavLink>
+            )
+        ))}
+      </nav>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-surface text-ink">
       <div className="flex min-h-screen">
         <aside className="hidden w-64 shrink-0 flex-col border-r border-line bg-white p-4 lg:flex">
           <Link to="/" className="mb-6 px-2"><Brand light /></Link>
-          {nav}
+          {adminNav('cms-page-menu')}
           <p className="mt-auto px-2 pt-6 text-xs text-muted">Access is checked on the server for every request.</p>
         </aside>
         <div className="min-w-0 flex-1">
@@ -116,7 +118,7 @@ export default function AdminLayout() {
               <Brand light />
               <button type="button" className="inline-flex min-h-11 items-center px-3" onClick={() => setOpen(false)} aria-label="Close menu">Close</button>
             </div>
-            {nav}
+            {adminNav('cms-page-menu-mobile')}
           </aside>
         </div>
       ) : null}
@@ -124,7 +126,7 @@ export default function AdminLayout() {
   )
 }
 
-function CmsMenu({ onNavigate }) {
+function CmsMenu({ onNavigate, menuId }) {
   const location = useLocation()
   const buttonRef = useRef(null)
   const listRef = useRef(null)
@@ -155,7 +157,7 @@ function CmsMenu({ onNavigate }) {
         ref={buttonRef}
         type="button"
         aria-expanded={expanded}
-        aria-controls="cms-page-menu"
+        aria-controls={menuId}
         onClick={() => setExpanded((value) => !value)}
         onKeyDown={onKeyDown}
         className={`flex min-h-11 w-full items-center justify-between rounded-xl px-3 text-left text-sm font-medium ${onCms ? 'bg-blue/10 text-blue' : 'text-ink hover:bg-surface'}`}
@@ -163,7 +165,7 @@ function CmsMenu({ onNavigate }) {
         CMS
         <span aria-hidden="true">{expanded ? '▾' : '▸'}</span>
       </button>
-      <ul id="cms-page-menu" ref={listRef} hidden={!expanded} aria-label="CMS pages" className="mt-1 space-y-1 border-l border-line pl-2">
+      <ul id={menuId} ref={listRef} hidden={!expanded} aria-label="CMS pages" className="mt-1 space-y-1 border-l border-line pl-2">
         {cmsPages.map((page) => (
           <li key={page.label}>
             <NavLink
