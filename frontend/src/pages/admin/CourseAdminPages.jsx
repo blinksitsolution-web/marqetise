@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { MediaImageField } from '../../components/MediaImageField'
+import { MediaImageField, flushImageFields } from '../../components/MediaImageField'
 import { Badge, Button, EmptyState, Field, Notice, Pager, Spinner, inputClass } from '../../components/ui'
 import { statusTone } from '../../components/statusTone'
 import { useAuth } from '../../context/useAuth'
@@ -104,8 +104,14 @@ export function CourseEditorPage() {
 
   async function save(event) {
     event.preventDefault()
-    const form = formRef.current
     setError('')
+    try {
+      await flushImageFields('course')
+    } catch (flushError) {
+      setError(flushError.message || 'The image was not uploaded.')
+      return
+    }
+    const form = formRef.current
     const payload = {
       ...form,
       price: form.price === '' ? null : Number(form.price),
@@ -154,7 +160,7 @@ export function CourseEditorPage() {
       <Field label="Title"><input className={inputClass} value={form.title} onChange={(event) => update('title', event.target.value)} /></Field>
       <Field label="Slug"><input className={inputClass} value={form.slug} onChange={(event) => update('slug', event.target.value)} /></Field>
       <Field label="Summary"><textarea className={inputClass} value={form.summary} onChange={(event) => update('summary', event.target.value)} /></Field>
-      <MediaImageField label="Course image" value={form.image_path || ''} onChange={(url) => update('image_path', url)} onError={setError} />
+      <MediaImageField scope="course" label="Course image" value={form.image_path || ''} onChange={(url) => update('image_path', url)} onError={setError} />
       <Field label="Description"><textarea className={`${inputClass} min-h-32`} value={form.description || ''} onChange={(event) => update('description', event.target.value)} /></Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Category"><input className={inputClass} value={form.category} onChange={(event) => update('category', event.target.value)} /></Field>

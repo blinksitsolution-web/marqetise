@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { MediaImageField } from '../../components/MediaImageField'
+import { MediaImageField, flushImageFields } from '../../components/MediaImageField'
 import { Button, Field, Notice, Spinner, inputClass } from '../../components/ui'
 import { api, ensureCsrf, errorMessage } from '../../services/api'
 import { emptyItem, sectionPayload } from './homeSections'
@@ -15,10 +15,10 @@ function move(items, index, direction) {
   return next
 }
 
-function FieldControl({ field, value, onChange, onError }) {
+function FieldControl({ field, value, onChange, onError, scope }) {
   const [key, label, type = 'text'] = field
   if (type === 'image') {
-    return <MediaImageField label={label} value={value || ''} onChange={onChange} onError={onError} />
+    return <MediaImageField scope={scope} label={label} value={value || ''} onChange={onChange} onError={onError} />
   }
   const hint = key === 'href' || key.endsWith('_href')
     ? 'Same-site path, such as /contact.'
@@ -34,7 +34,7 @@ function FieldControl({ field, value, onChange, onError }) {
   )
 }
 
-function ItemList({ label, fields, rows, onChange, onError }) {
+function ItemList({ label, fields, rows, onChange, onError, scope }) {
   return (
     <div className="space-y-3">
       <p className="text-sm font-medium">{label}</p>
@@ -44,9 +44,10 @@ function ItemList({ label, fields, rows, onChange, onError }) {
             <FieldControl
               key={field[0]}
               field={field}
+              scope={scope}
               value={item[field[0]] || ''}
               onError={onError}
-              onChange={(value) => onChange(rows.map((row, rowIndex) => rowIndex === index ? { ...row, [field[0]]: value } : row))}
+              onChange={(value) => onChange((current) => current.map((row, rowIndex) => rowIndex === index ? { ...row, [field[0]]: value } : row))}
             />
           ))}
           <div className="flex flex-wrap gap-3">
@@ -72,6 +73,7 @@ export function SectionEditorPage({
   defaultGroup = 'home',
 }) {
   const [blocks, setBlocks] = useState(null)
+  const blocksRef = useRef(null)
   const [saved, setSaved] = useState(null)
   const [page, setPage] = useState(null)
   const [savedPage, setSavedPage] = useState(null)
@@ -101,6 +103,7 @@ export function SectionEditorPage({
       const record = pageResponse
         ? (pageResponse.data.data || []).find((item) => item.slug === pageSlug) || null
         : null
+      blocksRef.current = next
       setBlocks(next)
       setSaved(structuredClone(next))
       setPage(record)
@@ -114,30 +117,44 @@ export function SectionEditorPage({
   }, [pageSlug, sections, title])
 
   function updateBlock(key, patch) {
-    setBlocks((current) => ({ ...current, [key]: { ...current[key], ...patch } }))
+    const current = blocksRef.current
+    const next = { ...current, [key]: { ...current[key], ...patch } }
+    blocksRef.current = next
+    setBlocks(next)
   }
 
   function updatePayload(key, patch) {
-    setBlocks((current) => ({
+    const current = blocksRef.current
+    const next = {
       ...current,
       [key]: { ...current[key], payload: { ...current[key].payload, ...patch } },
-    }))
+    }
+    blocksRef.current = next
+    setBlocks(next)
+  }
+
+  function updateItems(key, listKey, update) {
+    const current = blocksRef.current
+    const rows = current[key].payload[listKey] || []
+    const items = typeof update === 'function' ? update(rows) : update
+    updatePayload(key, { [listKey]: items })
   }
 
   async function saveSection(section) {
-    const block = blocks[section.key]
     setSaving(section.key)
     setError('')
     setMessage('')
-    const body = {
-      key: section.key,
-      group: section.group || defaultGroup,
-      label: block.label || section.label,
-      payload: block.payload,
-      is_visible: Boolean(block.is_visible),
-      sort_order: block.sort_order || 0,
-    }
     try {
+      await flushImageFields(section.key)
+      const block = blocksRef.current[section.key]
+      const body = {
+        key: section.key,
+        group: section.group || defaultGroup,
+        label: block.label || section.label,
+        payload: block.payload,
+        is_visible: Boolean(block.is_visible),
+        sort_order: block.sort_order || 0,
+      }
       await ensureCsrf()
       const response = block.id
         ? await api.put(`/api/v1/admin/blocks/${block.id}`, body)
@@ -149,11 +166,12 @@ export function SectionEditorPage({
         is_visible: Boolean(stored.is_visible),
         payload: sectionPayload(section, stored.payload),
       }
-      setBlocks((current) => ({ ...current, [section.key]: next }))
+      blocksRef.current = { ...blocksRef.current, [section.key]: next }
+      setBlocks(blocksRef.current)
       setSaved((current) => ({ ...current, [section.key]: structuredClone(next) }))
       setMessage(`${section.label} saved.`)
     } catch (saveError) {
-      setError(errorMessage(saveError, `${section.label} was not saved.`))
+      setError(saveError?.response ? errorMessage(saveError, `${section.label} was not saved.`) : (saveError.message || `${section.label} was not saved.`))
     } finally {
       setSaving('')
     }
@@ -262,6 +280,7 @@ export function SectionEditorPage({
                   <FieldControl
                     key={field[0]}
                     field={field}
+                    scope={section.key}
                     value={block.payload[field[0]] || ''}
                     onError={setError}
                     onChange={(value) => updatePayload(section.key, { [field[0]]: value })}
@@ -272,8 +291,9 @@ export function SectionEditorPage({
                     label={section.itemsLabel || 'Items'}
                     fields={section.items}
                     rows={rows}
+                    scope={section.key}
                     onError={setError}
-                    onChange={(items) => updatePayload(section.key, { [listKey(section)]: items })}
+                    onChange={(items) => updateItems(section.key, listKey(section), items)}
                   />
                 ) : null}
                 {(section.lists || []).map((list) => (
@@ -282,8 +302,9 @@ export function SectionEditorPage({
                     label={list.label}
                     fields={list.fields}
                     rows={block.payload[list.key] || []}
+                    scope={section.key}
                     onError={setError}
-                    onChange={(items) => updatePayload(section.key, { [list.key]: items })}
+                    onChange={(items) => updateItems(section.key, list.key, items)}
                   />
                 ))}
                 <Button type="button" variant="blue" disabled={saving === section.key} onClick={() => saveSection(section)}>Save {section.label}</Button>

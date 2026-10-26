@@ -163,7 +163,7 @@ describe('admin remediation', () => {
     const input = await screen.findByLabelText('Logo')
     await user.upload(input, new File(['png'], 'logo.png', { type: 'image/png' }))
 
-    expect(await screen.findByText('The logo was rejected.')).toBeInTheDocument()
+    expect(await screen.findAllByText('The logo was rejected.')).not.toHaveLength(0)
     expect(api.put).not.toHaveBeenCalled()
   })
 

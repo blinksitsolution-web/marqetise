@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Seo from '../../components/Seo'
-import { MediaImageField } from '../../components/MediaImageField'
+import { MediaImageField, flushImageFields } from '../../components/MediaImageField'
 import { Badge, Button, EmptyState, Field, Modal, Notice, Pager, Skeleton, inputClass } from '../../components/ui'
 import { statusTone } from '../../components/statusTone'
 import { useAuth } from '../../context/useAuth'
@@ -279,6 +279,7 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
   const [form, setForm] = useState(blankForm)
+  const formRef = useRef(form)
   const [appliedId, setAppliedId] = useState(null)
   const editing = Boolean(record?.id)
 
@@ -300,36 +301,44 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
   async function save(event) {
     event.preventDefault()
     setError('')
+    formRef.current = form
+    try {
+      await flushImageFields('service')
+    } catch (flushError) {
+      setError(flushError.message || 'The image was not uploaded.')
+      return
+    }
+    const current = formRef.current
     try {
       await ensureCsrf()
       if (tab === 'faqs') {
-        const payload = { context: form.context, question: form.question, answer: form.answer, is_published: Boolean(form.is_published), sort_order: form.sort_order || 0 }
+        const payload = { context: current.context, question: current.question, answer: current.answer, is_published: Boolean(current.is_published), sort_order: current.sort_order || 0 }
         if (editing) await api.put(`/api/v1/admin/faqs/${record.id}`, payload)
         else await api.post('/api/v1/admin/faqs', payload)
       } else if (tab === 'services') {
         const payload = {
-          name: form.name,
-          slug: form.slug,
-          summary: form.summary,
-          description: form.description || null,
-          icon: form.icon || 'spark',
-          duration_label: form.duration_label || null,
-          image_path: form.image_path || null,
-          starting_price: form.starting_price === '' ? null : form.starting_price,
-          status: form.status,
-          sort_order: form.sort_order || 0,
+          name: current.name,
+          slug: current.slug,
+          summary: current.summary,
+          description: current.description || null,
+          icon: current.icon || 'spark',
+          duration_label: current.duration_label || null,
+          image_path: current.image_path || null,
+          starting_price: current.starting_price === '' ? null : current.starting_price,
+          status: current.status,
+          sort_order: current.sort_order || 0,
         }
         if (editing) await api.put(`/api/v1/admin/services/${record.id}`, payload)
         else await api.post('/api/v1/admin/services', payload)
       } else {
         let parsed
         try {
-          parsed = JSON.parse(form.payload)
+          parsed = JSON.parse(current.payload)
         } catch {
           setError('The JSON payload is not valid.')
           return
         }
-        const payload = { key: form.key, group: form.group, label: form.label, is_visible: Boolean(form.is_visible), sort_order: form.sort_order || 0, payload: parsed }
+        const payload = { key: current.key, group: current.group, label: current.label, is_visible: Boolean(current.is_visible), sort_order: current.sort_order || 0, payload: parsed }
         if (editing) await api.put(`/api/v1/admin/blocks/${record.id}`, payload)
         else await api.post('/api/v1/admin/blocks', payload)
       }
@@ -360,7 +369,7 @@ function BlockEditor({ tab, record, onSaved, onClose }) {
                 <Field label="Name"><input className={inputClass} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></Field>
                 <Field label="Slug"><input className={inputClass} value={form.slug} onChange={(event) => setForm({ ...form, slug: event.target.value })} /></Field>
                 <Field label="Summary"><textarea className={inputClass} value={form.summary} onChange={(event) => setForm({ ...form, summary: event.target.value })} /></Field>
-                <MediaImageField label="Service image" value={form.image_path || ''} onChange={(url) => setForm({ ...form, image_path: url })} onError={setError} />
+                <MediaImageField scope="service" label="Service image" value={form.image_path || ''} onChange={(url) => { formRef.current = { ...formRef.current, image_path: url }; setForm(formRef.current) }} onError={setError} />
                 <Field label="Description"><textarea className={inputClass} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></Field>
                 <Field label="Duration"><input className={inputClass} value={form.duration_label} onChange={(event) => setForm({ ...form, duration_label: event.target.value })} /></Field>
                 <Field label="Starting price"><input className={inputClass} inputMode="decimal" value={form.starting_price} onChange={(event) => setForm({ ...form, starting_price: event.target.value })} /></Field>
