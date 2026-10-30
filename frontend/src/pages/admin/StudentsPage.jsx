@@ -89,6 +89,15 @@ export function StudentsPage() {
   )
 }
 
+function savedStudent(record, courseId = '') {
+  return {
+    ...record,
+    course_id: record.course?.id || courseId || '',
+    phone: record.phone || '',
+    notes: record.notes || '',
+  }
+}
+
 export function StudentProfilePage() {
   const { id } = useParams()
   const { user } = useAuth()
@@ -97,10 +106,11 @@ export function StudentProfilePage() {
   const [courses, setCourses] = useState([])
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [phoneError, setPhoneError] = useState('')
 
   useEffect(() => {
     api.get(`/api/v1/admin/students/${id}`)
-      .then((response) => setStudent({ ...response.data.data, course_id: response.data.data.course?.id || '' }))
+      .then((response) => setStudent(savedStudent(response.data.data)))
       .catch((loadError) => setError(errorMessage(loadError, 'The student record could not be loaded.')))
   }, [id])
 
@@ -113,19 +123,31 @@ export function StudentProfilePage() {
     event.preventDefault()
     setError('')
     setMessage('')
+    setPhoneError('')
+    const phone = String(student.phone || '').trim()
+    if (phone && !ghanaE164(phone)) {
+      setPhoneError(GHANA_PHONE_ERROR)
+      setError(GHANA_PHONE_ERROR)
+      return
+    }
     try {
       await ensureCsrf()
-      await api.put(`/api/v1/admin/students/${id}`, {
+      const response = await api.put(`/api/v1/admin/students/${id}`, {
         name: student.name,
         email: student.email,
-        phone: student.phone,
+        phone: phone || null,
         status: student.status,
         course_id: student.course_id ? Number(student.course_id) : null,
         notes: student.notes,
         enrolled_on: student.enrolled_on,
       })
+      const saved = response.data?.data
+      if (saved) setStudent(savedStudent(saved, student.course_id))
       setMessage('Student record saved.')
     } catch (saveError) {
+      const messages = saveError?.response?.data?.errors?.phone
+      const phoneMessage = Array.isArray(messages) ? messages[0] : messages
+      if (phoneMessage) setPhoneError(String(phoneMessage))
       setError(errorMessage(saveError, 'The student record was not saved.'))
     }
   }
@@ -141,6 +163,21 @@ export function StudentProfilePage() {
       {error ? <Notice tone="error">{error}</Notice> : null}
       <Field label="Name"><input className={inputClass} value={student.name} disabled={!manageable} onChange={(event) => setStudent({ ...student, name: event.target.value })} /></Field>
       <Field label="Email"><input className={inputClass} value={student.email} disabled={!manageable} onChange={(event) => setStudent({ ...student, email: event.target.value })} /></Field>
+      <Field label="Phone" hint={GHANA_PHONE_HINT} error={phoneError}>
+        <input
+          className={inputClass}
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder={GHANA_PHONE_PLACEHOLDER}
+          value={student.phone || ''}
+          disabled={!manageable}
+          onChange={(event) => {
+            setPhoneError('')
+            setStudent({ ...student, phone: event.target.value })
+          }}
+        />
+      </Field>
       <Field label="Status"><select className={inputClass} value={student.status} disabled={!manageable} onChange={(event) => setStudent({ ...student, status: event.target.value })}><option value="waitlist">Waitlist</option><option value="active">Active</option><option value="completed">Completed</option><option value="withdrawn">Withdrawn</option></select></Field>
       <Field label="Course"><select className={inputClass} value={student.course_id || ''} disabled={!manageable} onChange={(event) => setStudent({ ...student, course_id: event.target.value })}><option value="">No course</option>{student.course && !courses.some((course) => course.id === student.course.id) ? <option value={student.course.id}>{student.course.title}</option> : null}{courses.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}</select></Field>
       <Field label="Internal notes"><textarea className={inputClass} value={student.notes || ''} disabled={!manageable} onChange={(event) => setStudent({ ...student, notes: event.target.value })} /></Field>
